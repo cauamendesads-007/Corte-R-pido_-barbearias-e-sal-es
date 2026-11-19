@@ -1,8 +1,12 @@
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 
+const isGitHubPages = process.env.GITHUB_PAGES === 'true';
+const repoName = 'Corte-R-pido_-barbearias-e-sal-es';
+
 export default defineConfig({
   plugins: [react()],
+  base: isGitHubPages ? `/${repoName}/` : '/',
   server: {
     port: 3000,
     open: true,

@@ -1,6 +1,15 @@
 /// <reference types="vite/client" />
 /// <reference types="@testing-library/jest-dom" />
 
+interface ImportMetaEnv {
+  readonly GITHUB_PAGES: string;
+  readonly VITE_GITHUB_PAGES: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+
 declare module '*.css' {
   const content: { [className: string]: string };
   export default content;
