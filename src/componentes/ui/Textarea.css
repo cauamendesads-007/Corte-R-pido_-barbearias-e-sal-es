@@ -1,0 +1,163 @@
+/**
+ * Estilos do componente Textarea
+ * Área de texto acessível com contador, auto-resize, estados
+ */
+
+.textarea {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+  width: 100%;
+}
+
+.textarea__label {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-1);
+  font-size: var(--tamanho-fonte-xs);
+  font-weight: 500;
+  color: var(--cor-texto);
+}
+
+.textarea__obrigatorio {
+  color: var(--cor-perigo);
+  font-size: var(--tamanho-fonte-sm);
+  line-height: 1;
+}
+
+.textarea__wrapper {
+  position: relative;
+  background-color: var(--cor-input-fundo);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-media);
+  transition: all var(--duracao-rapida) var(--easing-padrao);
+}
+
+.textarea__wrapper:focus-within {
+  border-color: var(--cor-foco);
+  box-shadow: 0 0 0 3px var(--cor-foco-transparente);
+}
+
+.textarea--erro .textarea__wrapper {
+  border-color: var(--cor-perigo);
+}
+
+.textarea--erro .textarea__wrapper:focus-within {
+  box-shadow: 0 0 0 3px var(--cor-perigo-transparente);
+}
+
+.textarea--desabilitado .textarea__wrapper {
+  background-color: var(--cor-input-desabilitado);
+  border-color: var(--cor-borda-desabilitado);
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.textarea__input {
+  width: 100%;
+  min-height: 100px;
+  padding: var(--espaco-3);
+  background: transparent;
+  border: none;
+  border-radius: var(--raio-media);
+  font-family: inherit;
+  font-size: var(--tamanho-fonte-base);
+  color: var(--cor-texto);
+  line-height: 1.5;
+  outline: none;
+  resize: vertical;
+  min-width: 0;
+}
+
+.textarea__input::placeholder {
+  color: var(--cor-placeholder);
+}
+
+.textarea__input:disabled {
+  cursor: not-allowed;
+}
+
+/* Auto-resize: remove scrollbar durante redimensionamento */
+.textarea__input[style*="height"] {
+  overflow-y: hidden;
+}
+
+/* Contador de caracteres */
+.textarea--com-contador .textarea__wrapper {
+  padding-bottom: 28px;
+}
+
+.textarea__contador {
+  position: absolute;
+  bottom: 6px;
+  right: 10px;
+  font-size: var(--tamanho-fonte-xs);
+  color: var(--cor-texto-terciario);
+  pointer-events: none;
+  transition: color var(--duracao-rapida) var(--easing-padrao);
+}
+
+.textarea__contador--excedido {
+  color: var(--cor-perigo);
+  font-weight: 600;
+}
+
+/* Erro e ajuda */
+.textarea__erro {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-1);
+  margin: 0;
+  font-size: var(--tamanho-fonte-xs);
+  color: var(--cor-perigo);
+  line-height: 1.4;
+}
+
+.textarea__erro svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.textarea__ajuda {
+  margin: 0;
+  font-size: var(--tamanho-fonte-xs);
+  color: var(--cor-texto-secundario);
+  line-height: 1.4;
+}
+
+/* Responsivo */
+@media (max-width: 480px) {
+  .textarea__input {
+    font-size: 16px; /* Evita zoom no iOS */
+    min-height: 100px;
+    padding: var(--espaco-3);
+  }
+
+  .textarea--com-contador .textarea__wrapper {
+    padding-bottom: 24px;
+  }
+
+  .textarea__contador {
+    bottom: 4px;
+    right: 8px;
+  }
+}
+
+/* Alto contraste */
+@media (prefers-contrast: high) {
+  .textarea__wrapper {
+    border-width: 2px;
+  }
+
+  .textarea__wrapper:focus-within {
+    box-shadow: 0 0 0 3px var(--cor-foco);
+  }
+}
+
+/* Reduz movimento */
+@media (prefers-reduced-motion: reduce) {
+  .textarea__wrapper {
+    transition: none;
+  }
+}

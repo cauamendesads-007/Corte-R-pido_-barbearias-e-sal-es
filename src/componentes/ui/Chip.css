@@ -1,0 +1,203 @@
+/**
+ * Estilos do componente Chip
+ * Tag/badge interativo para filtros, seleção, categorias
+ */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-1);
+  padding: var(--espaco-1) var(--espaco-3);
+  font-size: var(--tamanho-fonte-sm);
+  font-weight: 500;
+  line-height: 1.4;
+  border-radius: var(--raio-grande);
+  border: 1px solid transparent;
+  background-color: var(--cor-borda);
+  color: var(--cor-texto);
+  cursor: pointer;
+  transition: all var(--duracao-rapida) var(--easing-padrao);
+  white-space: nowrap;
+  min-height: 32px;
+}
+
+.chip:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--cor-foco-transparente);
+  border-color: var(--cor-foco);
+}
+
+.chip:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.chip--desabilitado {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Variante seleção (toggle) */
+.chip--selecao {
+  border-color: var(--cor-borda);
+}
+
+.chip--selecao.chip--selecionado {
+  background-color: var(--cor-primaria);
+  color: white;
+  border-color: var(--cor-primaria);
+}
+
+.chip--selecao:hover:not(.chip--selecionado):not(.chip--desabilitado) {
+  background-color: var(--cor-primaria-transparente);
+  border-color: var(--cor-primaria);
+  color: var(--cor-primaria);
+}
+
+/* Variante filtro */
+.chip--filtro {
+  background-color: var(--cor-input-fundo);
+  border-color: var(--cor-borda);
+}
+
+.chip--filtro.chip--selecionado {
+  background-color: var(--cor-primaria);
+  color: white;
+  border-color: var(--cor-primaria);
+}
+
+.chip--filtro:hover:not(.chip--selecionado):not(.chip--desabilitado) {
+  border-color: var(--cor-primaria);
+  background-color: var(--cor-primaria-transparente);
+}
+
+/* Variante status */
+.chip--status {
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+/* Variante nicho */
+.chip--nicho {
+  background-color: var(--cor-input-fundo);
+  border-color: var(--cor-borda);
+  font-size: var(--tamanho-fonte-xs);
+  padding: var(--espaco-1) var(--espaco-2);
+  min-height: 28px;
+}
+
+.chip--nicho.chip--selecionado {
+  background-color: var(--cor-primaria);
+  color: white;
+  border-color: var(--cor-primaria);
+}
+
+/* Ícone */
+.chip__icone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--tamanho-fonte-sm);
+  line-height: 1;
+}
+
+.chip__icone svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Botão remover */
+.chip--removivel {
+  padding-right: var(--espaco-1);
+}
+
+.chip__remover {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin-left: var(--espaco-1);
+  border: none;
+  background: transparent;
+  border-radius: 50%;
+  color: inherit;
+  opacity: 0.6;
+  cursor: pointer;
+  transition: all var(--duracao-rapida) var(--easing-padrao);
+}
+
+.chip__remover:hover {
+  opacity: 1;
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+}
+
+.chip__remover:focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: 1px;
+}
+
+.chip__remover svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Grupo de chips */
+.chip-grupo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+}
+
+.chip-grupo__label {
+  font-size: var(--tamanho-fonte-xs);
+  font-weight: 500;
+  color: var(--cor-texto-secundario);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.chip-grupo__opcoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+}
+
+/* Responsivo */
+@media (max-width: 480px) {
+  .chip {
+    font-size: var(--tamanho-fonte-xs);
+    padding: var(--espaco-1) var(--espaco-2);
+    min-height: 28px;
+  }
+
+  .chip-grupo__opcoes {
+    gap: var(--espaco-1);
+  }
+}
+
+/* Alto contraste */
+@media (prefers-contrast: high) {
+  .chip {
+    border-width: 2px;
+  }
+
+  .chip--selecao.chip--selecionado,
+  .chip--filtro.chip--selecionado,
+  .chip--nicho.chip--selecionado {
+    border-color: currentColor;
+  }
+
+  .chip__remover:hover {
+    background-color: currentColor;
+    color: var(--cor-modal-fundo);
+  }
+}
+
+/* Reduz movimento */
+@media (prefers-reduced-motion: reduce) {
+  .chip,
+  .chip__remover {
+    transition: none;
+  }
+}

@@ -1,0 +1,637 @@
+/**
+ * Estilos do componente Cartao
+ * Card reutilizável com variantes para estabelecimento, publicação, serviço, agendamento
+ */
+
+.cartao {
+  background-color: var(--cor-modal-fundo);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-grande);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow var(--duracao-rapida) var(--easing-padrao), border-color var(--duracao-rapida) var(--easing-padrao);
+}
+
+.cartao--clicavel {
+  cursor: pointer;
+}
+
+.cartao--clicavel:hover {
+  box-shadow: var(--sombra-media);
+  border-color: var(--cor-foco);
+}
+
+.cartao--clicavel:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--cor-foco-transparente), var(--sombra-media);
+}
+
+.cartao__cabecalho {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espaco-3);
+  padding: var(--espaco-4);
+  flex-shrink: 0;
+}
+
+.cartao__midia {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background-color: var(--cor-input-fundo);
+  flex-shrink: 0;
+}
+
+.cartao__midia img,
+.cartao__midia video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--duracao-media) var(--easing-padrao);
+}
+
+.cartao--clicavel:hover .cartao__midia img {
+  transform: scale(1.03);
+}
+
+.cartao__corpo {
+  padding: var(--espaco-4);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.cartao__rodape {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-3);
+  padding: var(--espaco-3) var(--espaco-4);
+  border-top: 1px solid var(--cor-borda);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+/* Badge/Tag */
+.cartao__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-1);
+  padding: var(--espaco-1) var(--espaco-2);
+  font-size: var(--tamanho-fonte-xs);
+  font-weight: 500;
+  border-radius: var(--raio-pequeno);
+  white-space: nowrap;
+  line-height: 1.3;
+}
+
+.cartao__badge--padrao {
+  background-color: var(--cor-borda);
+  color: var(--cor-texto);
+}
+
+.cartao__badge--primario {
+  background-color: var(--cor-primaria);
+  color: white;
+}
+
+.cartao__badge--sucesso {
+  background-color: var(--cor-sucesso-transparente);
+  color: var(--cor-sucesso);
+}
+
+.cartao__badge--aviso {
+  background-color: var(--cor-aviso-transparente);
+  color: var(--cor-aviso);
+}
+
+.cartao__badge--perigo {
+  background-color: var(--cor-perigo-transparente);
+  color: var(--cor-perigo);
+}
+
+/* ============================================================================
+ * CARTÃO ESTABELECIMENTO
+ * ============================================================================ */
+
+.cartao--estabelecimento .cartao__midia {
+  aspect-ratio: 16 / 9;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.cartao-estabelecimento__capa {
+  padding: var(--espaco-3);
+}
+
+.cartao-estabelecimento__nicho {
+  align-self: flex-start;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  font-weight: 600;
+}
+
+.cartao-estabelecimento__iniciais {
+  position: absolute;
+  top: var(--espaco-3);
+  left: var(--espaco-3);
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--tamanho-fonte-lg);
+  font-weight: 700;
+  box-shadow: var(--sombra-media);
+}
+
+.cartao-estabelecimento__fila {
+  position: absolute;
+  bottom: var(--espaco-3);
+  right: var(--espaco-3);
+  background-color: rgba(0, 0, 0, 0.75);
+  color: white;
+  font-weight: 500;
+  backdrop-filter: blur(4px);
+}
+
+.cartao-estabelecimento__corpo {
+  padding: var(--espaco-4);
+}
+
+.cartao-estabelecimento__info {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espaco-3);
+}
+
+.cartao-estabelecimento__avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--tamanho-fonte-lg);
+  font-weight: 700;
+  flex-shrink: 0;
+  box-shadow: var(--sombra-media);
+}
+
+.cartao-estabelecimento__textos {
+  flex: 1;
+  min-width: 0;
+}
+
+.cartao-estabelecimento__nome {
+  margin: 0 0 var(--espaco-1);
+  font-size: var(--tamanho-fonte-lg);
+  font-weight: 600;
+  color: var(--cor-texto);
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cartao-estabelecimento__meta {
+  margin: 0 0 var(--espaco-1);
+  font-size: var(--tamanho-fonte-sm);
+  color: var(--cor-texto-secundario);
+  line-height: 1.4;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-1);
+  align-items: center;
+}
+
+.cartao-estabelecimento__preco {
+  margin: 0;
+  font-size: var(--tamanho-fonte-base);
+  font-weight: 600;
+  color: var(--cor-primaria);
+}
+
+.cartao-estabelecimento__disponivel {
+  width: 100%;
+  justify-content: center;
+  margin-top: var(--espaco-2);
+  font-weight: 500;
+}
+
+/* ============================================================================
+ * CARTÃO PUBLICAÇÃO
+ * ============================================================================ */
+
+.cartao-publicacao__cabecalho {
+  padding: var(--espaco-3) var(--espaco-4);
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.cartao-publicacao__avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--tamanho-fonte-base);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.cartao-publicacao__estabelecimento {
+  flex: 1;
+  min-width: 0;
+}
+
+.cartao-publicacao__nome-link {
+  font-size: var(--tamanho-fonte-sm);
+  font-weight: 600;
+  color: var(--cor-texto);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  text-decoration: none;
+}
+
+.cartao-publicacao__nome-link:hover {
+  text-decoration: underline;
+}
+
+.cartao-publicacao__meta {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--tamanho-fonte-xs);
+  color: var(--cor-texto-secundario);
+}
+
+.cartao-publicacao__midia {
+  aspect-ratio: 4 / 3;
+}
+
+.cartao-publicacao__placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.cartao-publicacao__tag {
+  position: absolute;
+  top: var(--espaco-3);
+  right: var(--espaco-3);
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  font-weight: 500;
+}
+
+.cartao-publicacao__corpo {
+  padding: var(--espaco-4);
+}
+
+.cartao-publicacao__titulo {
+  margin: 0 0 var(--espaco-2);
+  font-size: var(--tamanho-fonte-lg);
+  font-weight: 600;
+  color: var(--cor-texto);
+  line-height: 1.3;
+}
+
+.cartao-publicacao__preco-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--espaco-2);
+  font-size: var(--tamanho-fonte-sm);
+  color: var(--cor-texto-secundario);
+}
+
+.cartao-publicacao__preco {
+  font-weight: 600;
+  color: var(--cor-primaria);
+}
+
+.cartao-publicacao__avaliacao {
+  font-weight: 500;
+}
+
+.cartao-publicacao__legenda {
+  margin: 0;
+  font-size: var(--tamanho-fonte-sm);
+  color: var(--cor-texto);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.cartao-publicacao__rodape {
+  padding: var(--espaco-3) var(--espaco-4);
+  border-top: 1px solid var(--cor-borda);
+}
+
+.cartao-publicacao__acoes {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-1);
+  margin-bottom: var(--espaco-2);
+}
+
+.cartao-publicacao__contador {
+  font-size: var(--tamanho-fonte-sm);
+  color: var(--cor-texto-secundario);
+  min-width: 1.5em;
+  text-align: left;
+}
+
+.cartao-publicacao__comentarios {
+  font-size: var(--tamanho-fonte-sm);
+  color: var(--cor-texto-secundario);
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-1);
+  margin-left: auto;
+}
+
+.cartao-publicacao__acoes-principais {
+  display: flex;
+  gap: var(--espaco-2);
+  width: 100%;
+}
+
+.cartao-publicacao__ver,
+.cartao-publicacao__agendar {
+  flex: 1;
+}
+
+/* ============================================================================
+ * CARTÃO SERVIÇO
+ * ============================================================================ */
+
+.cartao-servico__corpo {
+  padding: var(--espaco-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+}
+
+.cartao-servico__linha {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+  cursor: pointer;
+}
+
+.cartao-servico__checkbox {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--cor-primaria);
+  flex-shrink: 0;
+}
+
+.cartao-servico__nome {
+  flex: 1;
+  font-size: var(--tamanho-fonte-base);
+  font-weight: 500;
+  color: var(--cor-texto);
+}
+
+.cartao-servico__tag {
+  font-size: var(--tamanho-fonte-xs);
+  font-weight: 500;
+}
+
+.cartao-servico__detalhes {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: var(--espaco-1);
+  border-top: 1px solid var(--cor-borda);
+}
+
+.cartao-servico__duracao {
+  font-size: var(--tamanho-fonte-sm);
+  color: var(--cor-texto-secundario);
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-1);
+}
+
+.cartao-servico__preco {
+  font-size: var(--tamanho-fonte-lg);
+  font-weight: 600;
+  color: var(--cor-primaria);
+}
+
+.cartao-servico__midias {
+  display: flex;
+  gap: var(--espaco-2);
+  overflow-x: auto;
+  padding-bottom: var(--espaco-1);
+}
+
+.cartao-servico__midia-wrapper {
+  position: relative;
+  flex-shrink: 0;
+  width: 80px;
+  height: 80px;
+  border-radius: var(--raio-media);
+  overflow: hidden;
+  background-color: var(--cor-input-fundo);
+}
+
+.cartao-servico__midia-wrapper img,
+.cartao-servico__midia-wrapper video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cartao-servico__remover-midia {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--duracao-rapida) var(--easing-padrao);
+}
+
+.cartao-servico__midia-wrapper:hover .cartao-servico__remover-midia {
+  opacity: 1;
+}
+
+.cartao-servico__remover-midia svg {
+  width: 14px;
+  height: 14px;
+}
+
+.cartao-servico__add-midia {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espaco-2);
+  padding: var(--espaco-3);
+  border: 2px dashed var(--cor-borda);
+  border-radius: var(--raio-media);
+  font-size: var(--tamanho-fonte-sm);
+  color: var(--cor-texto-secundario);
+  cursor: pointer;
+  transition: all var(--duracao-rapida) var(--easing-padrao);
+}
+
+.cartao-servico__add-midia:hover {
+  border-color: var(--cor-primaria);
+  color: var(--cor-primaria);
+  background-color: var(--cor-primaria-transparente);
+}
+
+.cartao-servico__acoes {
+  display: flex;
+  gap: var(--espaco-1);
+  justify-content: flex-end;
+  padding-top: var(--espaco-2);
+  border-top: 1px solid var(--cor-borda);
+}
+
+/* ============================================================================
+ * CARTÃO AGENDAMENTO
+ * ============================================================================ */
+
+.cartao-agendamento__corpo {
+  padding: var(--espaco-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+}
+
+.cartao-agendamento__cabecalho {
+  flex: 1;
+}
+
+.cartao-agendamento__servico {
+  display: block;
+  font-size: var(--tamanho-fonte-base);
+  font-weight: 600;
+  color: var(--cor-texto);
+  margin-bottom: var(--espaco-1);
+}
+
+.cartao-agendamento__estabelecimento {
+  display: block;
+  font-size: var(--tamanho-fonte-sm);
+  color: var(--cor-texto-secundario);
+  margin-bottom: var(--espaco-2);
+}
+
+.cartao-agendamento__status {
+  font-weight: 500;
+}
+
+.cartao-agendamento__acoes,
+.cartao-agendamento__reagendar,
+.cartao-agendamento__acoes-barbeiro {
+  display: flex;
+  gap: var(--espaco-2);
+  justify-content: flex-end;
+  width: 100%;
+}
+
+.cartao-agendamento__acoes .botao,
+.cartao-agendamento__reagendar .botao,
+.cartao-agendamento__acoes-barbeiro .botao {
+  flex: 1;
+}
+
+/* Responsivo */
+@media (max-width: 480px) {
+  .cartao-estabelecimento__info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--espaco-2);
+  }
+
+  .cartao-estabelecimento__avatar {
+    width: 40px;
+    height: 40px;
+    font-size: var(--tamanho-fonte-base);
+  }
+
+  .cartao-publicacao__cabecalho {
+    padding: var(--espaco-3);
+  }
+
+  .cartao-publicacao__corpo,
+  .cartao-publicacao__rodape {
+    padding: var(--espaco-3);
+  }
+
+  .cartao-publicacao__acoes-principais {
+    flex-direction: column;
+  }
+
+  .cartao-servico__midias {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .cartao-agendamento__acoes,
+  .cartao-agendamento__reagendar,
+  .cartao-agendamento__acoes-barbeiro {
+    flex-direction: column;
+  }
+
+  .cartao-agendamento__acoes .botao,
+  .cartao-agendamento__reagendar .botao,
+  .cartao-agendamento__acoes-barbeiro .botao {
+    width: 100%;
+  }
+}
+
+/* Alto contraste */
+@media (prefers-contrast: high) {
+  .cartao {
+    border-width: 2px;
+  }
+
+  .cartao__midia,
+  .cartao-servico__midia-wrapper {
+    border: 2px solid var(--cor-texto);
+  }
+
+  .cartao__rodape,
+  .cartao-publicacao__cabecalho,
+  .cartao-servico__detalhes,
+  .cartao-servico__acoes {
+    border-width: 2px;
+  }
+}
+
+/* Reduz movimento */
+@media (prefers-reduced-motion: reduce) {
+  .cartao,
+  .cartao__midia img,
+  .cartao-servico__add-midia,
+  .cartao-servico__remover-midia {
+    transition: none;
+  }
+}

@@ -1,0 +1,213 @@
+/**
+ * Estilos do componente Botao
+ * Usa variáveis CSS do design system para consistência
+ */
+
+.botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espaco-2);
+  border: none;
+  border-radius: var(--raio-completo);
+  font-family: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all var(--duracao-rapida) var(--easing-padrao);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Tamanhos */
+.botao--pequeno {
+  padding: var(--espaco-2) var(--espaco-3);
+  font-size: var(--tamanho-fonte-xs);
+  min-height: 36px;
+  min-width: 36px;
+}
+
+.botao--medio {
+  padding: var(--espaco-2) var(--espaco-4);
+  font-size: var(--tamanho-fonte-sm);
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.botao--grande {
+  padding: var(--espaco-3) var(--espaco-6);
+  font-size: var(--tamanho-fonte-base);
+  min-height: 52px;
+  min-width: 52px;
+}
+
+/* Variantes */
+.botao--primario {
+  background-color: var(--cor-primaria);
+  color: var(--cor-primaria-contraste);
+}
+
+.botao--primario:hover:not(:disabled) {
+  background-color: var(--cor-primaria-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--sombra-media);
+}
+
+.botao--primario:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.botao--secundario {
+  background-color: var(--cor-secundaria-fundo);
+  color: var(--cor-texto);
+  border: 1px solid var(--cor-borda);
+}
+
+.botao--secundario:hover:not(:disabled) {
+  background-color: var(--cor-secundaria-hover);
+  border-color: var(--cor-borda-hover);
+}
+
+.botao--perigo {
+  background-color: transparent;
+  color: var(--cor-perigo);
+  border: 1px solid var(--cor-perigo);
+}
+
+.botao--perigo:hover:not(:disabled) {
+  background-color: var(--cor-perigo);
+  color: var(--cor-perigo-contraste);
+}
+
+.botao--fantasma {
+  background-color: transparent;
+  color: var(--cor-texto);
+}
+
+.botao--fantasma:hover:not(:disabled) {
+  background-color: var(--cor-fantasma-hover);
+}
+
+/* Botão apenas ícone */
+.botao--icone-only {
+  padding: var(--espaco-2);
+  border-radius: var(--raio-completo);
+}
+
+.botao--pequeno.botao--icone-only {
+  min-width: 36px;
+  min-height: 36px;
+}
+
+.botao--medio.botao--icone-only {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.botao--grande.botao--icone-only {
+  min-width: 52px;
+  min-height: 52px;
+}
+
+/* Estados */
+.botao:focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+.botao--desabilitado,
+.botao:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.botao--carregando {
+  pointer-events: none;
+}
+
+.botao__spinner {
+  display: inline-flex;
+  animation: girar 1s linear infinite;
+}
+
+@keyframes girar {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Ícones */
+.botao__icone {
+  display: inline-flex;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.botao__icone svg {
+  width: 1em;
+  height: 1em;
+}
+
+/* Largura total (block) */
+.botao--largura-total {
+  width: 100%;
+}
+
+/* Grupo de botões */
+.botao-grupo {
+  display: inline-flex;
+  gap: var(--espaco-2);
+}
+
+.botao-grupo .botao:not(:first-child):not(:last-child) {
+  border-radius: 0;
+}
+
+.botao-grupo .botao:first-child {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.botao-grupo .botao:last-child {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+/* Responsivo */
+@media (max-width: 480px) {
+  .botao--medio {
+    padding: var(--espaco-2) var(--espaco-3);
+    font-size: var(--tamanho-fonte-xs);
+  }
+
+  .botao--grande {
+    padding: var(--espaco-3) var(--espaco-4);
+    font-size: var(--tamanho-fonte-sm);
+  }
+}
+
+/* Alto contraste */
+@media (prefers-contrast: high) {
+  .botao--primario {
+    border: 2px solid currentColor;
+  }
+
+  .botao--secundario {
+    border-width: 2px;
+  }
+
+  .botao--fantasma {
+    border: 1px solid currentColor;
+  }
+}
+
+/* Reduz movimento */
+@media (prefers-reduced-motion: reduce) {
+  .botao,
+  .botao__spinner {
+    transition: none;
+    animation: none;
+  }
+}

@@ -1,0 +1,325 @@
+/**
+ * Estilos do componente Container e utilitários de layout
+ * Container, Secao, Grid, Stack, Divisor, Espacador, Centralizador
+ */
+
+/* ============================================================================
+ * CONTAINER
+ * ============================================================================ */
+
+.container {
+  width: 100%;
+  max-width: var(--largura-maxima);
+  margin: 0 auto;
+  padding: 0 var(--espaco-4);
+  box-sizing: border-box;
+}
+
+/* Variantes */
+.container--padrao {
+  padding-top: calc(var(--altura-cabecalho) + var(--espaco-6));
+  padding-bottom: calc(var(--altura-bottom-nav) + var(--espaco-6) + env(safe-area-inset-bottom, 0));
+  min-height: 100vh;
+}
+
+.container--estreito {
+  max-width: 640px;
+  padding-top: calc(var(--altura-cabecalho) + var(--espaco-6));
+  padding-bottom: calc(var(--altura-bottom-nav) + var(--espaco-6) + env(safe-area-inset-bottom, 0));
+  min-height: 100vh;
+}
+
+.container--largo {
+  max-width: 1280px;
+  padding-top: calc(var(--altura-cabecalho) + var(--espaco-6));
+  padding-bottom: calc(var(--altura-bottom-nav) + var(--espaco-6) + env(safe-area-inset-bottom, 0));
+  min-height: 100vh;
+}
+
+.container--tela-cheia {
+  max-width: 100%;
+  padding: 0;
+  min-height: 100vh;
+}
+
+.container--com-cabecalho {
+  padding-top: calc(var(--altura-cabecalho) + var(--espaco-6));
+  padding-bottom: var(--espaco-6);
+  min-height: 100vh;
+}
+
+.container--com-bottom-nav {
+  padding-top: var(--espaco-6);
+  padding-bottom: calc(var(--altura-bottom-nav) + var(--espaco-6) + env(safe-area-inset-bottom, 0));
+  min-height: 100vh;
+}
+
+.container--com-dois-paineis {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--espaco-4);
+  padding-top: calc(var(--altura-cabecalho) + var(--espaco-4));
+  padding-bottom: calc(var(--altura-bottom-nav) + var(--espaco-4) + env(safe-area-inset-bottom, 0));
+  min-height: 100vh;
+}
+
+/* ============================================================================
+ * SEÇÃO
+ * ============================================================================ */
+
+.secao {
+  padding: var(--espaco-6) 0;
+}
+
+.secao--primeira {
+  padding-top: 0;
+}
+
+.secao--ultima {
+  padding-bottom: 0;
+}
+
+/* ============================================================================
+ * GRID
+ * ============================================================================ */
+
+.grid {
+  display: grid;
+  gap: var(--grid-gap, var(--espaco-4));
+}
+
+.grid--gap-pequeno { --grid-gap: var(--espaco-2); }
+.grid--gap-medio { --grid-gap: var(--espaco-4); }
+.grid--gap-grande { --grid-gap: var(--espaco-6); }
+.grid--gap-none { --grid-gap: 0; }
+
+.grid__item {
+  min-width: 0;
+}
+
+/* Breakpoints responsivos para grid */
+@media (min-width: 480px) {
+  .grid--2@mobile { grid-template-columns: repeat(2, 1fr); }
+  .grid--3@mobile { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (min-width: 768px) {
+  .grid--2@tablet { grid-template-columns: repeat(2, 1fr); }
+  .grid--3@tablet { grid-template-columns: repeat(3, 1fr); }
+  .grid--4@tablet { grid-template-columns: repeat(4, 1fr); }
+}
+
+@media (min-width: 1024px) {
+  .grid--2@desktop { grid-template-columns: repeat(2, 1fr); }
+  .grid--3@desktop { grid-template-columns: repeat(3, 1fr); }
+  .grid--4@desktop { grid-template-columns: repeat(4, 1fr); }
+  .grid--5@desktop { grid-template-columns: repeat(5, 1fr); }
+  .grid--6@desktop { grid-template-columns: repeat(6, 1fr); }
+}
+
+/* ============================================================================
+ * STACK
+ * ============================================================================ */
+
+.stack {
+  display: flex;
+  gap: var(--stack-gap, var(--espaco-4));
+}
+
+.stack--vertical {
+  flex-direction: column;
+}
+
+.stack--horizontal {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.stack--gap-pequeno { --stack-gap: var(--espaco-2); }
+.stack--gap-medio { --stack-gap: var(--espaco-4); }
+.stack--gap-grande { --stack-gap: var(--espaco-6); }
+.stack--gap-none { --stack-gap: 0; }
+
+.stack--align-inicio { align-items: flex-start; }
+.stack--align-centro { align-items: center; }
+.stack--align-fim { align-items: flex-end; }
+.stack--align-esticar { align-items: stretch; }
+
+/* ============================================================================
+ * DIVISOR
+ * ============================================================================ */
+
+.divisor {
+  border: none;
+  border-top: 1px solid var(--cor-borda);
+  margin: var(--espaco-4) 0;
+}
+
+.divisor--espacado {
+  margin: var(--espaco-6) 0;
+}
+
+.divisor--vertical {
+  width: 1px;
+  height: 100%;
+  border-top: none;
+  border-left: 1px solid var(--cor-borda);
+  margin: 0 var(--espaco-4);
+}
+
+/* ============================================================================
+ * ESPAÇADOR
+ * ============================================================================ */
+
+.espacador {
+  width: 100%;
+}
+
+.espacador--pequeno { height: var(--espaco-2); }
+.espacador--medio { height: var(--espaco-4); }
+.espacador--grande { height: var(--espaco-6); }
+.espacador--xl { height: var(--espaco-8); }
+
+/* ============================================================================
+ * CENTRALIZADOR
+ * ============================================================================ */
+
+.centralizador {
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 var(--espaco-4);
+  box-sizing: border-box;
+}
+
+/* ============================================================================
+ * LAYOUT DE DOIS PAINÉIS (Sidebar + Conteúdo)
+ * ============================================================================ */
+
+@media (min-width: 1024px) {
+  .container--com-dois-paineis {
+    grid-template-columns: 280px 1fr;
+    align-items: start;
+  }
+
+  .painel-lateral {
+    position: sticky;
+    top: calc(var(--altura-cabecalho) + var(--espaco-4));
+    height: fit-content;
+    max-height: calc(100vh - var(--altura-cabecalho) - var(--espaco-8));
+    overflow-y: auto;
+    padding-right: var(--espaco-4);
+    border-right: 1px solid var(--cor-borda);
+  }
+
+  .painel-conteudo {
+    min-width: 0;
+  }
+}
+
+/* Sidebar colapsável no mobile */
+.painel-lateral-mobile {
+  position: fixed;
+  top: var(--altura-cabecalho);
+  left: 0;
+  bottom: 0;
+  width: 280px;
+  max-width: 85vw;
+  background: var(--cor-modal-fundo);
+  border-right: 1px solid var(--cor-borda);
+  box-shadow: var(--sombra-grande);
+  z-index: var(--z-drawer);
+  transform: translateX(-100%);
+  transition: transform var(--duracao-media) var(--easing-padrao);
+  overflow-y: auto;
+  padding: var(--espaco-4);
+}
+
+.painel-lateral-mobile--aberto {
+  transform: translateX(0);
+}
+
+.painel-lateral-backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--cor-backdrop);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--duracao-media), visibility var(--duracao-media);
+  z-index: var(--z-drawer-backdrop);
+}
+
+.painel-lateral-backdrop--visivel {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* ============================================================================
+ * RESPONSIVO
+ * ============================================================================ */
+
+@media (max-width: 768px) {
+  .container--padrao,
+  .container--estreito,
+  .container--largo,
+  .container--com-cabecalho,
+  .container--com-bottom-nav {
+    padding-left: var(--espaco-3);
+    padding-right: var(--espaco-3);
+  }
+
+  .secao {
+    padding: var(--espaco-4) 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .container--padrao,
+  .container--estreito,
+  .container--largo,
+  .container--com-cabecalho,
+  .container--com-bottom-nav {
+    padding-left: var(--espaco-2);
+    padding-right: var(--espaco-2);
+  }
+
+  .stack--horizontal {
+    flex-direction: column;
+  }
+
+  .stack--horizontal > * {
+    width: 100%;
+  }
+}
+
+/* ============================================================================
+ * ALTO CONTRASTE
+ * ============================================================================ */
+
+@media (prefers-contrast: high) {
+  .divisor {
+    border-top-width: 2px;
+  }
+
+  .divisor--vertical {
+    border-left-width: 2px;
+  }
+
+  .painel-lateral {
+    border-right-width: 2px;
+  }
+
+  .painel-lateral-mobile {
+    border-right-width: 2px;
+  }
+}
+
+/* ============================================================================
+ * REDUZ MOVIMENTO
+ * ============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .painel-lateral-mobile,
+  .painel-lateral-backdrop {
+    transition: none;
+  }
+}

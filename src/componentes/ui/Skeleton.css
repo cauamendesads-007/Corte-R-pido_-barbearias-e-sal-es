@@ -1,0 +1,401 @@
+/**
+ * Estilos do componente Skeleton
+ * Placeholders de carregamento com animação shimmer/pulse
+ */
+
+.skeleton {
+  background-color: var(--cor-skeleton-fundo);
+  border-radius: var(--raio-media);
+  overflow: hidden;
+  position: relative;
+}
+
+/* Animação shimmer (padrão) */
+.skeleton--shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--cor-skeleton-destaque),
+    transparent
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-200%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+/* Animação pulse (alternativa) */
+.skeleton--pulse {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Sem animação */
+.skeleton--none::after {
+  display: none;
+}
+
+.skeleton--none {
+  animation: none;
+}
+
+/* Variantes base */
+.skeleton--circular {
+  border-radius: 50%;
+}
+
+.skeleton--retangular {
+  border-radius: var(--raio-media);
+}
+
+/* Texto multilinha */
+.skeleton__linha {
+  height: 1rem;
+  border-radius: var(--raio-pequeno);
+  margin-bottom: var(--espaco-2);
+  background-color: var(--cor-skeleton-fundo);
+}
+
+.skeleton__linha:last-child {
+  margin-bottom: 0;
+}
+
+.skeleton__linha--curta { width: 40%; }
+.skeleton__linha--media { width: 65%; }
+.skeleton__linha--larga { width: 90%; }
+
+/* Avatar skeleton */
+.skeleton__avatar {
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.skeleton__avatar--pequeno { width: 32px; height: 32px; }
+.skeleton__avatar--medio { width: 44px; height: 44px; }
+.skeleton__avatar--grande { width: 64px; height: 64px; }
+.skeleton__avatar--xl { width: 96px; height: 96px; }
+
+/* Badge skeleton */
+.skeleton__badge {
+  height: 24px;
+  border-radius: var(--raio-grande);
+  background-color: var(--cor-skeleton-fundo);
+}
+
+/* Botão skeleton */
+.skeleton__botao {
+  border-radius: var(--raio-media);
+}
+
+/* Input skeleton */
+.skeleton__input {
+  border-radius: var(--raio-media);
+}
+
+/* ============================================================================
+ * CARTÃO SKELETON
+ * ============================================================================ */
+
+.skeleton--cartao {
+  border-radius: var(--raio-grande);
+  border: 1px solid var(--cor-borda);
+  background-color: var(--cor-modal-fundo);
+  overflow: hidden;
+}
+
+.skeleton__cartao-capa {
+  aspect-ratio: 16 / 10;
+  background-color: var(--cor-skeleton-fundo);
+}
+
+.skeleton__cartao-corpo {
+  padding: var(--espaco-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+}
+
+/* ============================================================================
+ * LISTA SKELETON
+ * ============================================================================ */
+
+.skeleton--lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+}
+
+.skeleton__item-lista {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espaco-3);
+  padding: var(--espaco-3);
+  background-color: var(--cor-modal-fundo);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-grande);
+}
+
+.skeleton__item-conteudo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+  min-width: 0;
+}
+
+/* ============================================================================
+ * FEED SKELETON
+ * ============================================================================ */
+
+.skeleton--feed {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+}
+
+.skeleton__feed-item {
+  background-color: var(--cor-modal-fundo);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-grande);
+  overflow: hidden;
+}
+
+.skeleton__feed-cabecalho {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+  padding: var(--espaco-3) var(--espaco-4);
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.skeleton__feed-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+  min-width: 0;
+}
+
+.skeleton__feed-midia {
+  aspect-ratio: 4 / 3;
+  background-color: var(--cor-skeleton-fundo);
+}
+
+.skeleton__feed-corpo {
+  padding: var(--espaco-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+}
+
+.skeleton__feed-rodape {
+  display: flex;
+  gap: var(--espaco-2);
+  padding: var(--espaco-3) var(--espaco-4);
+  border-top: 1px solid var(--cor-borda);
+}
+
+/* ============================================================================
+ * PUBLICAÇÃO SKELETON
+ * ============================================================================ */
+
+.skeleton--publicacao {
+  background-color: var(--cor-modal-fundo);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-grande);
+  overflow: hidden;
+}
+
+.skeleton__publicacao-cabecalho {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+  padding: var(--espaco-3) var(--espaco-4);
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.skeleton__publicacao-midia {
+  aspect-ratio: 4 / 3;
+  background-color: var(--cor-skeleton-fundo);
+}
+
+.skeleton__publicacao-corpo {
+  padding: var(--espaco-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+}
+
+.skeleton__publicacao-rodape {
+  display: flex;
+  gap: var(--espaco-2);
+  padding: var(--espaco-3) var(--espaco-4);
+  border-top: 1px solid var(--cor-borda);
+}
+
+/* ============================================================================
+ * ESTABELECIMENTO SKELETON
+ * ============================================================================ */
+
+.skeleton--estabelecimento {
+  border-radius: var(--raio-grande);
+  border: 1px solid var(--cor-borda);
+  background-color: var(--cor-modal-fundo);
+  overflow: hidden;
+}
+
+.skeleton__estabelecimento-capa {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background-color: var(--cor-skeleton-fundo);
+}
+
+.skeleton__estabelecimento-corpo {
+  padding: var(--espaco-4);
+}
+
+.skeleton__estabelecimento-info {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espaco-3);
+}
+
+.skeleton__estabelecimento-info > div:last-child {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+}
+
+/* ============================================================================
+ * AGENDAMENTO SKELETON
+ * ============================================================================ */
+
+.skeleton--agendamento {
+  background-color: var(--cor-modal-fundo);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-grande);
+  padding: var(--espaco-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+}
+
+.skeleton__agendamento-cabecalho {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+}
+
+.skeleton__agendamento-rodape {
+  display: flex;
+  gap: var(--espaco-2);
+  justify-content: flex-end;
+}
+
+/* Grid */
+.skeleton-grid {
+  width: 100%;
+}
+
+/* Responsivo */
+@media (max-width: 480px) {
+  .skeleton__item-lista {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--espaco-2);
+  }
+
+  .skeleton__feed-cabecalho {
+    padding: var(--espaco-3);
+  }
+
+  .skeleton__feed-corpo {
+    padding: var(--espaco-3);
+  }
+
+  .skeleton__feed-rodape {
+    padding: var(--espaco-3);
+  }
+
+  .skeleton__publicacao-cabecalho {
+    padding: var(--espaco-3);
+  }
+
+  .skeleton__publicacao-corpo {
+    padding: var(--espaco-3);
+  }
+
+  .skeleton__publicacao-rodape {
+    padding: var(--espaco-3);
+  }
+
+  .skeleton__estabelecimento-corpo {
+    padding: var(--espaco-3);
+  }
+
+  .skeleton__agendamento-cabecalho,
+  .skeleton__agendamento-rodape {
+    padding: 0 var(--espaco-1);
+  }
+}
+
+/* Alto contraste */
+@media (prefers-contrast: high) {
+  .skeleton {
+    border: 2px solid var(--cor-texto);
+    background-color: var(--cor-modal-fundo);
+  }
+
+  .skeleton--shimmer::after {
+    display: none;
+  }
+
+  .skeleton--cartao,
+  .skeleton__item-lista,
+  .skeleton__feed-item,
+  .skeleton--publicacao,
+  .skeleton--estabelecimento,
+  .skeleton--agendamento {
+    border-width: 2px;
+  }
+
+  .skeleton__linha,
+  .skeleton__avatar,
+  .skeleton__badge,
+  .skeleton__botao,
+  .skeleton__input {
+    background-color: var(--cor-borda);
+    border: 1px solid var(--cor-texto);
+  }
+}
+
+/* Reduz movimento */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton--shimmer::after,
+  .skeleton--pulse {
+    animation: none;
+  }
+
+  .skeleton--shimmer {
+    background-color: var(--cor-skeleton-destaque);
+  }
+}

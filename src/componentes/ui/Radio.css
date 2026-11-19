@@ -1,0 +1,325 @@
+/**
+ * Estilos do componente Radio
+ * Radio button acessível, grupo, card clicável
+ */
+
+.radio {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: var(--espaco-2);
+  cursor: pointer;
+  min-height: 24px;
+}
+
+.radio--desabilitado {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Input nativo oculto */
+.radio__input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.radio__input:focus-visible + .radio__circulo {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+/* Círculo customizado */
+.radio__circulo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  border: 2px solid var(--cor-borda);
+  border-radius: 50%;
+  background-color: var(--cor-input-fundo);
+  transition: all var(--duracao-rapida) var(--easing-padrao);
+}
+
+.radio__input:checked + .radio__circulo {
+  border-color: var(--cor-primaria);
+}
+
+.radio__input:checked:focus-visible + .radio__circulo {
+  box-shadow: 0 0 0 3px var(--cor-foco-transparente);
+}
+
+.radio__input + .radio__circulo:hover:not(.radio--desabilitado) {
+  border-color: var(--cor-primaria);
+}
+
+.radio__ponto {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--cor-primaria);
+  transform: scale(0);
+  transition: transform var(--duracao-rapida) var(--easing-padrao);
+}
+
+.radio__input:checked + .radio__circulo .radio__ponto {
+  transform: scale(1);
+}
+
+/* Label */
+.radio__label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  cursor: pointer;
+  line-height: 1.4;
+  user-select: none;
+}
+
+.radio__texto {
+  font-size: var(--tamanho-fonte-sm);
+  color: var(--cor-texto);
+  font-weight: 500;
+}
+
+.radio__descricao {
+  font-size: var(--tamanho-fonte-xs);
+  color: var(--cor-texto-secundario);
+  font-weight: 400;
+}
+
+/* Grupo */
+.radio-grupo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.radio-grupo--horizontal {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: var(--espaco-4);
+}
+
+.radio-grupo__label {
+  font-size: var(--tamanho-fonte-sm);
+  font-weight: 600;
+  color: var(--cor-texto);
+  margin-bottom: var(--espaco-1);
+  padding-left: 2px;
+}
+
+.radio-grupo__opcoes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+}
+
+.radio-grupo--horizontal .radio-grupo__opcoes {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+/* ============================================================================
+ * RADIO CARD
+ * ============================================================================ */
+
+.radio-card {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espaco-3);
+  padding: var(--espaco-4);
+  background-color: var(--cor-modal-fundo);
+  border: 2px solid var(--cor-borda);
+  border-radius: var(--raio-grande);
+  cursor: pointer;
+  transition: all var(--duracao-rapida) var(--easing-padrao);
+  min-height: 64px;
+}
+
+.radio-card:hover:not(.radio-card--desabilitado) {
+  border-color: var(--cor-primaria);
+  box-shadow: var(--sombra-pequena);
+}
+
+.radio-card:focus-visible {
+  outline: none;
+  border-color: var(--cor-foco);
+  box-shadow: 0 0 0 3px var(--cor-foco-transparente), var(--sombra-pequena);
+}
+
+.radio-card--verificado {
+  border-color: var(--cor-primaria);
+  background-color: var(--cor-primaria-transparente);
+}
+
+.radio-card--verificado:hover:not(.radio-card--desabilitado) {
+  box-shadow: var(--sombra-media);
+}
+
+.radio-card--desabilitado {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.radio-card__input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.radio-card__indicador {
+  display: flex;
+  align-items: flex-start;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.radio-card__circulo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--cor-borda);
+  border-radius: 50%;
+  background-color: var(--cor-modal-fundo);
+  transition: all var(--duracao-rapida) var(--easing-padrao);
+}
+
+.radio-card--verificado .radio-card__circulo {
+  border-color: var(--cor-primaria);
+}
+
+.radio-card__ponto {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: var(--cor-primaria);
+  transform: scale(0);
+  transition: transform var(--duracao-rapida) var(--easing-padrao);
+}
+
+.radio-card--verificado .radio-card__ponto {
+  transform: scale(1);
+}
+
+.radio-card__conteudo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+  min-width: 0;
+}
+
+.radio-card__label {
+  font-size: var(--tamanho-fonte-base);
+  font-weight: 600;
+  color: var(--cor-texto);
+  line-height: 1.3;
+}
+
+.radio-card__descricao {
+  font-size: var(--tamanho-fonte-sm);
+  color: var(--cor-texto-secundario);
+  line-height: 1.4;
+}
+
+/* Grupo de RadioCards */
+.radio-card-grupo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.radio-card-grupo__label {
+  font-size: var(--tamanho-fonte-sm);
+  font-weight: 600;
+  color: var(--cor-texto);
+  margin-bottom: var(--espaco-1);
+}
+
+.radio-card-grupo__grid {
+  display: grid;
+  gap: var(--espaco-3);
+}
+
+/* Responsivo */
+@media (max-width: 480px) {
+  .radio__circulo {
+    width: 22px;
+    height: 22px;
+  }
+
+  .radio__ponto {
+    width: 10px;
+    height: 10px;
+  }
+
+  .radio__texto {
+    font-size: var(--tamanho-fonte-base);
+  }
+
+  .radio-card {
+    padding: var(--espaco-3);
+    gap: var(--espaco-2);
+  }
+
+  .radio-card__circulo {
+    width: 24px;
+    height: 24px;
+  }
+
+  .radio-card__ponto {
+    width: 12px;
+    height: 12px;
+  }
+
+  .radio-card-grupo__grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Alto contraste */
+@media (prefers-contrast: high) {
+  .radio__circulo,
+  .radio-card__circulo {
+    border-width: 3px;
+  }
+
+  .radio__input:focus-visible + .radio__circulo,
+  .radio-card:focus-visible {
+    outline-width: 3px;
+  }
+
+  .radio-card {
+    border-width: 3px;
+  }
+
+  .radio-card--verificado {
+    border-width: 3px;
+  }
+}
+
+/* Reduz movimento */
+@media (prefers-reduced-motion: reduce) {
+  .radio__circulo,
+  .radio__ponto,
+  .radio-card,
+  .radio-card__circulo,
+  .radio-card__ponto {
+    transition: none;
+  }
+}
