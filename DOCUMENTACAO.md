@@ -2,7 +2,7 @@
 
 ---
 
-## 1. Roteiro de Melhorias de Design (Linguagem Simples)
+## 1. Roteiro de Melhorias de Design 
 
 ### O que melhorar no visual e na experiência do usuário
 
@@ -34,7 +34,8 @@
 
 #### **Acessibilidade (WCAG AA)**
 - **Navegação por teclado**: Tab order lógico, focus trap em modais, skip link "Pular para conteúdo principal".
-- **ARIA**: ria-label onde não há texto visível, ria-live="polite" para toasts, ole="dialog" + ria-modal="true" em modais.
+- **ARIA**: ria-label onde não há texto visível, ria-live="polite" para toasts, 
+ole="dialog" + ria-modal="true" em modais.
 - **Texto alternativo**: Todas as imagens decorativas com lt="", informativas com descrição.
 - **Redução de movimento**: Respeitar prefers-reduced-motion: reduce.
 
@@ -100,7 +101,8 @@ src/
 #### **Qualidade de Código (Automatizado)**
 | Ferramenta | Config | O que pega |
 |------------|--------|------------|
-| **ESLint** | 	ypescript-eslint + eact-hooks + jsx-a11y | unused vars, explicit any, hook rules, a11y |
+| **ESLint** | 	ypescript-eslint + 
+eact-hooks + jsx-a11y | unused vars, explicit any, hook rules, a11y |
 | **TypeScript** | strict: true, 
 oUnusedLocals/Parameters | tipos soltos, dead code |
 | **Prettier** | Single quote, tab width 2, printWidth 100 | formatação consistente |
