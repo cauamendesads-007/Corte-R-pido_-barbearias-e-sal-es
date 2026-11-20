@@ -7,6 +7,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useAgendamentosBarbeiro } from '@/hooks/useAgendamentos';
+import type { StatusPagamento } from '@/tipos';
 import {
   Container,
   Cartao,
@@ -245,7 +246,10 @@ const PainelBarbeiro = () => {
             <Select
               label="Status"
               valor={filtros.status || ''}
-              aoAlterar={(v) => setFiltros({ ...filtros, status: v as any })}
+              aoAlterar={(v: string | string[]) => {
+                const valorStr = Array.isArray(v) ? v[0] : v;
+                setFiltros({ ...filtros, status: (valorStr === '' ? undefined : valorStr as StatusPagamento) });
+              }}
               opcoes={[
                 { valor: '', rotulo: 'Todos os status' },
                 { valor: 'no_local', rotulo: 'Pagar no local' },

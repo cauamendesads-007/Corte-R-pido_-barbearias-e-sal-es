@@ -74,7 +74,7 @@ const Login = () => {
     setTipo(tipoRapido);
     setEmail(emailRapido);
     setSenha(senhaRapido);
-    await handleSubmit(new Event('submit') as any);
+    await handleSubmit({ preventDefault: () => {}, currentTarget: null } as unknown as React.FormEvent<HTMLFormElement>);
   };
 
   return (

@@ -9,10 +9,11 @@ import './Radio.css';
 interface RadioProps {
   label?: string;
   descricao?: string;
-  valor: string;
-  verificado?: boolean;
+  _valor?: string;
+  valor?: string; // alias for _valor (test compat)
+  _verificado?: boolean;
   selecionado?: string; // alias for controlled selection (test compat)
-  aoAlterar?: (valor: string) => void;
+  aoAlterar?: (_valor: string) => void;
   desabilitado?: boolean;
   obrigatorio?: boolean;
   id?: string;
@@ -27,8 +28,9 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(
     {
       label,
       descricao,
+      _valor,
       valor,
-      verificado = false,
+      _verificado = false,
       selecionado,
       aoAlterar,
       desabilitado = false,
@@ -40,15 +42,19 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(
     },
     ref
   ) => {
+    const valorFinal = _valor ?? valor ?? '';
     // Support selecionado prop for controlled selection (test compatibility)
-    const isChecked = selecionado !== undefined ? selecionado === valor : verificado;
+    const isChecked = selecionado !== undefined ? selecionado === valorFinal : _verificado;
+
+    // Use valorFinal for the input value to avoid undefined
+    const inputValue = valorFinal;
     const idGerado = React.useId();
     const id = idProp || idGerado;
     const descricaoId = `${id}-descricao`;
 
     const handleChange = () => {
       if (!desabilitado) {
-        aoAlterar?.(valor);
+        aoAlterar?.(valorFinal);
       }
     };
 
@@ -68,7 +74,7 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(
           type="radio"
           id={id}
           name={name}
-          value={valor}
+          value={inputValue}
           checked={isChecked}
           onChange={handleChange}
           disabled={desabilitado}
@@ -97,9 +103,9 @@ Radio.displayName = 'Radio';
 /** Grupo de radios (vertical/horizontal) */
 interface RadioGrupoProps {
   opcoes: Array<{ valor: string; label?: string; rotulo?: string; descricao?: string; desabilitado?: boolean }>;
-  valor?: string;
+  _valor?: string;
   selecionado?: string; // alias for valor (test compat)
-  aoAlterar: (valor: string) => void;
+  aoAlterar: (_valor: string) => void;
   label?: string;
   orientacao?: 'vertical' | 'horizontal';
   name?: string;
@@ -109,7 +115,7 @@ interface RadioGrupoProps {
 
 export const RadioGrupo = ({
   opcoes,
-  valor,
+  _valor,
   selecionado,
   aoAlterar,
   label,
@@ -118,7 +124,7 @@ export const RadioGrupo = ({
   className = '',
   'data-testid': testId,
 }: RadioGrupoProps) => {
-  const valorAtual = selecionado !== undefined ? selecionado : valor;
+  const valorAtual = selecionado !== undefined ? selecionado : _valor;
 
   return (
     <fieldset data-testid={testId}>
@@ -127,7 +133,7 @@ export const RadioGrupo = ({
         {opcoes.map((opcao) => (
           <Radio
             key={opcao.valor}
-            valor={opcao.valor}
+            _valor={opcao.valor}
             label={opcao.label || opcao.rotulo}
             descricao={opcao.descricao}
             selecionado={valorAtual}
@@ -153,8 +159,9 @@ export const RadioCard = forwardRef<HTMLDivElement, RadioCardProps>(
     {
       label,
       descricao,
-      valor,
-      verificado = false,
+      _valor,
+      valor, // alias for _valor
+      _verificado = false,
       selecionado,
       aoAlterar,
       desabilitado = false,
@@ -167,7 +174,8 @@ export const RadioCard = forwardRef<HTMLDivElement, RadioCardProps>(
     },
     ref
   ) => {
-    const isChecked = selecionado !== undefined ? selecionado === valor : verificado;
+    const valorFinal = _valor ?? valor ?? '';
+    const isChecked = selecionado !== undefined ? selecionado === valorFinal : _verificado;
     const idGerado = React.useId();
     const id = idProp || idGerado;
     const radioId = `${id}-radio`;
@@ -175,14 +183,14 @@ export const RadioCard = forwardRef<HTMLDivElement, RadioCardProps>(
 
     const handleClick = () => {
       if (!desabilitado) {
-        aoAlterar?.(valor);
+        aoAlterar?.(valorFinal);
       }
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
       if ((e.key === 'Enter' || e.key === ' ') && !desabilitado) {
         e.preventDefault();
-        aoAlterar?.(valor);
+        aoAlterar?.(valorFinal);
       }
     };
 
@@ -213,7 +221,7 @@ export const RadioCard = forwardRef<HTMLDivElement, RadioCardProps>(
           type="radio"
           id={radioId}
           name={name}
-          value={valor}
+          value={_valor}
           checked={isChecked}
           onChange={handleClick}
           disabled={desabilitado}
@@ -242,8 +250,8 @@ RadioCard.displayName = 'RadioCard';
 /** Grupo de RadioCards */
 interface RadioCardGrupoProps {
   opcoes: Array<{ valor: string; label: string; descricao?: string; children?: React.ReactNode; desabilitado?: boolean }>;
-  valor: string;
-  aoAlterar: (valor: string) => void;
+  _valor: string;
+  aoAlterar: (_valor: string) => void;
   label?: string;
   colunas?: number;
   className?: string;
@@ -253,7 +261,7 @@ interface RadioCardGrupoProps {
 
 export const RadioCardGrupo = ({
   opcoes,
-  valor,
+  _valor,
   aoAlterar,
   label,
   colunas = 2,
@@ -268,10 +276,10 @@ export const RadioCardGrupo = ({
         {opcoes.map((opcao) => (
           <RadioCard
             key={opcao.valor}
-            valor={opcao.valor}
+            _valor={opcao.valor}
             label={opcao.label}
             descricao={opcao.descricao}
-            verificado={valor === opcao.valor}
+            _verificado={_valor === opcao.valor}
             aoAlterar={aoAlterar}
             desabilitado={opcao.desabilitado}
             name={name}

@@ -21,7 +21,7 @@ interface SelectProps extends Omit<PropsCampoTexto, 'tipo' | 'inputMode' | 'maxL
   multiplo?: boolean;
   buscavel?: boolean;
   valor: string | string[];
-  aoAlterar: (valor: string | string[]) => void;
+  aoAlterar: (_valor: string | string[]) => void;
   className?: string;
   'data-testid'?: string;
 }
@@ -48,6 +48,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
     },
     ref
   ) => {
+    void autoComplete;
     const idGerado = useId();
     const id = idProp || idGerado;
     const erroId = `${id}-erro`;
@@ -124,7 +125,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
       .filter(Boolean)
       .join(' ');
 
-    const valoresSelecionados = multiplo ? (valor as string[]) : [valor as string].filter(Boolean);
+    const valoresSelecionados = multiplo ? (valor as string[]).filter(Boolean) : (valor !== undefined && valor !== null ? [valor as string] : []);
 
     // Renderiza opções agrupadas
     const renderizarOpcoes = () => {
@@ -173,7 +174,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           <select
             ref={ref}
             id={id}
-            value={multiplo ? undefined : (valor as string)}
+            value={multiplo ? undefined : (valoresSelecionados[0] as string)}
             onChange={handleChange}
             onFocus={() => setAberto(true)}
             onBlur={() => setTimeout(() => setAberto(false), 100)}
@@ -187,7 +188,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
             className="select__select"
             {...props}
           >
-            {!multiplo && !valor && (
+            {!multiplo && !valoresSelecionados[0] && (
               <option value="" disabled hidden>{placeholder}</option>
             )}
             {renderizarOpcoes()}

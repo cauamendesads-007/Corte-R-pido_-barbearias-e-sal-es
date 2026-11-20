@@ -5,6 +5,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNotificacoes } from '@/hooks/useNotificacoes';
+import type { Notificacao } from '@/tipos';
 import {
   Container,
   Botao,
@@ -83,7 +84,7 @@ const Notificacoes = () => {
   const handleMarcarComoLida = useCallback(async (notificacaoId: string) => {
     try {
       await marcarComoLida(notificacaoId);
-    } catch (e) {
+    } catch (_) { void _;
       toastErro('Erro ao marcar como lida');
     }
   }, [marcarComoLida, toastErro]);
@@ -92,7 +93,7 @@ const Notificacoes = () => {
     try {
       await marcarTodasComoLidas();
       sucesso('Todas as notificações marcadas como lidas');
-    } catch (e) {
+    } catch (_) { void _;
       toastErro('Erro ao marcar todas');
     }
   }, [marcarTodasComoLidas, sucesso, toastErro]);
@@ -101,12 +102,12 @@ const Notificacoes = () => {
     e.stopPropagation();
     try {
       await excluir(notificacaoId);
-    } catch (e) {
+    } catch (_) { void _;
       toastErro('Erro ao excluir');
     }
   }, [excluir, toastErro]);
 
-  const handleAbrirLink = useCallback((notificacao: any) => {
+  const handleAbrirLink = useCallback((notificacao: Notificacao) => {
     if (notificacao.estabelecimentoId) {
       // TODO: navegar para estabelecimento ou agendamento
     }

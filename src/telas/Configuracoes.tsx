@@ -70,7 +70,7 @@ const Configuracoes = () => {
     try {
       await atualizarPerfil({ nome, bio, whatsapp, cidade, avatar: avatarPreview || undefined });
       sucesso('Perfil atualizado com sucesso');
-    } catch (e) {
+    } catch (_) { void _;
       setErro('Erro ao atualizar perfil');
     } finally {
       setCarregando(false);
@@ -94,7 +94,7 @@ const Configuracoes = () => {
       setSenhaAtual('');
       setNovaSenha('');
       setConfirmarNovaSenha('');
-    } catch (e) {
+    } catch (_) { void _;
       setErro('Erro ao alterar senha. Verifique a senha atual.');
     } finally {
       setCarregando(false);
@@ -106,7 +106,7 @@ const Configuracoes = () => {
     try {
       await excluirConta();
       sucesso('Conta excluída');
-    } catch (e) {
+    } catch (_) { void _;
       toastErro('Erro ao excluir conta');
     } finally {
       setCarregando(false);
@@ -252,28 +252,28 @@ const Configuracoes = () => {
                   <Toggle
                     rotulo="Lembretes de agendamento"
                     descricao="Receber avisos antes dos seus horários marcados"
-                    verificado={notifAgendamentos}
+                    _verificado={notifAgendamentos}
                     aoAlterar={setNotifAgendamentos}
                     data-testid="toggle-agendamentos"
                   />
                   <Toggle
                     rotulo="Mensagens e conversas"
                     descricao="Notificações quando receber mensagens de barbeiros"
-                    verificado={notifMensagens}
+                    _verificado={notifMensagens}
                     aoAlterar={setNotifMensagens}
                     data-testid="toggle-mensagens"
                   />
                   <Toggle
                     rotulo="Promoções e novidades"
                     descricao="Ofertas especiais e atualizações da plataforma"
-                    verificado={notifPromocoes}
+                    _verificado={notifPromocoes}
                     aoAlterar={setNotifPromocoes}
                     data-testid="toggle-promocoes"
                   />
                   <Toggle
                     rotulo="Notificações via WhatsApp"
                     descricao="Enviar lembretes e confirmações pelo WhatsApp"
-                    verificado={notifWhatsApp}
+                    _verificado={notifWhatsApp}
                     aoAlterar={setNotifWhatsApp}
                     data-testid="toggle-whatsapp"
                   />
@@ -293,21 +293,21 @@ const Configuracoes = () => {
                   <Toggle
                     rotulo="Perfil público"
                     descricao="Permitir que outros usuários vejam seu perfil e avaliações"
-                    verificado={perfilPublico}
+                    _verificado={perfilPublico}
                     aoAlterar={setPerfilPublico}
                     data-testid="toggle-perfil-publico"
                   />
                   <Toggle
                     rotulo="Mostrar minhas avaliações"
                     descricao="Exibir suas avaliações publicamente no perfil"
-                    verificado={mostrarAvaliacoes}
+                    _verificado={mostrarAvaliacoes}
                     aoAlterar={setMostrarAvaliacoes}
                     data-testid="toggle-avaliacoes"
                   />
                   <Toggle
                     rotulo="Histórico de agendamentos visível"
                     descricao="Permitir que barbeiros vejam seu histórico"
-                    verificado={historicoVisivel}
+                    _verificado={historicoVisivel}
                     aoAlterar={setHistoricoVisivel}
                     data-testid="toggle-historico"
                   />
@@ -353,14 +353,14 @@ const Configuracoes = () => {
                   <Toggle
                     rotulo="Fonte maior"
                     descricao="Aumentar tamanho do texto em toda a aplicação"
-                    verificado={fonteGrande}
+                    _verificado={fonteGrande}
                     aoAlterar={setFonteGrande}
                     data-testid="toggle-fonte-grande"
                   />
                   <Toggle
                     rotulo="Reduzir animações"
                     descricao="Desativar transições e animações para melhor desempenho"
-                    verificado={reduzirAnimacoes}
+                    _verificado={reduzirAnimacoes}
                     aoAlterar={setReduzirAnimacoes}
                     data-testid="toggle-reduzir-animacoes"
                   />

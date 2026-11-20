@@ -18,17 +18,17 @@ export interface EstadoFeed {
 }
 
 export interface AcoesFeed {
-  curtir: (id: string) => Promise<void>;
-  salvar: (id: string) => Promise<void>;
-  compartilhar: (id: string) => Promise<void>;
-  criar: (dados: {
+  curtir: (_id: string) => Promise<void>;
+  salvar: (_id: string) => Promise<void>;
+  compartilhar: (_id: string) => Promise<void>;
+  criar: (_dados: {
     legenda: string;
     servicoId?: string;
     estabelecimentoId: string;
     midias: Array<{ tipo: TipoMidia; src: string }>;
   }) => Promise<{ sucesso: boolean; publicacao?: Publicacao; erro?: string }>;
-  excluir: (id: string, estabelecimentoId: string) => Promise<{ sucesso: boolean; erro?: string }>;
-  denunciar: (id: string, motivo: string) => Promise<{ sucesso: boolean; erro?: string }>;
+  excluir: (_id: string, _estabelecimentoId: string) => Promise<{ sucesso: boolean; erro?: string }>;
+  denunciar: (_id: string, _motivo: string) => Promise<{ sucesso: boolean; erro?: string }>;
   recarregar: () => Promise<void>;
   carregarMais: () => Promise<void>;
   limparErro: () => void;
@@ -79,7 +79,7 @@ export const useFeed = (tipo: 'todos' | 'seguindo' | 'inspiracoes' | 'populares'
     } finally {
       setCarregando(false);
     }
-  }, [tipo, usuario?.email]);
+  }, [tipo, usuario]);
 
   useEffect(() => {
     recarregar();
@@ -114,7 +114,7 @@ export const useFeed = (tipo: 'todos' | 'seguindo' | 'inspiracoes' | 'populares'
     } finally {
       setCarregandoMais(false);
     }
-  }, [carregandoMais, temMais, pagina, tipo, usuario?.email]);
+  }, [carregandoMais, temMais, pagina, tipo, usuario]);
 
   // Atualiza otimista
   const aplicarOtimista = useCallback((id: string, atualizacoes: Partial<Publicacao>) => {

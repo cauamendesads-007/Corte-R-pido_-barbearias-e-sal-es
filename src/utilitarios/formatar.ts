@@ -14,7 +14,7 @@ export function formatarMoeda(valor: number, emCentavos = false): string {
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
     currency: 'BRL',
-  }).format(valorReais).replace(/ /g, ' ');
+  }).format(valorReais).replace(/\u00A0/g, ' ');
 }
 
 /**

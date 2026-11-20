@@ -19,7 +19,7 @@ export interface EstadoAgendamentos {
 }
 
 export interface AcoesAgendamentos {
-  criar: (dados: {
+  criar: (_dados: {
     estabelecimentoId: string;
     servicosIds: string[];
     dia: string;
@@ -27,10 +27,10 @@ export interface AcoesAgendamentos {
     observacoes?: string;
     formaPagamento: 'no_local' | 'pix';
   }) => Promise<{ sucesso: boolean; agendamento?: Agendamento; erro?: string }>;
-  reagendar: (id: string, novoDia: string, novoHorario: string) => Promise<{ sucesso: boolean; erro?: string }>;
-  cancelar: (id: string) => Promise<{ sucesso: boolean; erro?: string }>;
-  confirmarPresenca: (id: string) => Promise<{ sucesso: boolean; erro?: string }>;
-  avaliar: (id: string, nota: number, comentario?: string) => Promise<{ sucesso: boolean; erro?: string }>;
+  reagendar: (_id: string, _novoDia: string, _novoHorario: string) => Promise<{ sucesso: boolean; erro?: string }>;
+  cancelar: (_id: string) => Promise<{ sucesso: boolean; erro?: string }>;
+  confirmarPresenca: (_id: string) => Promise<{ sucesso: boolean; erro?: string }>;
+  avaliar: (_id: string, _nota: number, _comentario?: string) => Promise<{ sucesso: boolean; erro?: string }>;
   recarregar: () => Promise<void>;
   carregarMais: () => Promise<void>;
   limparErro: () => void;
@@ -357,13 +357,14 @@ export const useAgendamentosBarbeiro = (estabelecimentoId?: string) => {
     }
   }, [agendamentos]);
 
-  const definirHorarioReal = useCallback(async (id: string, _horarioReal: string) => {
+  const definirHorarioReal = useCallback(async (_id: string, _horarioReal: string) => {
+    void _horarioReal;
     setErro(null);
 
     try {
       // Simula atualização
       setAgendamentos((prev) =>
-        prev.map((a) => (a.id === id ? { ...a, status: 'concluido' as StatusAgendamento } : a))
+        prev.map((a) => (a.id === _id ? { ...a, status: 'concluido' as StatusAgendamento } : a))
       );
       return { sucesso: true };
     } catch {

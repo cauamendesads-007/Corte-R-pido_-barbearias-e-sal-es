@@ -9,9 +9,13 @@ export { CampoTexto, CampoSenha, CampoBusca, CampoWhatsapp, CampoNumero } from '
 export { Modal, ModalConfirmacao, ModalFormulario } from './Modal';
 export { Cartao, CartaoCabecalho, CartaoMidia, CartaoCorpo, CartaoRodape, CartaoBadge,
   CartaoEstabelecimento, CartaoPublicacao, CartaoServico, CartaoAgendamento } from './Cartao';
-export { Chip, ChipGrupo, CHIP_NICHOS, CHIP_STATUS_AGENDAMENTO } from './Chip';
+export { Chip, ChipGrupo } from './Chip';
+export { CHIP_NICHOS, CHIP_STATUS_AGENDAMENTO } from './Chip.constants';
 export { Avatar, AvatarGrupo, AvatarNotificacao } from './Avatar';
-export { ToastContainer, useToast, ToastProvider, useGlobalToast } from './Toast';
+export { Toast, ToastContainer } from './Toast';
+export { useToast } from './Toast.hooks';
+export { ToastProvider } from './Toast.provider';
+export { useGlobalToast } from './Toast.hooks.tsx';
 export { Skeleton, SkeletonTexto, SkeletonAvatar, SkeletonBotao, SkeletonInput, SkeletonGrid } from './Skeleton';
 export { Textarea } from './Textarea';
 export { Select } from './Select';

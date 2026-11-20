@@ -74,7 +74,8 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
     );
 
     const handleBlur = useCallback(
-      (_e: React.FocusEvent<HTMLTextAreaElement>) => {
+      (_: React.FocusEvent<HTMLTextAreaElement>) => {
+        void _;
         // onBlur pode ser passado via props se necessário
       },
       []

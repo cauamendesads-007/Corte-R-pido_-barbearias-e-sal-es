@@ -10,11 +10,12 @@ import './Checkbox.css';
 interface CheckboxProps {
   label?: string;
   descricao?: string;
-  valor?: string | boolean; // string value or boolean for checked state (test compat)
-  verificado?: boolean;
+  _valor?: string | boolean; // string value or boolean for checked state (test compat)
+  valor?: string | boolean; // alias for _valor (test compat)
+  _verificado?: boolean;
   checked?: boolean; // alias for verificado
   indeterminado?: boolean;
-  aoAlterar?: (verificado: boolean) => void; // single arg to match tests
+  aoAlterar?: (_verificado: boolean) => void; // single arg to match tests
   desabilitado?: boolean;
   obrigatorio?: boolean;
   id?: string;
@@ -29,8 +30,9 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
     {
       label,
       descricao,
-      valor,
-      verificado = false,
+      _valor,
+      valor, // alias for _valor (test compat)
+      _verificado = false,
       checked,
       indeterminado = false,
       aoAlterar,
@@ -43,8 +45,9 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
     },
     ref
   ) => {
+    const valorFinal = _valor ?? valor;
     // Support valor as boolean for checked state (test compatibility)
-    const isChecked = typeof valor === 'boolean' ? valor : (checked ?? verificado);
+    const isChecked = typeof valorFinal === 'boolean' ? valorFinal : (checked ?? _verificado);
     const idGerado = React.useId();
     const id = idProp || idGerado;
     const descricaoId = `${id}-descricao`;
@@ -103,9 +106,9 @@ Checkbox.displayName = 'Checkbox';
 /** Grupo de checkboxes */
 interface CheckboxGrupoProps {
   opcoes: Array<{ valor: string; label?: string; rotulo?: string; descricao?: string; desabilitado?: boolean }>;
-  valores?: string[];
+  _valores?: string[];
   selecionados?: string[]; // alias for valores
-  aoAlterar: (valores: string[]) => void;
+  aoAlterar: (_valores: string[]) => void;
   label?: string;
   orientacao?: 'vertical' | 'horizontal';
   className?: string;
@@ -115,7 +118,7 @@ interface CheckboxGrupoProps {
 
 export const CheckboxGrupo = ({
   opcoes,
-  valores = [],
+  _valores = [],
   selecionados = [],
   aoAlterar,
   label,
@@ -124,12 +127,12 @@ export const CheckboxGrupo = ({
   'data-testid': testId,
   name,
 }: CheckboxGrupoProps) => {
-  const valoresAtuais = selecionados.length > 0 ? selecionados : valores;
+  const valoresAtuais = selecionados.length > 0 ? selecionados : _valores;
 
-  const handleToggle = (opcaoValor: string) => (verificado: boolean) => {
-    const novos = verificado
-      ? [...valoresAtuais, opcaoValor]
-      : valoresAtuais.filter((v) => v !== opcaoValor);
+  const handleToggle = (opcaoValor: string) => () => {
+    const novos = valoresAtuais.includes(opcaoValor)
+      ? valoresAtuais.filter((v) => v !== opcaoValor)
+      : [...valoresAtuais, opcaoValor];
     aoAlterar(novos);
   };
 
@@ -140,10 +143,9 @@ export const CheckboxGrupo = ({
         {opcoes.map((opcao) => (
           <Checkbox
             key={opcao.valor}
-            valor={opcao.valor}
             label={opcao.label || opcao.rotulo}
             descricao={opcao.descricao}
-            verificado={valoresAtuais.includes(opcao.valor)}
+            checked={valoresAtuais.includes(opcao.valor)}
             aoAlterar={handleToggle(opcao.valor)}
             desabilitado={opcao.desabilitado}
             name={name}
@@ -159,13 +161,13 @@ export const CheckboxGrupo = ({
 export const CheckboxToggle = ({
   rotulo,
   descricao,
-  verificado = false,
+  _verificado = false,
   aoAlterar,
   desabilitado = false,
   className = '',
   'data-testid': testId,
   ...props
-}: { rotulo: string; descricao?: string; verificado?: boolean; aoAlterar?: (verificado: boolean) => void; desabilitado?: boolean; className?: string; 'data-testid'?: string } & Omit<CheckboxProps, 'indeterminado' | 'valor' | 'label'>) => {
+}: { rotulo: string; descricao?: string; _verificado?: boolean; aoAlterar?: (_verificado: boolean) => void; desabilitado?: boolean; className?: string; 'data-testid'?: string } & Omit<CheckboxProps, 'indeterminado' | 'valor' | 'label'>) => {
   const id = testId || `toggle-${Math.random().toString(36).slice(2, 9)}`;
   const descId = descricao ? `${id}-desc` : undefined;
 
@@ -174,7 +176,7 @@ export const CheckboxToggle = ({
       <input
         type="checkbox"
         id={id}
-        checked={verificado}
+        checked={_verificado}
         onChange={(e) => !desabilitado && aoAlterar?.(e.target.checked)}
         disabled={desabilitado}
         className="checkbox-toggle__input"

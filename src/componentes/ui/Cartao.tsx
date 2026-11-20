@@ -384,7 +384,7 @@ interface CartaoServicoProps {
   aoSelecionar: () => void;
   aoEditar?: () => void;
   aoExcluir?: () => void;
-  aoAdicionarMidia?: (arquivo: File) => void;
+  aoAdicionarMidia?: (_arquivo: File) => void;
   className?: string;
   'data-testid'?: string;
 }

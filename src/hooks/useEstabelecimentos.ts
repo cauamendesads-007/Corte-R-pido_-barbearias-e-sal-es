@@ -17,12 +17,12 @@ export interface EstadoEstabelecimentos {
 }
 
 export interface AcoesEstabelecimentos {
-  buscar: (filtros?: Partial<FiltrosEstabelecimento>) => Promise<void>;
+  buscar: (_filtros?: Partial<FiltrosEstabelecimento>) => Promise<void>;
   carregarMais: () => Promise<void>;
   recarregar: () => Promise<void>;
   limparFiltros: () => void;
-  obterPorId: (id: string) => Estabelecimento | undefined;
-  obterPorSlug: (slug: string) => Estabelecimento | undefined;
+  obterPorId: (_id: string) => Estabelecimento | undefined;
+  obterPorSlug: (_slug: string) => Estabelecimento | undefined;
 }
 
 const ITENS_POR_PAGINA = 12;

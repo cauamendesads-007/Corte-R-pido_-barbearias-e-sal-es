@@ -31,6 +31,7 @@ export const Modal = React.forwardRef<HTMLDialogElement, ModalProps>(
     },
     _ref
   ) => {
+    void _ref;
     const dialogRef = useRef<HTMLDialogElement>(null);
     const elementoAnteriorFoco = useRef<HTMLElement | null>(null);
     const focusableElementsRef = useRef<HTMLElement[]>([]);

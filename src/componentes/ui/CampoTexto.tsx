@@ -14,7 +14,7 @@ interface CampoTextoProps extends PropsCampoTexto {
   iconeSufixo?: React.ReactNode;
   aoClicarIconeSufixo?: () => void;
   className?: string;
-  valorComoNumero?: boolean;
+  _valorComoNumero?: boolean;
   min?: number;
   max?: number;
   step?: number;
@@ -40,7 +40,6 @@ export const CampoTexto = forwardRef<HTMLInputElement, CampoTextoProps>(
       iconeSufixo,
       aoClicarIconeSufixo,
       className = '',
-      valorComoNumero = false,
       min,
       max,
       step,
@@ -173,21 +172,20 @@ interface CampoDerivadoProps extends Omit<PropsCampoTexto, 'tipo' | 'inputMode'>
 
 /** Campo de senha com botão mostrar/ocultar */
 export const CampoSenha = ({
-  iconeSufixo,
   aoClicarIconeSufixo,
   aoAlternarVisibilidade,
   mostrarSenha,
   ...props
 }: CampoDerivadoProps & {
   mostrarSenha?: boolean;
-  aoAlternarVisibilidade?: (mostrar: boolean) => void;
+  aoAlternarVisibilidade?: (_mostrar: boolean) => void;
 }) => {
   const [mostrarInterno, setMostrarInterno] = React.useState(false);
   const controlado = typeof mostrarSenha === 'boolean';
-  const mostrar = controlado ? mostrarSenha : mostrarInterno;
+  const _mostrar = controlado ? mostrarSenha : mostrarInterno;
 
   const handleToggle = () => {
-    const novoEstado = !mostrar;
+    const novoEstado = !_mostrar;
     if (!controlado) {
       setMostrarInterno(novoEstado);
     }
@@ -197,8 +195,8 @@ export const CampoSenha = ({
 
   return (
     <CampoTexto
-      tipo={mostrar ? 'text' : 'password'}
-      iconeSufixo={mostrar ? ICONES.olhoFechado : ICONES.olho}
+      tipo={_mostrar ? 'text' : 'password'}
+      iconeSufixo={_mostrar ? ICONES.olhoFechado : ICONES.olho}
       aoClicarIconeSufixo={handleToggle}
       {...props}
     />

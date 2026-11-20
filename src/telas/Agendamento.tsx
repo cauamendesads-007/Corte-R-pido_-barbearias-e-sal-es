@@ -75,7 +75,7 @@ const Agendamento = () => {
       await cancelar(agendamento.id);
       sucesso('Agendamento cancelado');
       navigate(isBarbeiro ? '/painel/agenda' : '/perfil/agendamentos');
-    } catch (e) {
+    } catch (_) { void _;
       toastErro('Erro ao cancelar');
     }
   }, [agendamento, cancelar, sucesso, toastErro, navigate, isBarbeiro]);
@@ -86,7 +86,7 @@ const Agendamento = () => {
       await reagendar(agendamento.id, novaData, novoHorario);
       sucesso('Agendamento reagendado');
       setMostrarModalReagendar(false);
-    } catch (e) {
+    } catch (_) { void _;
       toastErro('Erro ao reagendar');
     }
   }, [agendamento, reagendar, sucesso, toastErro, novaData, novoHorario]);
@@ -97,7 +97,7 @@ const Agendamento = () => {
       await avaliar(agendamento.id, avaliacaoEstrelas, avaliacaoComentario);
       sucesso('Obrigado pela avaliação!');
       setMostrarModalAvaliar(false);
-    } catch (e) {
+    } catch (_) { void _;
       toastErro('Erro ao enviar avaliação');
     }
   }, [agendamento, avaliar, sucesso, toastErro, avaliacaoEstrelas, avaliacaoComentario]);

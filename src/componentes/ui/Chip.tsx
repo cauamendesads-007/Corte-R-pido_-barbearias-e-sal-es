@@ -47,7 +47,7 @@ export const Chip = forwardRef<HTMLDivElement, ChipProps>(
     const isRemovivel = aoRemover && !desabilitado;
     const isClicavel = aoClicar && !desabilitado && !aoRemover;
 
-    const handleClick = (_e: React.MouseEvent<HTMLDivElement>) => {
+    const handleClick = (): void => {
       if (desabilitado || aoRemover) return;
       aoClicar?.();
     };
@@ -158,9 +158,9 @@ export interface ChipOpcao {
 /** Grupo de chips para seleção múltipla */
 interface ChipGrupoProps {
   opcoes: ChipOpcao[];
-  valores?: string[];
+  _valores?: string[];
   selecionados?: string[]; // alias para valores
-  aoAlterar: (valores: string[]) => void;
+  aoAlterar: (_valores: string[]) => void;
   variante?: 'padrao' | 'selecao' | 'filtro' | 'status' | 'nicho';
   className?: string;
   'data-testid'?: string;
@@ -170,7 +170,7 @@ interface ChipGrupoProps {
 
 export const ChipGrupo = ({
   opcoes,
-  valores = [],
+  _valores = [],
   selecionados,
   aoAlterar,
   variante = 'selecao',
@@ -179,7 +179,7 @@ export const ChipGrupo = ({
   multiplo = true,
   label = 'Opções',
 }: ChipGrupoProps) => {
-  const valoresEfetivos = selecionados ?? valores;
+  const valoresEfetivos = selecionados ?? _valores;
 
   const handleToggle = (valor: string) => {
     let novosValores: string[];
@@ -211,24 +211,3 @@ export const ChipGrupo = ({
   );
 };
 
-/** Nichos disponíveis para chips de nicho */
-export const CHIP_NICHOS: ChipOpcao[] = [
-  { valor: 'barbearia', rotulo: 'Barbearia', icone: '✂️' },
-  { valor: 'salao', rotulo: 'Salão', icone: '💇' },
-  { valor: 'esmalteria', rotulo: 'Esmalteria', icone: '💅' },
-  { valor: 'estetica', rotulo: 'Estética', icone: '✨' },
-  { valor: 'massagem', rotulo: 'Massagem', icone: '💆' },
-  { valor: 'depilacao', rotulo: 'Depilação', icone: '🪒' },
-  { valor: 'barbearia_salao', rotulo: 'Barbearia + Salão', icone: '💈' },
-];
-
-/** Status de agendamento para chips de status */
-export const CHIP_STATUS_AGENDAMENTO: ChipOpcao[] = [
-  { valor: 'agendado', rotulo: 'Agendado' },
-  { valor: 'confirmado', rotulo: 'Confirmado' },
-  { valor: 'concluido', rotulo: 'Concluído' },
-  { valor: 'cancelado', rotulo: 'Cancelado' },
-  { valor: 'pago', rotulo: 'Pago' },
-  { valor: 'no_local', rotulo: 'No local' },
-  { valor: 'aguardando_pix', rotulo: 'Aguardando PIX' },
-];

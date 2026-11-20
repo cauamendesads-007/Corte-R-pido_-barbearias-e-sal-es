@@ -9,18 +9,18 @@ import { createPortal } from 'react-dom';
 import { ICONES } from '@/constantes';
 import './Toast.css';
 
-interface ToastProps {
+export interface ToastProps {
   id: string;
   mensagem: string;
   tipo?: 'info' | 'sucesso' | 'aviso' | 'erro' | 'carregando';
   duracao?: number;
   acao?: { rotulo: string; aoClicar: () => void };
-  aoFechar?: (id: string) => void;
+  aoFechar?: (_id: string) => void;
   'data-testid'?: string;
 }
 
 interface ToastInternoProps extends ToastProps {
-  aoRemover: (id: string) => void;
+  aoRemover: (_id: string) => void;
 }
 
 const ToastItem = React.memo(({ id, mensagem, tipo = 'info', duracao = 5000, acao, aoRemover, 'data-testid': testId }: ToastInternoProps) => {
@@ -121,7 +121,7 @@ export const Toast = ToastItem;
 /** Container que gerencia pilha de toasts */
 interface ToastContainerProps {
   toasts: ToastProps[];
-  aoFechar: (id: string) => void;
+  aoFechar: (_id: string) => void;
   posicao?: 'topo-direita' | 'topo-esquerda' | 'base-direita' | 'base-esquerda' | 'topo-centro' | 'base-centro';
   maximoVisiveis?: number;
   'data-testid'?: string;
@@ -155,69 +155,4 @@ export const ToastContainer = ({
   );
 };
 
-/** Hook para usar toasts em qualquer componente */
-export const useToast = () => {
-  const [toasts, setToasts] = React.useState<ToastProps[]>([]);
 
-  const adicionar = useCallback((toast: Omit<ToastProps, 'id'> & { id?: string }) => {
-    const id = toast.id || `toast-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-    setToasts((prev) => [...prev, { ...toast, id }]);
-    return id;
-  }, []);
-
-  const remover = useCallback((id: string) => {
-    setToasts((prev) => prev.filter((t) => t.id !== id));
-  }, []);
-
-  const limpar = useCallback(() => {
-    setToasts([]);
-  }, []);
-
-  // Atalhos por tipo
-  const info = useCallback((mensagem: string, opcoes?: Partial<ToastProps>) => adicionar({ tipo: 'info', mensagem, ...opcoes }), [adicionar]);
-  const sucesso = useCallback((mensagem: string, opcoes?: Partial<ToastProps>) => adicionar({ tipo: 'sucesso', mensagem, ...opcoes }), [adicionar]);
-  const aviso = useCallback((mensagem: string, opcoes?: Partial<ToastProps>) => adicionar({ tipo: 'aviso', mensagem, ...opcoes }), [adicionar]);
-  const erro = useCallback((mensagem: string, opcoes?: Partial<ToastProps>) => adicionar({ tipo: 'erro', mensagem, ...opcoes }), [adicionar]);
-  const carregando = useCallback((mensagem: string, opcoes?: Partial<ToastProps>) => adicionar({ tipo: 'carregando', mensagem, duracao: 0, ...opcoes }), [adicionar]);
-
-  return { toasts, adicionar, remover, limpar, info, sucesso, aviso, erro, carregando };
-};
-
-/** Provider global de toasts (usar no App root) */
-interface ToastProviderProps {
-  children: React.ReactNode;
-  posicao?: ToastContainerProps['posicao'];
-  maximoVisiveis?: ToastContainerProps['maximoVisiveis'];
-}
-
-const ToastContext = React.createContext<ReturnType<typeof useToast> | null>(null);
-
-export const ToastProvider = ({
-  children,
-  posicao = 'base-direita',
-  maximoVisiveis = 5,
-}: ToastProviderProps) => {
-  const toast = useToast();
-
-  return (
-    <ToastContext.Provider value={toast}>
-      {children}
-      <ToastContainer
-        toasts={toast.toasts}
-        aoFechar={toast.remover}
-        posicao={posicao}
-        maximoVisiveis={maximoVisiveis}
-        data-testid="toast-container-global"
-      />
-    </ToastContext.Provider>
-  );
-};
-
-/** Hook para consumir o provider global */
-export const useGlobalToast = () => {
-  const contexto = React.useContext(ToastContext);
-  if (!contexto) {
-    throw new Error('useGlobalToast deve ser usado dentro de ToastProvider');
-  }
-  return contexto;
-};

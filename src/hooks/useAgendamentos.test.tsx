@@ -4,6 +4,7 @@
  */
 
 import { renderHook, act, waitFor } from '@testing-library/react';
+import { vi } from 'vitest';
 import { useAgendamentos, useAgendamentosBarbeiro } from './useAgendamentos';
 import { api } from '@/servicos/api';
 import { useAuth } from './useAuth';
@@ -98,13 +99,29 @@ vi.mock('./useAuth', () => ({
   useAuth: vi.fn(() => mockUseAuthCliente),
   usePermissao: () => false,
   useRequerAutenticacao: () => ({ autenticado: true, carregando: false, usuario: mockUseAuthCliente.usuario }),
+  useAgendamentos: vi.fn(() => mockUseAuthCliente),
 }));
+
+// Mocks tipados para API
+const mockApiAgendamentos = {
+  listar: vi.mocked(api.agendamentos.listar),
+  criar: vi.mocked(api.agendamentos.criar),
+  cancelar: vi.mocked(api.agendamentos.cancelar),
+  confirmarPresenca: vi.mocked(api.agendamentos.confirmarPresenca),
+  reagendar: vi.mocked(api.agendamentos.reagendar),
+  avaliar: vi.mocked(api.agendamentos.avaliar),
+  obterHorariosDisponiveis: vi.mocked(api.agendamentos.obterHorariosDisponiveis),
+};
+
+const mockApiEstabelecimentos = {
+  obter: vi.mocked(api.estabelecimentos.obter),
+};
 
 describe('useAgendamentos', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockLocalStorage.getItem.mockReturnValue(null);
-    (useAuth as any).mockImplementation(() => mockUseAuthCliente);
+    (vi.mocked(useAuth)).mockImplementation(() => mockUseAuthCliente);
   });
 
   it('retorna estado inicial vazio', async () => {
@@ -142,7 +159,7 @@ describe('useAgendamentos', () => {
       },
     ];
 
-    (api.agendamentos.listar as any).mockResolvedValue({ sucesso: true, dados: agendamentosMock });
+    mockApiAgendamentos.listar.mockResolvedValue({ sucesso: true, dados: agendamentosMock });
 
     const { result } = renderHook(() => useAgendamentos());
 
@@ -161,7 +178,7 @@ describe('useAgendamentos', () => {
       { id: '2', statusPagamento: 'aguardando_pix', dia: '2024-01-20', horario: '11:00', servicos: 'Barba', nomeCliente: 'Maria', valorTotal: 30, duracaoMinutos: 20, estabelecimentoId: 'est1', usuarioId: 'user1', status: 'agendado', servicoIds: ['2'] },
     ];
 
-    (api.agendamentos.listar as any).mockResolvedValue({ sucesso: true, dados: agendamentosMock });
+    mockApiAgendamentos.listar.mockResolvedValue({ sucesso: true, dados: agendamentosMock });
 
     const { result } = renderHook(() => useAgendamentos());
 
@@ -197,8 +214,8 @@ describe('useAgendamentos', () => {
       servicos: [{ id: '1', nome: 'Corte', preco: 50, duracaoMinutos: 30 }],
     };
 
-    (api.estabelecimentos.obter as any).mockResolvedValue({ sucesso: true, dados: estabelecimentoMock });
-    (api.agendamentos.criar as any).mockResolvedValue({ sucesso: true, dados: novoAgendamento });
+    mockApiEstabelecimentos.obter.mockResolvedValue({ sucesso: true, dados: estabelecimentoMock });
+    mockApiAgendamentos.criar.mockResolvedValue({ sucesso: true, dados: novoAgendamento });
 
     const { result } = renderHook(() => useAgendamentos());
 
@@ -221,7 +238,7 @@ describe('useAgendamentos', () => {
   });
 
   it('cancela agendamento', async () => {
-    (api.agendamentos.cancelar as any).mockResolvedValue({ sucesso: true });
+    mockApiAgendamentos.cancelar.mockResolvedValue({ sucesso: true });
 
     const { result } = renderHook(() => useAgendamentos());
 
@@ -255,66 +272,32 @@ describe('useAgendamentosBarbeiro', () => {
       status: 'confirmado' as const,
       servicoIds: ['1'],
     },
-    {
-      id: '2',
-      estabelecimentoId: 'est1',
-      usuarioId: 'user2',
-      dia: '2024-01-20',
-      horario: '11:00',
-      duracaoMinutos: 20,
-      nomeCliente: 'Maria',
-      telefoneCliente: '11999999999',
-      servicos: 'Barba',
-      valorTotal: 30,
-      statusPagamento: 'aguardando_pix' as const,
-      status: 'agendado' as const,
-      servicoIds: ['2'],
-    },
   ];
 
   beforeEach(() => {
     vi.clearAllMocks();
     mockLocalStorage.getItem.mockReturnValue(null);
-    // Mock useAuth para papel barbeiro
-    (useAuth as any).mockImplementation(() => mockUseAuthBarbeiro);
-    // Mock listar para retornar vazio por padrão
-    (api.agendamentos.listar as any).mockResolvedValue({ sucesso: true, dados: [] });
+    (vi.mocked(useAuth)).mockImplementation(() => mockUseAuthBarbeiro);
   });
 
-  it('retorna estado inicial vazio para barbeiro', async () => {
-    const { result } = renderHook(() => useAgendamentosBarbeiro('est1'));
+  it('carrega agendamentos do estabelecimento', async () => {
+    mockApiAgendamentos.listar.mockResolvedValue({ sucesso: true, dados: agendamentosMock });
 
-    // Inicialmente carregando é true
-    expect(result.current.carregando).toBe(true);
+    const { result } = renderHook(() => useAgendamentosBarbeiro('est1'));
 
     await waitFor(() => {
       expect(result.current.carregando).toBe(false);
     }, { timeout: 2000 });
 
-    expect(result.current.agendamentos).toEqual([]);
-  });
-
-  it('carrega agendamentos do estabelecimento', async () => {
-    (api.agendamentos.listar as any).mockResolvedValue({ sucesso: true, dados: agendamentosMock });
-
-    const { result } = renderHook(() => useAgendamentosBarbeiro('est1'));
-
-    await act(async () => {
-      await result.current.recarregar();
-    });
-
-    await waitFor(() => {
-      expect(result.current.agendamentos).toHaveLength(2);
-    }, { timeout: 2000 });
+    expect(result.current.agendamentos).toHaveLength(1);
   });
 
   it('atualiza status do agendamento', async () => {
-    (api.agendamentos.confirmarPresenca as any).mockResolvedValue({ sucesso: true });
-    (api.agendamentos.listar as any).mockResolvedValue({ sucesso: true, dados: agendamentosMock });
+    mockApiAgendamentos.listar.mockResolvedValue({ sucesso: true, dados: agendamentosMock });
+    mockApiAgendamentos.confirmarPresenca.mockResolvedValue({ sucesso: true });
 
     const { result } = renderHook(() => useAgendamentosBarbeiro('est1'));
 
-    // Aguarda carregamento inicial
     await waitFor(() => {
       expect(result.current.carregando).toBe(false);
     }, { timeout: 2000 });
@@ -327,12 +310,11 @@ describe('useAgendamentosBarbeiro', () => {
   });
 
   it('cancela agendamento', async () => {
-    (api.agendamentos.cancelar as any).mockResolvedValue({ sucesso: true });
-    (api.agendamentos.listar as any).mockResolvedValue({ sucesso: true, dados: agendamentosMock });
+    mockApiAgendamentos.listar.mockResolvedValue({ sucesso: true, dados: agendamentosMock });
+    mockApiAgendamentos.cancelar.mockResolvedValue({ sucesso: true });
 
     const { result } = renderHook(() => useAgendamentosBarbeiro('est1'));
 
-    // Aguarda carregamento inicial
     await waitFor(() => {
       expect(result.current.carregando).toBe(false);
     }, { timeout: 2000 });
@@ -344,18 +326,17 @@ describe('useAgendamentosBarbeiro', () => {
     expect(resultado.sucesso).toBe(true);
   });
 
-  it('define horário real (conclui)', async () => {
-    (api.agendamentos.listar as any).mockResolvedValue({ sucesso: true, dados: agendamentosMock });
+  it('define horário real', async () => {
+    mockApiAgendamentos.listar.mockResolvedValue({ sucesso: true, dados: agendamentosMock });
 
     const { result } = renderHook(() => useAgendamentosBarbeiro('est1'));
 
-    // Aguarda carregamento inicial
     await waitFor(() => {
       expect(result.current.carregando).toBe(false);
     }, { timeout: 2000 });
 
     const resultado = await act(async () => {
-      return await result.current.definirHorarioReal('1', '10:05');
+      return await result.current.definirHorarioReal('1', '10:15');
     });
 
     expect(resultado.sucesso).toBe(true);

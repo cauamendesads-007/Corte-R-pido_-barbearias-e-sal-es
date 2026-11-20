@@ -25,6 +25,7 @@ import type {
   StatusEstabelecimento,
   Comentario,
   TipoLayout,
+  StatusAgendamento,
 } from '@/tipos';
 import { atrasar, clonarProfundo, gerarId, formatarMoeda, formatarParaExibicao, calcularDistanciaKm } from '@/utilitarios';
 import type { EstadoGlobal } from '@/tipos';
@@ -1264,7 +1265,7 @@ export async function listarBarbeiro(estabelecimentoId: string): Promise<Resulta
 }
 
 /** Atualizar status do agendamento (wrapper) */
-export async function atualizarStatus(agendamentoId: string, status: string): Promise<ResultadoServico<void>> {
+export async function atualizarStatus(agendamentoId: string, status: StatusAgendamento): Promise<ResultadoServico<void>> {
   await simularLatencia();
   simularErroAleatorio();
 
@@ -1272,7 +1273,7 @@ export async function atualizarStatus(agendamentoId: string, status: string): Pr
   Object.keys(estadoGlobal.agendamentos).forEach((estId) => {
     const idx = estadoGlobal.agendamentos[estId].findIndex((a) => a.id === agendamentoId);
     if (idx !== -1) {
-      estadoGlobal.agendamentos[estId][idx].status = status as any;
+      estadoGlobal.agendamentos[estId][idx].status = status;
       encontrado = true;
     }
   });

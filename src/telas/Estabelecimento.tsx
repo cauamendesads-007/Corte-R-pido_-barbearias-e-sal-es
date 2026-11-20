@@ -7,6 +7,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useEstabelecimento } from '@/hooks/useEstabelecimentos';
 import { useAuth } from '@/hooks/useAuth';
+import type { Servico, ItemGaleria, Avaliacao } from '@/tipos';
 import {
   Container,
   Botao,
@@ -31,7 +32,7 @@ const Estabelecimento = () => {
   const { estabelecimento, carregando, recarregar } = useEstabelecimento(slug || null);
 
   const [abaAtiva, setAbaAtiva] = useState<'servicos' | 'galeria' | 'avaliacoes' | 'info'>('servicos');
-  const [servicoSelecionado, setServicoSelecionado] = useState<any>(null);
+  const [servicoSelecionado, setServicoSelecionado] = useState<Servico | null>(null);
   const [mostrarModalAgendar, setMostrarModalAgendar] = useState(false);
   const [diaSelecionado, setDiaSelecionado] = useState<string>('');
   const [horarioSelecionado, setHorarioSelecionado] = useState<string>('');
@@ -43,7 +44,7 @@ const Estabelecimento = () => {
     }
   }, [slug, recarregar]);
 
-  const handleAgendar = useCallback((servico: any) => {
+  const handleAgendar = useCallback((servico: Servico) => {
     if (!usuario) {
       navigate('/login', { state: { from: `/estabelecimento/${slug}` } });
       return;
@@ -61,7 +62,7 @@ const Estabelecimento = () => {
       sucesso('Agendamento confirmado!');
       setMostrarModalAgendar(false);
       setServicoSelecionado(null);
-    } catch (e) {
+    } catch (_) { void _;
       toastErro('Erro ao confirmar agendamento');
     }
   };
@@ -178,7 +179,7 @@ const Estabelecimento = () => {
             <section className="estabelecimento__secao" aria-label="Serviços">
               {estabelecimento.servicos?.length > 0 ? (
                 <div className="estabelecimento__servicos-grid">
-                  {estabelecimento.servicos.map((servico: any) => (
+                  {estabelecimento.servicos.map((servico: Servico) => (
                     <div key={servico.id} className="estabelecimento__servico-card" data-testid={`servico-${servico.id}`} onClick={() => handleAgendar(servico)}>
                       <div className="estabelecimento__servico-info">
                         <strong>{servico.nome}</strong>
@@ -207,7 +208,7 @@ const Estabelecimento = () => {
             <section className="estabelecimento__secao" aria-label="Galeria">
               {estabelecimento.galeria?.length > 0 ? (
                 <div className="estabelecimento__galeria-grid">
-                  {estabelecimento.galeria.map((item: any, idx: number) => (
+                  {estabelecimento.galeria.map((item: ItemGaleria, idx: number) => (
                     <div key={item.id || idx} className="estabelecimento__galeria-item">
                       <img
                         src={item.src}
@@ -230,7 +231,7 @@ const Estabelecimento = () => {
             <section className="estabelecimento__secao" aria-label="Avaliações">
               {estabelecimento.avaliacoes?.length > 0 ? (
                 <div className="estabelecimento__avaliacoes-lista">
-                  {estabelecimento.avaliacoes.map((av: any) => (
+                  {estabelecimento.avaliacoes.map((av: Avaliacao) => (
                     <article key={av.id} className="estabelecimento__avaliacao-card">
                       <header className="estabelecimento__avaliacao-header">
                         <Avatar

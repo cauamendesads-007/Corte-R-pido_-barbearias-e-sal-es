@@ -88,7 +88,7 @@ export const BottomNav = ({
       data-testid={testId}
     >
       <div className="bottom-nav__container">
-        {itensVisiveis.map((item, _index) => {
+        {itensVisiveis.map((item) => {
           const ehAtivo = location.pathname.startsWith(item.caminho) && (item.caminho !== '/' || location.pathname === '/');
           const iconeExibicao = ehAtivo && item.iconeAtivo ? item.iconeAtivo : item.icone;
 
@@ -134,7 +134,7 @@ export const BottomNavSimples = ({
 }: {
   itens?: ItemBottomNav[];
   valor: string;
-  aoAlterar: (caminho: string) => void;
+  aoAlterar: (_caminho: string) => void;
   className?: string;
   'data-testid'?: string;
 }) => (

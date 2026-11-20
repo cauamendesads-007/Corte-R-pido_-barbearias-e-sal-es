@@ -37,7 +37,7 @@ describe('adicionarDias', () => {
 
   it('usa hoje como padrão', () => {
     const hoje = new Date();
-    const esperado = hoje.toISOString().split('T')[0];
+    const _esperado = hoje.toISOString().split('T')[0];
     // Não podemos testar exatamente pois depende do momento da execução
     expect(typeof adicionarDias()).toBe('string');
   });
@@ -134,8 +134,9 @@ describe('gerarHorarios', () => {
 
 describe('ehHoje', () => {
   it('retorna true para hoje', () => {
-    const hoje = new Date().toISOString().split('T')[0];
-    expect(ehHoje(hoje)).toBe(true);
+    const hoje = new Date();
+    const hojeLocal = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
+    expect(ehHoje(hojeLocal)).toBe(true);
     expect(ehHoje(new Date())).toBe(true);
   });
 

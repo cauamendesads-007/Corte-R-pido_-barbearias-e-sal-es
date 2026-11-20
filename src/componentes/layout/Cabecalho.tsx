@@ -21,7 +21,7 @@ export interface CabecalhoProps {
     notificacoesNaoLidas?: number;
   } | null;
   aoSair?: () => void;
-  aoBuscar?: (termo: string) => void;
+  aoBuscar?: (_termo: string) => void;
   className?: string;
   'data-testid'?: string;
 }

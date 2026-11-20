@@ -1,8 +1,8 @@
-﻿# Documentação do Corte Rápido
+# Documentação do Corte Rápido
 
 ---
 
-## 1. Roteiro de Melhorias de Design 
+## 1. Roteiro de Melhorias de Design
 
 ### O que melhorar no visual e na experiência do usuário
 
@@ -34,9 +34,8 @@
 
 #### **Acessibilidade (WCAG AA)**
 - **Navegação por teclado**: Tab order lógico, focus trap em modais, skip link "Pular para conteúdo principal".
-- **ARIA**: ria-label onde não há texto visível, ria-live="polite" para toasts, 
-ole="dialog" + ria-modal="true" em modais.
-- **Texto alternativo**: Todas as imagens decorativas com lt="", informativas com descrição.
+- **ARIA**: aria-label onde não há texto visível, aria-live="polite" para toasts, role="dialog" + aria-modal="true" em modais.
+- **Texto alternativo**: Todas as imagens decorativas com alt="", informativas com descrição.
 - **Redução de movimento**: Respeitar prefers-reduced-motion: reduce.
 
 #### **Páginas Específicas**
@@ -56,7 +55,7 @@ ole="dialog" + ria-modal="true" em modais.
 
 #### **Arquitetura e Estrutura**
 - **Clean Architecture** (já implementado):
-`
+```
 src/
 ├── componentes/        # UI pura (botão, input, card...) — sem lógica de negócio
 ├── paginas/            # Composição de componentes + hooks
@@ -67,9 +66,9 @@ src/
 ├── constantes/         # Tokens de design (cores, espaçamento, breakpoints)
 ├── rotas/              # Configuração de rotas + guards
 └── testes/             # Setup, mocks, utils de teste
-`
+```
 - **Limite de 150 linhas/arquivo** — força componentes pequenos e focados.
-- **Português sem acentos** nos identificadores (useAgendamentos, CampoTexto, ormatarMoeda).
+- **Português sem acentos** nos identificadores (useAgendamentos, CampoTexto, formatarMoeda).
 
 #### **Camada de API (Mock → Real)**
 - **Contrato primeiro**: Definir tipos TypeScript (Estabelecimento, Agendamento, Servico, Usuario) em src/tipos/.
@@ -77,7 +76,7 @@ src/
   - Latência simulada 300-800ms (setTimeout + Promise)
   - Taxa de erro 5% (para testar loading/error states)
   - Persistência em localStorage (sobrevive a refresh)
-- **Troca transparente**: Quando backend chegar, só troca a implementação de pi.ts — hooks e componentes não mudam.
+- **Troca transparente**: Quando backend chegar, só troca a implementação de api.ts — hooks e componentes não mudam.
 
 #### **Estado e Dados**
 - **React Context + useReducer** para auth (usuario, token, permissoes).
@@ -91,25 +90,23 @@ src/
   - Guard RequireAuth redireciona para /login?redirect=...
   - Lazy loading (React.lazy + Suspense) por rota.
 
-#### **Testes (Já: 467 testes, 100% cobertura)**
+#### **Testes (Já: 469 testes, 100% cobertura)**
 - **Vitest + Testing Library + jsdom**
 - **Organização**: __tests__/ ou *.test.tsx ao lado do código
 - **Padrão AAA**: Arrange → Act → Assert
-- **Mocks**: i.mock('@/servicos/api'), i.mock('@/contexto/AuthContexto')
+- **Mocks**: vi.mock('@/servicos/api'), vi.mock('@/contexto/AuthContexto')
 - **Cobertura alvo**: 100% statements/branches/functions/lines — CI falha se cair.
 
 #### **Qualidade de Código (Automatizado)**
 | Ferramenta | Config | O que pega |
 |------------|--------|------------|
-| **ESLint** | 	ypescript-eslint + 
-eact-hooks + jsx-a11y | unused vars, explicit any, hook rules, a11y |
-| **TypeScript** | strict: true, 
-oUnusedLocals/Parameters | tipos soltos, dead code |
+| **ESLint** | typescript-eslint + react-hooks + jsx-a11y | unused vars, explicit any, hook rules, a11y |
+| **TypeScript** | strict: true, noUnusedLocals/Parameters | tipos soltos, dead code |
 | **Prettier** | Single quote, tab width 2, printWidth 100 | formatação consistente |
 | **Husky** | pre-commit (lint-staged) + pre-push (typecheck) | impede commit sujo |
 
 #### **Build e Deploy**
-- **Vite** + 	sc -b (typecheck separado do build)
+- **Vite** + tsc -b (typecheck separado do build)
 - **GitHub Pages** via workflow: GITHUB_PAGES=true npm run build → dist/ → deploy
 - **CI** (.github/workflows/ci.yml): lint → typecheck → test → build (paralelo)
 - **Deploy** (.github/workflows/deploy.yml): roda no push main, publica em gh-pages
@@ -117,19 +114,19 @@ oUnusedLocals/Parameters | tipos soltos, dead code |
 #### **Performance**
 - **Code splitting**: Por rota + componentes pesados (Mapa, Calendário, Galeria)
 - **Imagens**: WebP/AVIF, loading="lazy", srcset responsivo, placeholder blur
-- **Fonts**: ont-display: swap, pré-carregar variáveis, subset se possível
-- **Bundle**: Analisar com ite-bundle-analyzer — alvo < 150kb gzipped inicial
+- **Fonts**: font-display: swap, pré-carregar variáveis, subset se possível
+- **Bundle**: Analisar com vite-bundle-analyzer — alvo < 150kb gzipped inicial
 
 #### **Observabilidade (Futuro)**
 - **Error Boundary** por rota + global (Sentry/LogRocket)
 - **Web Vitals** (LCP, CLS, FID, INP) — meta: todos "good"
-- **Analytics** (Plausible/GA4) — eventos: usca_realizada, gendamento_iniciado, gendamento_concluido
+- **Analytics** (Plausible/GA4) — eventos: busca_realizada, agendamento_iniciado, agendamento_concluido
 
 ---
 
 ## 3. Checklist Rápido (Próximos Passos)
 
-### Design (para seu colega revisar)
+### Design
 - [ ] Aprovar paleta de cores + modo escuro
 - [ ] Validar escala tipográfica e espaçamento
 - [ ] Revisar componentes: Botao, Card, CampoTexto, Avatar, Chip, Modal, Toast
@@ -138,7 +135,7 @@ oUnusedLocals/Parameters | tipos soltos, dead code |
 
 ### Técnico (já pronto / em andamento)
 - [x] Estrutura de pastas + Clean Architecture
-- [x] 18 componentes UI com testes (467 testes passando)
+- [x] 18 componentes UI com testes (469 testes passando)
 - [x] Hooks useAuth, useAgendamentos com testes
 - [x] Mock API com latência/erro/localStorage
 - [x] TypeScript strict + path aliases @/*
@@ -155,7 +152,7 @@ oUnusedLocals/Parameters | tipos soltos, dead code |
 
 ## 4. Como Rodar Localmente
 
-`ash
+```bash
 # Instalar dependências
 npm ci
 
@@ -179,7 +176,7 @@ npm run build
 
 # Preview build local
 npm run preview
-`
+```
 
 ---
 
@@ -190,7 +187,7 @@ npm run preview
 | VITE_API_URL | Não | URL do backend (quando houver) |
 | VITE_GOOGLE_MAPS_KEY | Não | Chave do Maps (para mapa real) |
 | VITE_SENTRY_DSN | Não | DSN do Sentry (erros) |
-| GITHUB_PAGES | Build only | 	rue para build com base path do Pages |
+| GITHUB_PAGES | Build only | true para build com base path do Pages |
 
 ---
 
