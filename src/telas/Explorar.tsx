@@ -17,6 +17,7 @@ import {
   Select,
   Modal,
   BotaoSecundario,
+  Mapa,
 } from '@/componentes';
 import { ICONES, NICHOS } from '@/constantes';
 import './Explorar.css';
@@ -30,7 +31,7 @@ const Explorar = () => {
   const [apenasAbertos, setApenasAbertos] = useState(false);
   const [avaliacaoMinima, setAvaliacaoMinima] = useState(0);
   const [precoMaximo, setPrecoMaximo] = useState(500);
-  const [visualizacao, setVisualizacao] = useState<'grid' | 'lista'>('grid');
+  const [visualizacao, setVisualizacao] = useState<'grid' | 'lista' | 'mapa'>('grid');
 
   const { nichos } = useNichos();
   const { cidades: cidadesHook } = useCidades();
@@ -133,10 +134,20 @@ const Explorar = () => {
 
         <div className="explorar__acoes">
           <BotaoIcone
-            icone={visualizacao === 'grid' ? ICONES.lista : ICONES.grade}
+            icone={
+              visualizacao === 'grid' ? ICONES.lista :
+              visualizacao === 'lista' ? ICONES.mapa :
+              ICONES.grade
+            }
             variante="fantasma"
-            aoClicar={() => setVisualizacao((v) => v === 'grid' ? 'lista' : 'grid')}
-            ariaLabel={visualizacao === 'grid' ? 'Visualizar como lista' : 'Visualizar como grade'}
+            aoClicar={() => setVisualizacao((v) =>
+              v === 'grid' ? 'lista' : v === 'lista' ? 'mapa' : 'grid'
+            )}
+            ariaLabel={
+              visualizacao === 'grid' ? 'Visualizar como lista' :
+              visualizacao === 'lista' ? 'Visualizar no mapa' :
+              'Visualizar como grade'
+            }
             data-testid="explorar-toggle-visualizacao"
           />
           <BotaoIcone
@@ -272,7 +283,7 @@ const Explorar = () => {
                   </Link>
                 ))}
               </div>
-            ) : (
+            ) : visualizacao === 'lista' ? (
               <div className="explorar__lista" role="list" aria-label="Estabelecimentos">
                 {estabelecimentos.map((estabelecimento) => (
                   <Link
@@ -288,9 +299,15 @@ const Explorar = () => {
                   </Link>
                 ))}
               </div>
+            ) : (
+              <Mapa
+                estabelecimentos={estabelecimentos}
+                aoSelecionar={() => {}}
+                data-testid="explorar-mapa"
+              />
             )}
 
-            {temMais && (
+            {visualizacao !== 'mapa' && temMais && (
               <div className="explorar__carregar-mais">
                 <BotaoSecundario aoClicar={carregarMais} desabilitado={carregando}>
                   {carregando ? 'Carregando...' : 'Carregar mais'}

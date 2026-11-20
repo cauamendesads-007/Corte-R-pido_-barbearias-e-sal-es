@@ -1,0 +1,228 @@
+.mapa {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 300px;
+  border-radius: var(--raio-lg);
+  overflow: hidden;
+  background: var(--cor-neutro-100);
+}
+
+.mapa__leaflet {
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.mapa__leaflet .leaflet-container {
+  font-family: inherit;
+  font-size: var(--texto-sm);
+}
+
+.mapa__leaflet .leaflet-popup-content-wrapper {
+  border-radius: var(--raio-md);
+  box-shadow: var(--sombra-lg);
+  padding: 0;
+}
+
+.mapa__leaflet .leaflet-popup-content {
+  margin: 0;
+  width: auto !important;
+}
+
+.mapa__leaflet .leaflet-popup-tip {
+  box-shadow: var(--sombra-lg);
+}
+
+.mapa__popup-conteudo {
+  padding: var(--esp-3) var(--esp-4);
+  min-width: 200px;
+}
+
+.mapa__popup-conteudo strong {
+  display: block;
+  font-size: var(--texto-base);
+  color: var(--cor-neutro-900);
+  margin-bottom: var(--esp-1);
+}
+
+.mapa__popup-conteudo p {
+  margin: var(--esp-1) 0;
+  font-size: var(--texto-sm);
+  color: var(--cor-neutro-600);
+}
+
+.mapa__popup-avaliacao {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-1);
+  color: var(--cor-aviso) !important;
+  font-weight: 500;
+}
+
+.mapa__popup-nicho {
+  display: inline-block;
+  padding: var(--esp-1) var(--esp-2);
+  background: var(--cor-primaria-transparente);
+  color: var(--cor-primaria);
+  border-radius: var(--raio-full);
+  font-size: var(--texto-xs);
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.mapa__controles {
+  position: absolute;
+  bottom: var(--esp-4);
+  right: var(--esp-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-2);
+  z-index: 10;
+}
+
+.mapa__btn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: var(--raio-full);
+  background: var(--cor-branco);
+  box-shadow: var(--sombra-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transicao-rapida);
+  color: var(--cor-neutro-700);
+}
+
+.mapa__btn:hover {
+  background: var(--cor-neutro-50);
+  transform: scale(1.05);
+}
+
+.mapa__btn:focus-visible {
+  outline: 2px solid var(--cor-primaria);
+  outline-offset: 2px;
+}
+
+.mapa__btn:active {
+  transform: scale(0.95);
+}
+
+.mapa__legenda {
+  position: absolute;
+  bottom: var(--esp-4);
+  left: var(--esp-4);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-2);
+  background: var(--cor-branco);
+  padding: var(--esp-2) var(--esp-3);
+  border-radius: var(--raio-md);
+  box-shadow: var(--sombra-md);
+  font-size: var(--texto-xs);
+  color: var(--cor-neutro-700);
+  z-index: 10;
+  max-width: 280px;
+}
+
+.mapa__legenda-item {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-1);
+  white-space: nowrap;
+}
+
+.mapa__legenda-icone {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--raio-full);
+}
+
+.mapa__vazio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 300px;
+  padding: var(--esp-8);
+  text-align: center;
+  color: var(--cor-neutro-500);
+}
+
+.mapa__vazio span {
+  font-size: 48px;
+  margin-bottom: var(--esp-3);
+  opacity: 0.5;
+}
+
+.mapa__vazio p {
+  font-size: var(--texto-base);
+}
+
+.mapa__cluster-wrapper {
+  pointer-events: none;
+}
+
+.mapa__cluster {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--raio-full);
+  background: var(--cor-primaria);
+  color: var(--cor-branco);
+  font-weight: 600;
+  font-size: var(--texto-sm);
+  border: 3px solid var(--cor-branco);
+  box-shadow: var(--sombra-md);
+}
+
+.mapa__cluster--pequeno {
+  width: 30px;
+  height: 30px;
+}
+
+.mapa__cluster--medio {
+  width: 40px;
+  height: 40px;
+  font-size: var(--texto-base);
+}
+
+.mapa__cluster--grande {
+  width: 50px;
+  height: 50px;
+  font-size: var(--texto-lg);
+}
+
+@media (max-width: 768px) {
+  .mapa__legenda {
+    bottom: var(--esp-3);
+    left: var(--esp-3);
+    right: var(--esp-3);
+    max-width: none;
+    justify-content: center;
+    padding: var(--esp-2);
+  }
+
+  .mapa__controles {
+    bottom: var(--esp-3);
+    right: var(--esp-3);
+  }
+
+  .mapa__btn {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mapa__btn {
+    transition: none;
+  }
+
+  .mapa__cluster {
+    transition: none;
+  }
+}
