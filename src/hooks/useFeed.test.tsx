@@ -5,6 +5,30 @@
 
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
+import { ReactNode } from 'react';
+import { ServicesContext } from '@/contexto/ServicesContext';
+import type { IFeedService } from '@/features/feed/services/IFeedService';
+import type { IEstabelecimentosService } from '@/features/estabelecimentos/services/IEstabelecimentosService';
+import type { IAuthService } from '@/features/auth/services/IAuthService';
+import type { IAgendamentosService } from '@/features/agendamentos/services/IAgendamentosService';
+import type { INotificacoesService } from '@/features/notificacoes/services/INotificacoesService';
+import type { IPerfilService } from '@/features/perfil/services/IPerfilService';
+import type { IBarbeiroService } from '@/features/barbeiro/services/IBarbeiroService';
+import type { IAdminService } from '@/features/admin/services/IAdminService';
+import type { IMensagensService } from '@/features/mensagens/services/IMensagensService';
+import type { Publicacao } from '@/tipos';
+
+interface Services {
+  auth: IAuthService;
+  estabelecimentos: IEstabelecimentosService;
+  agendamentos: IAgendamentosService;
+  feed: IFeedService;
+  notificacoes: INotificacoesService;
+  perfil: IPerfilService;
+  barbeiro: IBarbeiroService;
+  admin: IAdminService;
+  mensagens: IMensagensService;
+}
 
 // Mock do atrasar para resolver imediatamente
 vi.mock('@/utilitarios/formatar', () => ({
@@ -16,38 +40,11 @@ vi.mock('@/utilitarios/formatar', () => ({
   calcularDistanciaKm: vi.fn(() => 0),
 }));
 
-vi.mock('@/servicos/api', () => ({
-  api: {
-    feed: {
-      listar: vi.fn(),
-      curtir: vi.fn(),
-      salvar: vi.fn(),
-      compartilhar: vi.fn(),
-      criar: vi.fn(),
-      excluir: vi.fn(),
-      denunciar: vi.fn(),
-    },
-    estabelecimentos: {
-      obter: vi.fn(),
-    },
-    autenticacao: {
-      validarToken: vi.fn(),
-    },
-    perfil: {
-      obter: vi.fn(),
-    },
-  },
-}));
-
 vi.mock('./useAuth', () => ({
   useAuth: vi.fn(),
 }));
 
-import { useFeed, useInspiracoes } from './useFeed';
-import { api } from '@/servicos/api';
-import { useAuth } from './useAuth';
-import type { Publicacao } from '@/tipos';
-
+// Mock do usuário - definido no top-level
 const mockUsuario = {
   id: 'user-1',
   nome: 'João Cliente',
@@ -60,13 +57,13 @@ const mockUsuario = {
   inspiracaoSalvas: [],
 };
 
-const mockPublicacoes = [
+const mockPublicacoes: Publicacao[] = [
   {
     id: 'post-1',
     estabelecimentoId: 'corte-rapido',
     estabelecimentoNome: 'Corte Rápido',
     estabelecimentoSlug: 'corte-rapido',
-    tipo: 'imagem' as const,
+    tipo: 'imagem',
     src: 'https://example.com/img1.jpg',
     legenda: 'Corte clássico',
     tagServico: 'corte',
@@ -83,7 +80,7 @@ const mockPublicacoes = [
     estabelecimentoId: 'face-e-forma',
     estabelecimentoNome: 'Face e Forma',
     estabelecimentoSlug: 'face-e-forma',
-    tipo: 'video' as const,
+    tipo: 'video',
     src: 'https://example.com/video1.mp4',
     legenda: 'Transformação visagismo',
     tagServico: 'visagismo',
@@ -104,18 +101,86 @@ const mockEstabelecimento = {
   ],
 };
 
+// Criar mock do IFeedService
+const createMockFeedService = () => ({
+  listar: vi.fn().mockResolvedValue({ sucesso: true, dados: mockPublicacoes }),
+  curtir: vi.fn().mockResolvedValue({ sucesso: true }),
+  salvar: vi.fn().mockResolvedValue({ sucesso: true }),
+  compartilhar: vi.fn().mockResolvedValue({ sucesso: true }),
+  criar: vi.fn().mockResolvedValue({ sucesso: true, dados: mockPublicacoes[0] }),
+  excluir: vi.fn().mockResolvedValue({ sucesso: true }),
+  denunciar: vi.fn().mockResolvedValue({ sucesso: true }),
+});
+
+// Criar mock do IEstabelecimentosService
+const createMockEstabelecimentosService = () => ({
+  buscar: vi.fn(),
+  obter: vi.fn().mockResolvedValue({ sucesso: true, dados: mockEstabelecimento }),
+  obterPorSlug: vi.fn(),
+  criar: vi.fn(),
+  atualizar: vi.fn(),
+  excluir: vi.fn(),
+  listarMeus: vi.fn(),
+  aprovar: vi.fn(),
+  rejeitar: vi.fn(),
+  buscarPorProximidade: vi.fn(),
+  atualizarTema: vi.fn(),
+  atualizarConfiguracaoPix: vi.fn(),
+  atualizarServicos: vi.fn(),
+  adicionarAvaliacao: vi.fn(),
+  responderAvaliacao: vi.fn(),
+  seguir: vi.fn(),
+  deixarDeSeguir: vi.fn(),
+  atualizarHorarioFuncionamento: vi.fn(),
+  atualizarFila: vi.fn(),
+});
+
+// Provider de teste que usa mock services
+const TestServiceProvider = ({ children, feedService, estabelecimentosService }: { children: ReactNode; feedService: IFeedService; estabelecimentosService: IEstabelecimentosService }) => {
+  const mockServices: Services = {
+    auth: {} as IAuthService,
+    estabelecimentos: estabelecimentosService,
+    agendamentos: {} as IAgendamentosService,
+    feed: feedService,
+    notificacoes: {} as INotificacoesService,
+    perfil: {} as IPerfilService,
+    barbeiro: {} as IBarbeiroService,
+    admin: {} as IAdminService,
+    mensagens: {} as IMensagensService,
+  };
+
+  return (
+    <ServicesContext.Provider value={mockServices}>
+      {children}
+    </ServicesContext.Provider>
+  );
+};
+
+// Helper para renderizar hook com TestServiceProvider
+const renderHookWithFeed = <T,>(
+  hook: (props: T) => unknown,
+  feedService: IFeedService,
+  estabelecimentosService: IEstabelecimentosService,
+  options?: { initialProps?: T }
+) => {
+  return renderHook(hook, {
+    wrapper: ({ children }) => <TestServiceProvider feedService={feedService} estabelecimentosService={estabelecimentosService}>{children}</TestServiceProvider>,
+    initialProps: options?.initialProps,
+  });
+};
+
+import { useFeed, useInspiracoes } from './useFeed';
+import { useAuth } from './useAuth';
+
 describe('useFeed', () => {
+  let mockFeedService: ReturnType<typeof createMockFeedService>;
+  let mockEstabelecimentosService: ReturnType<typeof createMockEstabelecimentosService>;
+
   beforeEach(() => {
     vi.clearAllMocks();
+    mockFeedService = createMockFeedService();
+    mockEstabelecimentosService = createMockEstabelecimentosService();
     (useAuth as vi.Mock).mockReturnValue({ usuario: mockUsuario });
-    api.feed.listar.mockResolvedValue({ sucesso: true, dados: mockPublicacoes });
-    api.feed.curtir.mockResolvedValue({ sucesso: true });
-    api.feed.salvar.mockResolvedValue({ sucesso: true });
-    api.feed.compartilhar.mockResolvedValue({ sucesso: true });
-    api.feed.criar.mockResolvedValue({ sucesso: true, dados: mockPublicacoes[0] });
-    api.feed.excluir.mockResolvedValue({ sucesso: true });
-    api.feed.denunciar.mockResolvedValue({ sucesso: true });
-    api.estabelecimentos.obter.mockResolvedValue({ sucesso: true, dados: mockEstabelecimento });
   });
 
   afterEach(() => {
@@ -124,37 +189,37 @@ describe('useFeed', () => {
 
   describe('carregamento inicial', () => {
     it('deve carregar publicações do feed', async () => {
-      const { result } = renderHook(() => useFeed('todos'));
+      const { result } = renderHookWithFeed(() => useFeed('todos'), mockFeedService, mockEstabelecimentosService);
 
       await waitFor(() => expect(result.current.carregando).toBe(false));
 
-      expect(api.feed.listar).toHaveBeenCalledWith({ usuarioEmail: 'cliente@demo.com', filtro: 'todos' });
+      expect(mockFeedService.listar).toHaveBeenCalledWith({ usuarioEmail: 'cliente@demo.com', filtro: 'todos' });
       expect(result.current.publicacoes).toHaveLength(2);
       expect(result.current.temMais).toBe(false);
     });
 
     it('deve usar filtro "salvos" para inspirações', async () => {
-      const { result } = renderHook(() => useFeed('inspiracoes'));
+      const { result } = renderHookWithFeed(() => useFeed('inspiracoes'), mockFeedService, mockEstabelecimentosService);
 
       await waitFor(() => expect(result.current.carregando).toBe(false));
 
-      expect(api.feed.listar).toHaveBeenCalledWith({ usuarioEmail: 'cliente@demo.com', filtro: 'salvos' });
+      expect(mockFeedService.listar).toHaveBeenCalledWith({ usuarioEmail: 'cliente@demo.com', filtro: 'salvos' });
     });
 
     it('não deve passar email se usuário não autenticado', async () => {
       (useAuth as vi.Mock).mockReturnValue({ usuario: null });
 
-      const { result } = renderHook(() => useFeed('todos'));
+      const { result } = renderHookWithFeed(() => useFeed('todos'), mockFeedService, mockEstabelecimentosService);
 
       await waitFor(() => expect(result.current.carregando).toBe(false));
 
-      expect(api.feed.listar).toHaveBeenCalledWith({ usuarioEmail: undefined, filtro: 'todos' });
+      expect(mockFeedService.listar).toHaveBeenCalledWith({ usuarioEmail: undefined, filtro: 'todos' });
     });
   });
 
   describe('curtir', () => {
-    it('deve atualizar otimisticamente e chamar API', async () => {
-      const { result } = renderHook(() => useFeed('todos'));
+    it('deve atualizar otimisticamente e chamar serviço', async () => {
+      const { result } = renderHookWithFeed(() => useFeed('todos'), mockFeedService, mockEstabelecimentosService);
 
       await waitFor(() => expect(result.current.carregando).toBe(false));
 
@@ -167,13 +232,13 @@ describe('useFeed', () => {
 
       expect(result.current.publicacoes.find(p => p.id === postId)?.usuarioCurtiu).toBe(true);
       expect(result.current.publicacoes.find(p => p.id === postId)?.curtidas.length).toBe(initialLikes + 1);
-      expect(api.feed.curtir).toHaveBeenCalledWith(postId, 'cliente@demo.com');
+      expect(mockFeedService.curtir).toHaveBeenCalledWith(postId, 'cliente@demo.com');
     });
 
-    it('deve reverter otimista se API falhar', async () => {
-      api.feed.curtir.mockResolvedValue({ sucesso: false, erro: 'Erro' });
+    it('deve reverter otimista se serviço falhar', async () => {
+      mockFeedService.curtir.mockResolvedValue({ sucesso: false, erro: 'Erro' });
 
-      const { result } = renderHook(() => useFeed('todos'));
+      const { result } = renderHookWithFeed(() => useFeed('todos'), mockFeedService, mockEstabelecimentosService);
 
       await waitFor(() => expect(result.current.carregando).toBe(false));
 
@@ -192,7 +257,7 @@ describe('useFeed', () => {
     it('não deve fazer nada se usuário não autenticado', async () => {
       (useAuth as vi.Mock).mockReturnValue({ usuario: null });
 
-      const { result } = renderHook(() => useFeed('todos'));
+      const { result } = renderHookWithFeed(() => useFeed('todos'), mockFeedService, mockEstabelecimentosService);
 
       await waitFor(() => expect(result.current.carregando).toBe(false));
 
@@ -200,13 +265,13 @@ describe('useFeed', () => {
         await result.current.curtir('post-1');
       });
 
-      expect(api.feed.curtir).not.toHaveBeenCalled();
+      expect(mockFeedService.curtir).not.toHaveBeenCalled();
     });
   });
 
   describe('salvar', () => {
     it('deve salvar/desalvar publicação otimisticamente', async () => {
-      const { result } = renderHook(() => useFeed('todos'));
+      const { result } = renderHookWithFeed(() => useFeed('todos'), mockFeedService, mockEstabelecimentosService);
 
       await waitFor(() => expect(result.current.carregando).toBe(false));
 
@@ -218,13 +283,13 @@ describe('useFeed', () => {
       });
 
       expect(result.current.publicacoes.find(p => p.id === postId)?.usuarioSalvou).toBe(!initialSalvou);
-      expect(api.feed.salvar).toHaveBeenCalledWith(postId, 'cliente@demo.com');
+      expect(mockFeedService.salvar).toHaveBeenCalledWith(postId, 'cliente@demo.com');
     });
 
-    it('deve reverter se API falhar', async () => {
-      api.feed.salvar.mockResolvedValue({ sucesso: false });
+    it('deve reverter se serviço falhar', async () => {
+      mockFeedService.salvar.mockResolvedValue({ sucesso: false });
 
-      const { result } = renderHook(() => useFeed('todos'));
+      const { result } = renderHookWithFeed(() => useFeed('todos'), mockFeedService, mockEstabelecimentosService);
 
       await waitFor(() => expect(result.current.carregando).toBe(false));
 
@@ -241,7 +306,7 @@ describe('useFeed', () => {
 
   describe('compartilhar', () => {
     it('deve incrementar contador de compartilhamentos', async () => {
-      const { result } = renderHook(() => useFeed('todos'));
+      const { result } = renderHookWithFeed(() => useFeed('todos'), mockFeedService, mockEstabelecimentosService);
 
       await waitFor(() => expect(result.current.carregando).toBe(false));
 
@@ -253,13 +318,13 @@ describe('useFeed', () => {
       });
 
       expect(result.current.publicacoes.find(p => p.id === postId)?.compartilhamentos).toBe(initialShares + 1);
-      expect(api.feed.compartilhar).toHaveBeenCalledWith(postId);
+      expect(mockFeedService.compartilhar).toHaveBeenCalledWith(postId);
     });
   });
 
   describe('criar publicação', () => {
     it('deve criar publicação com sucesso', async () => {
-      const { result } = renderHook(() => useFeed('todos'));
+      const { result } = renderHookWithFeed(() => useFeed('todos'), mockFeedService, mockEstabelecimentosService);
 
       await waitFor(() => expect(result.current.carregando).toBe(false));
 
@@ -277,8 +342,8 @@ describe('useFeed', () => {
       expect(createResult.sucesso).toBe(true);
       expect(createResult.publicacao).toBeDefined();
       expect(result.current.publicacoes[0].id).toBe('post-1');
-      expect(api.estabelecimentos.obter).toHaveBeenCalledWith('corte-rapido');
-      expect(api.feed.criar).toHaveBeenCalledWith(expect.objectContaining({
+      expect(mockEstabelecimentosService.obter).toHaveBeenCalledWith('corte-rapido');
+      expect(mockFeedService.criar).toHaveBeenCalledWith(expect.objectContaining({
         estabelecimentoId: 'corte-rapido',
         legenda: 'Novo corte!',
         tagServico: 'corte',
@@ -288,7 +353,7 @@ describe('useFeed', () => {
     it('deve retornar erro se usuário não autenticado', async () => {
       (useAuth as vi.Mock).mockReturnValue({ usuario: null });
 
-      const { result } = renderHook(() => useFeed('todos'));
+      const { result } = renderHookWithFeed(() => useFeed('todos'), mockFeedService, mockEstabelecimentosService);
 
       await waitFor(() => expect(result.current.carregando).toBe(false));
 
@@ -309,7 +374,7 @@ describe('useFeed', () => {
 
   describe('excluir', () => {
     it('deve excluir publicação própria', async () => {
-      const { result } = renderHook(() => useFeed('todos'));
+      const { result } = renderHookWithFeed(() => useFeed('todos'), mockFeedService, mockEstabelecimentosService);
 
       await waitFor(() => expect(result.current.carregando).toBe(false));
 
@@ -321,13 +386,13 @@ describe('useFeed', () => {
 
       expect(deleteResult.sucesso).toBe(true);
       expect(result.current.publicacoes.find(p => p.id === 'post-1')).toBeUndefined();
-      expect(api.feed.excluir).toHaveBeenCalledWith('post-1', 'corte-rapido');
+      expect(mockFeedService.excluir).toHaveBeenCalledWith('post-1', 'corte-rapido');
     });
   });
 
   describe('denunciar', () => {
     it('deve denunciar publicação', async () => {
-      const { result } = renderHook(() => useFeed('todos'));
+      const { result } = renderHookWithFeed(() => useFeed('todos'), mockFeedService, mockEstabelecimentosService);
 
       await waitFor(() => expect(result.current.carregando).toBe(false));
 
@@ -338,7 +403,7 @@ describe('useFeed', () => {
       });
 
       expect(reportResult.sucesso).toBe(true);
-      expect(api.feed.denunciar).toHaveBeenCalledWith('post-1', 'Conteúdo inadequado');
+      expect(mockFeedService.denunciar).toHaveBeenCalledWith('post-1', 'Conteúdo inadequado');
     });
   });
 
@@ -348,9 +413,9 @@ describe('useFeed', () => {
         ...mockPublicacoes[0],
         id: `post-${i}`,
       }));
-      api.feed.listar.mockResolvedValue({ sucesso: true, dados: muitasPublicacoes });
+      mockFeedService.listar.mockResolvedValue({ sucesso: true, dados: muitasPublicacoes });
 
-      const { result } = renderHook(() => useFeed('todos'));
+      const { result } = renderHookWithFeed(() => useFeed('todos'), mockFeedService, mockEstabelecimentosService);
 
       await waitFor(() => expect(result.current.carregando).toBe(false));
 
@@ -372,7 +437,6 @@ describe('useInspiracoes', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     (useAuth as vi.Mock).mockReturnValue({ usuario: mockUsuario });
-    api.feed.listar.mockResolvedValue({ sucesso: true, dados: mockPublicacoes });
   });
 
   afterEach(() => {
@@ -380,25 +444,36 @@ describe('useInspiracoes', () => {
   });
 
   it('deve carregar inspirações salvas do usuário', async () => {
-    const { result } = renderHook(() => useInspiracoes());
+    const mockFeedService = createMockFeedService();
+    const mockEstabelecimentosService = createMockEstabelecimentosService();
+    mockFeedService.listar.mockResolvedValue({ sucesso: true, dados: mockPublicacoes });
+
+    const { result } = renderHookWithFeed(() => useInspiracoes(), mockFeedService, mockEstabelecimentosService);
 
     await waitFor(() => expect(result.current.carregando).toBe(false));
 
-    expect(api.feed.listar).toHaveBeenCalledWith({ usuarioEmail: 'cliente@demo.com', filtro: 'salvos' });
+    expect(mockFeedService.listar).toHaveBeenCalledWith({ usuarioEmail: 'cliente@demo.com', filtro: 'salvos' });
     expect(result.current.inspiracoes).toHaveLength(2);
   });
 
   it('não deve carregar se usuário não autenticado', async () => {
     (useAuth as vi.Mock).mockReturnValue({ usuario: null });
 
-    const { result } = renderHook(() => useInspiracoes());
+    const mockFeedService = createMockFeedService();
+    const mockEstabelecimentosService = createMockEstabelecimentosService();
+
+    const { result } = renderHookWithFeed(() => useInspiracoes(), mockFeedService, mockEstabelecimentosService);
 
     expect(result.current.inspiracoes).toHaveLength(0);
-    expect(api.feed.listar).not.toHaveBeenCalled();
+    expect(mockFeedService.listar).not.toHaveBeenCalled();
   });
 
   it('deve recarregar quando chamado', async () => {
-    const { result } = renderHook(() => useInspiracoes());
+    const mockFeedService = createMockFeedService();
+    const mockEstabelecimentosService = createMockEstabelecimentosService();
+    mockFeedService.listar.mockResolvedValue({ sucesso: true, dados: mockPublicacoes });
+
+    const { result } = renderHookWithFeed(() => useInspiracoes(), mockFeedService, mockEstabelecimentosService);
 
     await waitFor(() => expect(result.current.carregando).toBe(false));
 
@@ -406,6 +481,6 @@ describe('useInspiracoes', () => {
       await result.current.recarregar();
     });
 
-    expect(api.feed.listar).toHaveBeenCalledTimes(2);
+    expect(mockFeedService.listar).toHaveBeenCalledTimes(2);
   });
 });

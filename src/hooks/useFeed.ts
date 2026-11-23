@@ -1,10 +1,11 @@
 /**
  * Hook useFeed - Feed de publicações (inspirações, cortes, dicas).
  * Paginação infinita, curtir/salvar/compartilhar, otimista.
+ * Usa ServiceProvider (DIP) para injeção de dependência.
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { api } from '@/servicos/api';
+import { useFeedService, useEstabelecimentosService } from '@/contexto/ServiceHooks';
 import type { Publicacao, TipoMidia } from '@/tipos';
 import { useAuth } from './useAuth';
 
@@ -38,6 +39,8 @@ const ITENS_POR_PAGINA = 10;
 
 export const useFeed = (tipo: 'todos' | 'seguindo' | 'inspiracoes' | 'populares' = 'todos'): EstadoFeed & AcoesFeed => {
   const { usuario } = useAuth();
+  const feedService = useFeedService();
+  const estabelecimentosService = useEstabelecimentosService();
   const [publicacoes, setPublicacoes] = useState<Publicacao[]>([]);
   const [carregando, setCarregando] = useState(false);
   const [carregandoMais, setCarregandoMais] = useState(false);
@@ -59,7 +62,7 @@ export const useFeed = (tipo: 'todos' | 'seguindo' | 'inspiracoes' | 'populares'
         filtro = 'todos'; // API filtra por seguindo internamente
       }
 
-      const resposta = await api.feed.listar({ usuarioEmail: usuario?.email, filtro });
+      const resposta = await feedService.listar({ usuarioEmail: usuario?.email, filtro });
 
       if (resposta.sucesso && resposta.dados) {
         const todos = resposta.dados;
@@ -79,7 +82,7 @@ export const useFeed = (tipo: 'todos' | 'seguindo' | 'inspiracoes' | 'populares'
     } finally {
       setCarregando(false);
     }
-  }, [tipo, usuario]);
+  }, [tipo, usuario, feedService]);
 
   useEffect(() => {
     recarregar();
@@ -96,7 +99,7 @@ export const useFeed = (tipo: 'todos' | 'seguindo' | 'inspiracoes' | 'populares'
         filtro = 'salvos';
       }
 
-      const resposta = await api.feed.listar({ usuarioEmail: usuario?.email, filtro });
+      const resposta = await feedService.listar({ usuarioEmail: usuario?.email, filtro });
 
       if (resposta.sucesso && resposta.dados) {
         const todos = resposta.dados;
@@ -114,7 +117,7 @@ export const useFeed = (tipo: 'todos' | 'seguindo' | 'inspiracoes' | 'populares'
     } finally {
       setCarregandoMais(false);
     }
-  }, [carregandoMais, temMais, pagina, tipo, usuario]);
+  }, [carregandoMais, temMais, pagina, tipo, usuario, feedService]);
 
   // Atualiza otimista
   const aplicarOtimista = useCallback((id: string, atualizacoes: Partial<Publicacao>) => {
@@ -139,14 +142,14 @@ export const useFeed = (tipo: 'todos' | 'seguindo' | 'inspiracoes' | 'populares'
     aplicarOtimista(id, { usuarioCurtiu: !jaCurtiu, curtidas: Array(novaContagem).fill('') });
 
     try {
-      const resposta = await api.feed.curtir(id, usuario.email);
+      const resposta = await feedService.curtir(id, usuario.email);
       if (!resposta.sucesso) {
         reverterOtimista(id);
       }
     } catch {
       reverterOtimista(id);
     }
-  }, [publicacoes, usuario, aplicarOtimista, reverterOtimista]);
+  }, [publicacoes, usuario, aplicarOtimista, reverterOtimista, feedService]);
 
   const salvar = useCallback(async (id: string) => {
     const publicacao = publicacoes.find((p) => p.id === id);
@@ -158,27 +161,27 @@ export const useFeed = (tipo: 'todos' | 'seguindo' | 'inspiracoes' | 'populares'
     aplicarOtimista(id, { usuarioSalvou: !jaSalvou });
 
     try {
-      const resposta = await api.feed.salvar(id, usuario.email);
+      const resposta = await feedService.salvar(id, usuario.email);
       if (!resposta.sucesso) {
         reverterOtimista(id);
       }
     } catch {
       reverterOtimista(id);
     }
-  }, [publicacoes, usuario, aplicarOtimista, reverterOtimista]);
+  }, [publicacoes, usuario, aplicarOtimista, reverterOtimista, feedService]);
 
   const compartilhar = useCallback(async (id: string) => {
     const publicacao = publicacoes.find((p) => p.id === id);
     if (!publicacao) return;
 
     try {
-      await api.feed.compartilhar(id);
+      await feedService.compartilhar(id);
       // Incrementa contador local
       aplicarOtimista(id, { compartilhamentos: (publicacao.compartilhamentos || 0) + 1 });
     } catch {
       // Silencioso
     }
-  }, [publicacoes, aplicarOtimista]);
+  }, [publicacoes, aplicarOtimista, feedService]);
 
   const criar = useCallback(async (dados: {
     legenda: string;
@@ -194,7 +197,7 @@ export const useFeed = (tipo: 'todos' | 'seguindo' | 'inspiracoes' | 'populares'
       // Busca tag do serviço se fornecido
       let tagServico: string | undefined;
       if (dados.servicoId) {
-        const estResposta = await api.estabelecimentos.obter(dados.estabelecimentoId);
+        const estResposta = await estabelecimentosService.obter(dados.estabelecimentoId);
         if (estResposta.sucesso && estResposta.dados) {
           const servico = estResposta.dados.servicos.find((s) => s.id === dados.servicoId);
           tagServico = servico?.tag;
@@ -202,7 +205,7 @@ export const useFeed = (tipo: 'todos' | 'seguindo' | 'inspiracoes' | 'populares'
       }
 
       const primeiraMidia = dados.midias[0];
-      const resposta = await api.feed.criar({
+      const resposta = await feedService.criar({
         estabelecimentoId: dados.estabelecimentoId,
         tipo: primeiraMidia?.tipo || 'texto',
         src: primeiraMidia?.src,
@@ -219,13 +222,13 @@ export const useFeed = (tipo: 'todos' | 'seguindo' | 'inspiracoes' | 'populares'
     } catch {
       return { sucesso: false, erro: 'Erro de conexão. Tente novamente.' };
     }
-  }, [usuario]);
+  }, [usuario, feedService, estabelecimentosService]);
 
   const excluir = useCallback(async (id: string, estabelecimentoId: string) => {
     setErro(null);
 
     try {
-      const resposta = await api.feed.excluir(id, estabelecimentoId);
+      const resposta = await feedService.excluir(id, estabelecimentoId);
 
       if (resposta.sucesso) {
         setPublicacoes((prev) => prev.filter((p) => p.id !== id));
@@ -236,18 +239,18 @@ export const useFeed = (tipo: 'todos' | 'seguindo' | 'inspiracoes' | 'populares'
     } catch {
       return { sucesso: false, erro: 'Erro de conexão. Tente novamente.' };
     }
-  }, []);
+  }, [feedService]);
 
   const denunciar = useCallback(async (id: string, motivo: string) => {
     setErro(null);
 
     try {
-      const resposta = await api.feed.denunciar(id, motivo);
+      const resposta = await feedService.denunciar(id, motivo);
       return { sucesso: resposta.sucesso, erro: resposta.erro };
     } catch {
       return { sucesso: false, erro: 'Erro de conexão. Tente novamente.' };
     }
-  }, []);
+  }, [feedService]);
 
   const limparErro = useCallback(() => setErro(null), []);
 
@@ -273,6 +276,7 @@ export const useFeed = (tipo: 'todos' | 'seguindo' | 'inspiracoes' | 'populares'
 /** Hook para inspirações salvas do usuário */
 export const useInspiracoes = () => {
   const { usuario } = useAuth();
+  const feedService = useFeedService();
   const [inspiracoes, setInspiracoes] = useState<Publicacao[]>([]);
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
@@ -284,7 +288,7 @@ export const useInspiracoes = () => {
     setErro(null);
 
     try {
-      const resposta = await api.feed.listar({ usuarioEmail: usuario.email, filtro: 'salvos' });
+      const resposta = await feedService.listar({ usuarioEmail: usuario.email, filtro: 'salvos' });
       if (resposta.sucesso && resposta.dados) {
         setInspiracoes(resposta.dados);
       } else {
@@ -295,7 +299,7 @@ export const useInspiracoes = () => {
     } finally {
       setCarregando(false);
     }
-  }, [usuario]);
+  }, [usuario, feedService]);
 
   useEffect(() => {
     if (usuario) recarregar();

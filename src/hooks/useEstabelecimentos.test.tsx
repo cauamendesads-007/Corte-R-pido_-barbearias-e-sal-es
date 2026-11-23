@@ -5,6 +5,30 @@
 
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
+import { ReactNode } from 'react';
+import { ServicesContext } from '@/contexto/ServicesContext';
+import type { IEstabelecimentosService } from '@/features/estabelecimentos/services/IEstabelecimentosService';
+import type { IAuthService } from '@/features/auth/services/IAuthService';
+import type { IAgendamentosService } from '@/features/agendamentos/services/IAgendamentosService';
+import type { IFeedService } from '@/features/feed/services/IFeedService';
+import type { INotificacoesService } from '@/features/notificacoes/services/INotificacoesService';
+import type { IPerfilService } from '@/features/perfil/services/IPerfilService';
+import type { IBarbeiroService } from '@/features/barbeiro/services/IBarbeiroService';
+import type { IAdminService } from '@/features/admin/services/IAdminService';
+import type { IMensagensService } from '@/features/mensagens/services/IMensagensService';
+import type { Estabelecimento } from '@/tipos';
+
+interface Services {
+  auth: IAuthService;
+  estabelecimentos: IEstabelecimentosService;
+  agendamentos: IAgendamentosService;
+  feed: IFeedService;
+  notificacoes: INotificacoesService;
+  perfil: IPerfilService;
+  barbeiro: IBarbeiroService;
+  admin: IAdminService;
+  mensagens: IMensagensService;
+}
 
 // Mock do atrasar para resolver imediatamente
 vi.mock('@/utilitarios/formatar', () => ({
@@ -16,20 +40,7 @@ vi.mock('@/utilitarios/formatar', () => ({
   calcularDistanciaKm: vi.fn(() => 0),
 }));
 
-vi.mock('@/servicos/api', () => ({
-  api: {
-    estabelecimentos: {
-      buscar: vi.fn(),
-      obter: vi.fn(),
-      obterPorSlug: vi.fn(),
-    },
-  },
-}));
-
-import { useEstabelecimentos, useEstabelecimento, useNichos, useCidades } from './useEstabelecimentos';
-import { api } from '@/servicos/api';
-
-const mockEstabelecimentos = [
+const mockEstabelecimentos: Estabelecimento[] = [
   {
     id: 'corte-rapido',
     slug: 'corte-rapido',
@@ -84,12 +95,70 @@ const mockEstabelecimentos = [
   },
 ];
 
+// Criar mock do IEstabelecimentosService
+const createMockEstabelecimentosService = () => ({
+  buscar: vi.fn().mockResolvedValue({ sucesso: true, dados: mockEstabelecimentos }),
+  obter: vi.fn().mockResolvedValue({ sucesso: true, dados: mockEstabelecimentos[0] }),
+  obterPorSlug: vi.fn().mockResolvedValue({ sucesso: true, dados: mockEstabelecimentos[0] }),
+  criar: vi.fn(),
+  atualizar: vi.fn(),
+  excluir: vi.fn(),
+  listarMeus: vi.fn(),
+  aprovar: vi.fn(),
+  rejeitar: vi.fn(),
+  buscarPorProximidade: vi.fn(),
+  atualizarTema: vi.fn(),
+  atualizarConfiguracaoPix: vi.fn(),
+  atualizarServicos: vi.fn(),
+  adicionarAvaliacao: vi.fn(),
+  responderAvaliacao: vi.fn(),
+  seguir: vi.fn(),
+  deixarDeSeguir: vi.fn(),
+  atualizarHorarioFuncionamento: vi.fn(),
+  atualizarFila: vi.fn(),
+});
+
+// Provider de teste que usa mock services
+const TestServiceProvider = ({ children, estabelecimentosService }: { children: ReactNode; estabelecimentosService: IEstabelecimentosService }) => {
+  const mockServices: Services = {
+    auth: {} as IAuthService,
+    estabelecimentos: estabelecimentosService,
+    agendamentos: {} as IAgendamentosService,
+    feed: {} as IFeedService,
+    notificacoes: {} as INotificacoesService,
+    perfil: {} as IPerfilService,
+    barbeiro: {} as IBarbeiroService,
+    admin: {} as IAdminService,
+    mensagens: {} as IMensagensService,
+  };
+
+  return (
+    <ServicesContext.Provider value={mockServices}>
+      {children}
+    </ServicesContext.Provider>
+  );
+};
+
+// Helper para renderizar hook com TestServiceProvider
+const renderHookWithEstabelecimentos = <T,>(
+  hook: (props: T) => unknown,
+  estabelecimentosService: IEstabelecimentosService,
+  options?: { initialProps?: T }
+) => {
+  return renderHook(hook, {
+    wrapper: ({ children }) => <TestServiceProvider estabelecimentosService={estabelecimentosService}>{children}</TestServiceProvider>,
+    initialProps: options?.initialProps,
+  });
+};
+
+import { useEstabelecimentos, useEstabelecimento, useNichos, useCidades } from './useEstabelecimentos';
+
 describe('useEstabelecimentos', () => {
+  let mockEstabelecimentosService: ReturnType<typeof createMockEstabelecimentosService>;
+
   beforeEach(() => {
     vi.clearAllMocks();
-    api.estabelecimentos.buscar.mockResolvedValue({ sucesso: true, dados: mockEstabelecimentos });
-    api.estabelecimentos.obter.mockResolvedValue({ sucesso: true, dados: mockEstabelecimentos[0] });
-    api.estabelecimentos.obterPorSlug.mockResolvedValue({ sucesso: true, dados: mockEstabelecimentos[0] });
+    mockEstabelecimentosService = createMockEstabelecimentosService();
   });
 
   afterEach(() => {
@@ -98,7 +167,7 @@ describe('useEstabelecimentos', () => {
 
   describe('estado inicial', () => {
     it('deve iniciar com estado vazio', () => {
-      const { result } = renderHook(() => useEstabelecimentos());
+      const { result } = renderHookWithEstabelecimentos(() => useEstabelecimentos(), mockEstabelecimentosService);
 
       expect(result.current.estabelecimentos).toHaveLength(0);
       expect(result.current.carregando).toBe(false);
@@ -109,7 +178,7 @@ describe('useEstabelecimentos', () => {
     });
 
     it('deve expor funções de busca', () => {
-      const { result } = renderHook(() => useEstabelecimentos());
+      const { result } = renderHookWithEstabelecimentos(() => useEstabelecimentos(), mockEstabelecimentosService);
 
       expect(typeof result.current.buscar).toBe('function');
       expect(typeof result.current.carregarMais).toBe('function');
@@ -121,14 +190,14 @@ describe('useEstabelecimentos', () => {
   });
 
   describe('buscar', () => {
-    it('deve chamar API e atualizar resultados', async () => {
-      const { result } = renderHook(() => useEstabelecimentos());
+    it('deve chamar serviço e atualizar resultados', async () => {
+      const { result } = renderHookWithEstabelecimentos(() => useEstabelecimentos(), mockEstabelecimentosService);
 
       await act(async () => {
         await result.current.buscar({ nicho: 'visagismo' });
       });
 
-      await waitFor(() => expect(api.estabelecimentos.buscar).toHaveBeenCalled());
+      await waitFor(() => expect(mockEstabelecimentosService.buscar).toHaveBeenCalled());
 
       expect(result.current.estabelecimentos).toHaveLength(2);
       expect(result.current.total).toBe(2);
@@ -136,15 +205,15 @@ describe('useEstabelecimentos', () => {
     });
 
     it('deve lidar com erro na busca', async () => {
-      api.estabelecimentos.buscar.mockResolvedValue({ sucesso: false, erro: 'Erro servidor' });
+      mockEstabelecimentosService.buscar.mockResolvedValue({ sucesso: false, erro: 'Erro servidor' });
 
-      const { result } = renderHook(() => useEstabelecimentos());
+      const { result } = renderHookWithEstabelecimentos(() => useEstabelecimentos(), mockEstabelecimentosService);
 
       await act(async () => {
         await result.current.buscar({});
       });
 
-      await waitFor(() => expect(api.estabelecimentos.buscar).toHaveBeenCalled());
+      await waitFor(() => expect(mockEstabelecimentosService.buscar).toHaveBeenCalled());
 
       expect(result.current.erro).toBe('Erro servidor');
       expect(result.current.estabelecimentos).toHaveLength(0);
@@ -158,15 +227,15 @@ describe('useEstabelecimentos', () => {
         id: `est-${i}`,
         slug: `est-${i}`,
       }));
-      api.estabelecimentos.buscar.mockResolvedValue({ sucesso: true, dados: muitosItens });
+      mockEstabelecimentosService.buscar.mockResolvedValue({ sucesso: true, dados: muitosItens });
 
-      const { result } = renderHook(() => useEstabelecimentos());
+      const { result } = renderHookWithEstabelecimentos(() => useEstabelecimentos(), mockEstabelecimentosService);
 
       await act(async () => {
         await result.current.buscar({});
       });
 
-      await waitFor(() => expect(api.estabelecimentos.buscar).toHaveBeenCalled());
+      await waitFor(() => expect(mockEstabelecimentosService.buscar).toHaveBeenCalled());
 
       expect(result.current.estabelecimentos).toHaveLength(12); // ITENS_POR_PAGINA
       expect(result.current.temMais).toBe(true);
@@ -175,19 +244,19 @@ describe('useEstabelecimentos', () => {
         await result.current.carregarMais();
       });
 
-      await waitFor(() => expect(api.estabelecimentos.buscar).toHaveBeenCalledTimes(2));
+      await waitFor(() => expect(mockEstabelecimentosService.buscar).toHaveBeenCalledTimes(2));
 
       expect(result.current.estabelecimentos).toHaveLength(24);
     });
 
     it('não deve carregar se já carregando', async () => {
-      const { result } = renderHook(() => useEstabelecimentos());
+      const { result } = renderHookWithEstabelecimentos(() => useEstabelecimentos(), mockEstabelecimentosService);
 
       await act(async () => {
         await result.current.buscar({});
       });
 
-      await waitFor(() => expect(api.estabelecimentos.buscar).toHaveBeenCalled());
+      await waitFor(() => expect(mockEstabelecimentosService.buscar).toHaveBeenCalled());
 
       await act(async () => {
         await Promise.all([result.current.carregarMais(), result.current.carregarMais()]);
@@ -199,19 +268,19 @@ describe('useEstabelecimentos', () => {
 
   describe('recarregar', () => {
     it('deve resetar paginação e buscar novamente', async () => {
-      const { result } = renderHook(() => useEstabelecimentos());
+      const { result } = renderHookWithEstabelecimentos(() => useEstabelecimentos(), mockEstabelecimentosService);
 
       await act(async () => {
         await result.current.buscar({});
       });
 
-      await waitFor(() => expect(api.estabelecimentos.buscar).toHaveBeenCalled());
+      await waitFor(() => expect(mockEstabelecimentosService.buscar).toHaveBeenCalled());
 
       await act(async () => {
         await result.current.recarregar();
       });
 
-      await waitFor(() => expect(api.estabelecimentos.buscar).toHaveBeenCalledTimes(2));
+      await waitFor(() => expect(mockEstabelecimentosService.buscar).toHaveBeenCalledTimes(2));
 
       expect(result.current.pagina).toBe(1);
     });
@@ -219,21 +288,21 @@ describe('useEstabelecimentos', () => {
 
   describe('limparFiltros', () => {
     it('deve resetar filtros para padrão', async () => {
-      const { result } = renderHook(() => useEstabelecimentos({ nicho: 'visagismo', busca: 'teste' }));
+      const { result } = renderHookWithEstabelecimentos(() => useEstabelecimentos({ nicho: 'visagismo', busca: 'teste' }), mockEstabelecimentosService);
 
       await act(async () => {
         await result.current.buscar({});
       });
 
-      await waitFor(() => expect(api.estabelecimentos.buscar).toHaveBeenCalled());
+      await waitFor(() => expect(mockEstabelecimentosService.buscar).toHaveBeenCalled());
 
-      const initialCalls = api.estabelecimentos.buscar.mock.calls.length;
+      const initialCalls = mockEstabelecimentosService.buscar.mock.calls.length;
 
       act(() => {
         result.current.limparFiltros();
       });
 
-      await waitFor(() => expect(api.estabelecimentos.buscar).toHaveBeenCalledTimes(initialCalls + 1));
+      await waitFor(() => expect(mockEstabelecimentosService.buscar).toHaveBeenCalledTimes(initialCalls + 1));
 
       expect(result.current.estabelecimentos).toHaveLength(2);
     });
@@ -241,13 +310,13 @@ describe('useEstabelecimentos', () => {
 
   describe('obterPorId / obterPorSlug', () => {
     it('deve encontrar estabelecimento por ID', async () => {
-      const { result } = renderHook(() => useEstabelecimentos());
+      const { result } = renderHookWithEstabelecimentos(() => useEstabelecimentos(), mockEstabelecimentosService);
 
       await act(async () => {
         await result.current.buscar({});
       });
 
-      await waitFor(() => expect(api.estabelecimentos.buscar).toHaveBeenCalled());
+      await waitFor(() => expect(mockEstabelecimentosService.buscar).toHaveBeenCalled());
 
       const encontrado = result.current.obterPorId('corte-rapido');
 
@@ -256,13 +325,13 @@ describe('useEstabelecimentos', () => {
     });
 
     it('deve retornar undefined para ID inexistente', async () => {
-      const { result } = renderHook(() => useEstabelecimentos());
+      const { result } = renderHookWithEstabelecimentos(() => useEstabelecimentos(), mockEstabelecimentosService);
 
       await act(async () => {
         await result.current.buscar({});
       });
 
-      await waitFor(() => expect(api.estabelecimentos.buscar).toHaveBeenCalled());
+      await waitFor(() => expect(mockEstabelecimentosService.buscar).toHaveBeenCalled());
 
       const encontrado = result.current.obterPorId('inexistente');
 
@@ -270,13 +339,13 @@ describe('useEstabelecimentos', () => {
     });
 
     it('deve encontrar estabelecimento por slug', async () => {
-      const { result } = renderHook(() => useEstabelecimentos());
+      const { result } = renderHookWithEstabelecimentos(() => useEstabelecimentos(), mockEstabelecimentosService);
 
       await act(async () => {
         await result.current.buscar({});
       });
 
-      await waitFor(() => expect(api.estabelecimentos.buscar).toHaveBeenCalled());
+      await waitFor(() => expect(mockEstabelecimentosService.buscar).toHaveBeenCalled());
 
       const encontrado = result.current.obterPorSlug('face-e-forma');
 
@@ -287,15 +356,15 @@ describe('useEstabelecimentos', () => {
 
   describe('debounce', () => {
     it('deve debounce mudanças de filtro', async () => {
-      const { result } = renderHook(() => useEstabelecimentos());
+      const { result } = renderHookWithEstabelecimentos(() => useEstabelecimentos(), mockEstabelecimentosService);
 
       await act(async () => {
         await result.current.buscar({});
       });
 
-      await waitFor(() => expect(api.estabelecimentos.buscar).toHaveBeenCalled());
+      await waitFor(() => expect(mockEstabelecimentosService.buscar).toHaveBeenCalled());
 
-      const initialCalls = api.estabelecimentos.buscar.mock.calls.length;
+      const initialCalls = mockEstabelecimentosService.buscar.mock.calls.length;
 
       act(() => {
         result.current.buscar({ busca: 'corte' });
@@ -306,7 +375,7 @@ describe('useEstabelecimentos', () => {
       // Aguarda o debounce (300ms) - usa waitFor para detectar chamada única
       await waitFor(() => {
         // O debounce deve resultar em apenas uma chamada adicional
-        expect(api.estabelecimentos.buscar).toHaveBeenCalledTimes(initialCalls + 1);
+        expect(mockEstabelecimentosService.buscar).toHaveBeenCalledTimes(initialCalls + 1);
       }, { timeout: 1000 });
     });
   });
@@ -315,7 +384,6 @@ describe('useEstabelecimentos', () => {
 describe('useEstabelecimento', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    api.estabelecimentos.obter.mockResolvedValue({ sucesso: true, dados: mockEstabelecimentos[0] });
   });
 
   afterEach(() => {
@@ -323,7 +391,10 @@ describe('useEstabelecimento', () => {
   });
 
   it('deve buscar estabelecimento por ID', async () => {
-    const { result } = renderHook(() => useEstabelecimento('corte-rapido'));
+    const mockService = createMockEstabelecimentosService();
+    mockService.obter.mockResolvedValue({ sucesso: true, dados: mockEstabelecimentos[0] });
+
+    const { result } = renderHookWithEstabelecimentos(() => useEstabelecimento('corte-rapido'), mockService);
 
     await waitFor(() => expect(result.current.carregando).toBe(false));
 
@@ -335,9 +406,10 @@ describe('useEstabelecimento', () => {
   });
 
   it('deve retornar erro se não encontrado', async () => {
-    api.estabelecimentos.obter.mockResolvedValue({ sucesso: false, erro: 'Não encontrado' });
+    const mockService = createMockEstabelecimentosService();
+    mockService.obter.mockResolvedValue({ sucesso: false, erro: 'Não encontrado' });
 
-    const { result } = renderHook(() => useEstabelecimento('inexistente'));
+    const { result } = renderHookWithEstabelecimentos(() => useEstabelecimento('inexistente'), mockService);
 
     await waitFor(() => expect(result.current.carregando).toBe(false));
 
@@ -346,18 +418,22 @@ describe('useEstabelecimento', () => {
   });
 
   it('deve retornar null se ID nulo', async () => {
-    const { result } = renderHook(() => useEstabelecimento(null));
+    const mockService = createMockEstabelecimentosService();
+    const { result } = renderHookWithEstabelecimentos(() => useEstabelecimento(null), mockService);
 
     expect(result.current.estabelecimento).toBeNull();
     expect(result.current.carregando).toBe(false);
   });
 
   it('deve recarregar quando ID muda', async () => {
-    const { result, rerender } = renderHook(({ id }) => useEstabelecimento(id), { initialProps: { id: 'corte-rapido' } });
+    const mockService = createMockEstabelecimentosService();
+    mockService.obter.mockResolvedValue({ sucesso: true, dados: mockEstabelecimentos[0] });
+
+    const { result, rerender } = renderHookWithEstabelecimentos((props: { id: string | null }) => useEstabelecimento(props.id), mockService, { initialProps: { id: 'corte-rapido' } });
 
     await waitFor(() => expect(result.current.carregando).toBe(false));
 
-    api.estabelecimentos.obter.mockResolvedValue({ sucesso: true, dados: mockEstabelecimentos[1] });
+    mockService.obter.mockResolvedValue({ sucesso: true, dados: mockEstabelecimentos[1] });
 
     rerender({ id: 'face-e-forma' });
 
@@ -369,7 +445,8 @@ describe('useEstabelecimento', () => {
 
 describe('useNichos', () => {
   it('deve retornar nichos disponíveis', async () => {
-    const { result } = renderHook(() => useNichos());
+    const mockService = createMockEstabelecimentosService();
+    const { result } = renderHookWithEstabelecimentos(() => useNichos(), mockService);
 
     await waitFor(() => expect(result.current.carregando).toBe(false));
 
@@ -380,11 +457,13 @@ describe('useNichos', () => {
 describe('useCidades', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    api.estabelecimentos.buscar.mockResolvedValue({ sucesso: true, dados: mockEstabelecimentos });
   });
 
   it('deve buscar cidades únicas dos estabelecimentos', async () => {
-    const { result } = renderHook(() => useCidades());
+    const mockService = createMockEstabelecimentosService();
+    mockService.buscar.mockResolvedValue({ sucesso: true, dados: mockEstabelecimentos });
+
+    const { result } = renderHookWithEstabelecimentos(() => useCidades(), mockService);
 
     await waitFor(() => expect(result.current.carregando).toBe(false));
 
@@ -392,9 +471,10 @@ describe('useCidades', () => {
   });
 
   it('deve lidar com erro', async () => {
-    api.estabelecimentos.buscar.mockResolvedValue({ sucesso: false, erro: 'Erro' });
+    const mockService = createMockEstabelecimentosService();
+    mockService.buscar.mockResolvedValue({ sucesso: false, erro: 'Erro' });
 
-    const { result } = renderHook(() => useCidades());
+    const { result } = renderHookWithEstabelecimentos(() => useCidades(), mockService);
 
     await waitFor(() => expect(result.current.carregando).toBe(false));
 

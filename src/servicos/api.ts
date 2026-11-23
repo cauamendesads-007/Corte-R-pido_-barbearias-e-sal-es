@@ -27,7 +27,8 @@ import type {
   TipoLayout,
   StatusAgendamento,
 } from '@/tipos';
-import { atrasar, clonarProfundo, gerarId, formatarMoeda, formatarParaExibicao, calcularDistanciaKm } from '@/utilitarios';
+import { atrasar, clonarProfundo, formatarMoeda, formatarParaExibicao, calcularDistanciaKm } from '@/utilitarios';
+import { gerarId } from '@/utilitarios/formatar';
 import type { EstadoGlobal } from '@/tipos';
 
 // Estado global simulado (em memória)
@@ -39,36 +40,38 @@ const LATENCIA_MAX = 800;
 const TAXA_ERRO_SIMULADA = 0.05; // 5% de chance de erro aleatório
 
 /** Simula latência de rede */
-async function simularLatencia(): Promise<void> {
+export async function simularLatencia(): Promise<void> {
   const ms = Math.random() * (LATENCIA_MAX - LATENCIA_MIN) + LATENCIA_MIN;
   await atrasar(ms);
 }
 
 /** Simula falha aleatória de rede */
-function simularErroAleatorio(): void {
+export function simularErroAleatorio(): void {
   if (Math.random() < TAXA_ERRO_SIMULADA) {
     throw new Error('Erro de conexão. Tente novamente.');
   }
 }
 
 /** Cria resultado de sucesso padronizado */
-function sucesso<T>(dados: T): ResultadoServico<T> {
+export function sucesso<T>(dados: T): ResultadoServico<T> {
   return { sucesso: true, dados };
 }
 
 /** Cria resultado de erro padronizado */
-function falha(erro: string): ResultadoServico<never> {
+export function falha(erro: string): ResultadoServico<never> {
   return { sucesso: false, erro };
 }
 
 /** Persiste estado no localStorage (simula banco) */
-function persistirEstado(): void {
+export function persistirEstado(): void {
   try {
     localStorage.setItem('cr_estado_v1', JSON.stringify(estadoGlobal));
   } catch {
     // Ignora erro de storage cheio
   }
 }
+
+export { gerarId };
 
 /** Carrega estado do localStorage */
 export function carregarEstado(): void {

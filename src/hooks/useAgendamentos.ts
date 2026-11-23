@@ -1,12 +1,13 @@
 /**
  * Hook useAgendamentos - Gerenciamento de agendamentos do cliente e barbeiro.
  * CRUD completo, fila, reagendamento, cancelamento, histórico.
+ * Usa ServiceProvider (DIP) para injeção de dependência.
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { api } from '@/servicos/api';
-import type { Agendamento, StatusPagamento, StatusAgendamento } from '@/tipos';
+import { useAgendamentosService, useEstabelecimentosService } from '@/contexto/ServiceHooks';
 import { useAuth } from './useAuth';
+import type { Agendamento, StatusPagamento, StatusAgendamento } from '@/tipos';
 
 export interface EstadoAgendamentos {
   agendamentos: Agendamento[];
@@ -40,6 +41,8 @@ const ITENS_POR_PAGINA = 10;
 
 export const useAgendamentos = (): EstadoAgendamentos & AcoesAgendamentos => {
   const { usuario } = useAuth();
+  const agendamentosService = useAgendamentosService();
+  const estabelecimentosService = useEstabelecimentosService();
   const [agendamentos, setAgendamentos] = useState<Agendamento[]>([]);
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
@@ -54,7 +57,7 @@ export const useAgendamentos = (): EstadoAgendamentos & AcoesAgendamentos => {
     setPagina(1);
 
     try {
-      const resposta = await api.agendamentos.listar({ usuarioId: usuario.email });
+      const resposta = await agendamentosService.listarCliente(usuario.email);
 
       if (resposta.sucesso && resposta.dados) {
         const todos = resposta.dados;
@@ -74,7 +77,7 @@ export const useAgendamentos = (): EstadoAgendamentos & AcoesAgendamentos => {
     } finally {
       setCarregando(false);
     }
-  }, [usuario]);
+  }, [usuario, agendamentosService]);
 
   useEffect(() => {
     if (usuario) {
@@ -92,7 +95,7 @@ export const useAgendamentos = (): EstadoAgendamentos & AcoesAgendamentos => {
     setCarregando(true);
 
     try {
-      const resposta = await api.agendamentos.listar({ usuarioId: usuario.email });
+      const resposta = await agendamentosService.listarCliente(usuario.email);
 
       if (resposta.sucesso && resposta.dados) {
         const todos = resposta.dados;
@@ -110,7 +113,7 @@ export const useAgendamentos = (): EstadoAgendamentos & AcoesAgendamentos => {
     } finally {
       setCarregando(false);
     }
-  }, [usuario, carregando, temMais, pagina]);
+  }, [usuario, carregando, temMais, pagina, agendamentosService]);
 
   const criar = useCallback(async (dados: {
     estabelecimentoId: string;
@@ -126,7 +129,7 @@ export const useAgendamentos = (): EstadoAgendamentos & AcoesAgendamentos => {
 
     try {
       // Busca detalhes dos serviços para calcular valor total
-      const estResposta = await api.estabelecimentos.obter(dados.estabelecimentoId);
+      const estResposta = await estabelecimentosService.obter(dados.estabelecimentoId);
       if (!estResposta.sucesso || !estResposta.dados) {
         return { sucesso: false, erro: 'Estabelecimento não encontrado' };
       }
@@ -137,7 +140,7 @@ export const useAgendamentos = (): EstadoAgendamentos & AcoesAgendamentos => {
       const duracaoMinutos = servicos.reduce((acc, s) => acc + s.duracaoMinutos, 0);
       const servicosNomes = servicos.map((s) => s.nome).join(' + ');
 
-      const resposta = await api.agendamentos.criar({
+      const resposta = await agendamentosService.criar({
         estabelecimentoId: dados.estabelecimentoId,
         usuarioId: usuario.email,
         dia: dados.dia,
@@ -161,13 +164,13 @@ export const useAgendamentos = (): EstadoAgendamentos & AcoesAgendamentos => {
     } catch {
       return { sucesso: false, erro: 'Erro de conexão. Tente novamente.' };
     }
-  }, [usuario]);
+  }, [usuario, agendamentosService, estabelecimentosService]);
 
   const reagendar = useCallback(async (id: string, novoDia: string, novoHorario: string) => {
     setErro(null);
 
     try {
-      const resposta = await api.agendamentos.reagendar(id, novoDia, novoHorario);
+      const resposta = await agendamentosService.reagendar(id, novoDia, novoHorario);
 
       if (resposta.sucesso && resposta.dados) {
         setAgendamentos((prev) =>
@@ -180,13 +183,13 @@ export const useAgendamentos = (): EstadoAgendamentos & AcoesAgendamentos => {
     } catch {
       return { sucesso: false, erro: 'Erro de conexão. Tente novamente.' };
     }
-  }, []);
+  }, [agendamentosService]);
 
   const cancelar = useCallback(async (id: string) => {
     setErro(null);
 
     try {
-      const resposta = await api.agendamentos.cancelar(id);
+      const resposta = await agendamentosService.cancelar(id);
 
       if (resposta.sucesso) {
         setAgendamentos((prev) => prev.filter((a) => a.id !== id));
@@ -197,13 +200,13 @@ export const useAgendamentos = (): EstadoAgendamentos & AcoesAgendamentos => {
     } catch {
       return { sucesso: false, erro: 'Erro de conexão. Tente novamente.' };
     }
-  }, []);
+  }, [agendamentosService]);
 
   const confirmarPresenca = useCallback(async (id: string) => {
     setErro(null);
 
     try {
-      const resposta = await api.agendamentos.confirmarPresenca(id);
+      const resposta = await agendamentosService.confirmarPresenca(id);
 
       if (resposta.sucesso) {
         setAgendamentos((prev) =>
@@ -216,13 +219,13 @@ export const useAgendamentos = (): EstadoAgendamentos & AcoesAgendamentos => {
     } catch {
       return { sucesso: false, erro: 'Erro de conexão. Tente novamente.' };
     }
-  }, []);
+  }, [agendamentosService]);
 
   const avaliar = useCallback(async (id: string, nota: number, comentario?: string) => {
     setErro(null);
 
     try {
-      const resposta = await api.agendamentos.avaliar(id, nota, comentario || '');
+      const resposta = await agendamentosService.avaliar(id, nota, comentario || '');
 
       if (resposta.sucesso) {
         setAgendamentos((prev) =>
@@ -235,7 +238,7 @@ export const useAgendamentos = (): EstadoAgendamentos & AcoesAgendamentos => {
     } catch {
       return { sucesso: false, erro: 'Erro de conexão. Tente novamente.' };
     }
-  }, []);
+  }, [agendamentosService]);
 
   const limparErro = useCallback(() => setErro(null), []);
 
@@ -271,6 +274,7 @@ export const useAgendamentos = (): EstadoAgendamentos & AcoesAgendamentos => {
 /** Hook para agendamentos do barbeiro (painel) */
 export const useAgendamentosBarbeiro = (estabelecimentoId?: string) => {
   const { usuario } = useAuth();
+  const agendamentosService = useAgendamentosService();
   const [agendamentos, setAgendamentos] = useState<Agendamento[]>([]);
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
@@ -287,7 +291,7 @@ export const useAgendamentosBarbeiro = (estabelecimentoId?: string) => {
     setErro(null);
 
     try {
-      const resposta = await api.agendamentos.listar({ estabelecimentoId });
+      const resposta = await agendamentosService.listarEstabelecimento(estabelecimentoId);
 
       if (resposta.sucesso && resposta.dados) {
         let filtrados = resposta.dados;
@@ -311,7 +315,7 @@ export const useAgendamentosBarbeiro = (estabelecimentoId?: string) => {
     } finally {
       setCarregando(false);
     }
-  }, [usuario, estabelecimentoId, filtros]);
+  }, [usuario, estabelecimentoId, filtros, agendamentosService]);
 
   useEffect(() => {
     if (usuario?.papel === 'barbeiro' && estabelecimentoId) {
@@ -323,21 +327,23 @@ export const useAgendamentosBarbeiro = (estabelecimentoId?: string) => {
     setErro(null);
 
     try {
-      // Busca o agendamento e atualiza localmente
       const agendamento = agendamentos.find((a) => a.id === id);
       if (!agendamento) return { sucesso: false, erro: 'Agendamento não encontrado' };
 
-      // Simula atualização via API
-      await api.agendamentos.confirmarPresenca(id); // Usa confirmarPresenca como proxy
+      const resposta = await agendamentosService.atualizarStatus(id, status);
 
-      setAgendamentos((prev) =>
-        prev.map((a) => (a.id === id ? { ...a, statusPagamento: status } : a))
-      );
-      return { sucesso: true };
+      if (resposta.sucesso) {
+        setAgendamentos((prev) =>
+          prev.map((a) => (a.id === id ? { ...a, statusPagamento: status } : a))
+        );
+        return { sucesso: true };
+      }
+
+      return { sucesso: false, erro: resposta.erro };
     } catch {
       return { sucesso: false, erro: 'Erro de conexão. Tente novamente.' };
     }
-  }, [agendamentos]);
+  }, [agendamentos, agendamentosService]);
 
   const cancelar = useCallback(async (id: string) => {
     setErro(null);
@@ -346,31 +352,40 @@ export const useAgendamentosBarbeiro = (estabelecimentoId?: string) => {
       const agendamento = agendamentos.find((a) => a.id === id);
       if (!agendamento) return { sucesso: false, erro: 'Agendamento não encontrado' };
 
-      await api.agendamentos.cancelar(id);
+      const resposta = await agendamentosService.cancelar(id);
 
-      setAgendamentos((prev) =>
-        prev.map((a) => (a.id === id ? { ...a, status: 'cancelado' as StatusAgendamento } : a))
-      );
-      return { sucesso: true };
+      if (resposta.sucesso) {
+        setAgendamentos((prev) =>
+          prev.map((a) => (a.id === id ? { ...a, status: 'cancelado' as StatusAgendamento } : a))
+        );
+        return { sucesso: true };
+      }
+
+      return { sucesso: false, erro: resposta.erro };
     } catch {
       return { sucesso: false, erro: 'Erro de conexão. Tente novamente.' };
     }
-  }, [agendamentos]);
+  }, [agendamentos, agendamentosService]);
 
   const definirHorarioReal = useCallback(async (_id: string, _horarioReal: string) => {
     void _horarioReal;
     setErro(null);
 
     try {
-      // Simula atualização
-      setAgendamentos((prev) =>
-        prev.map((a) => (a.id === _id ? { ...a, status: 'concluido' as StatusAgendamento } : a))
-      );
-      return { sucesso: true };
+      const resposta = await agendamentosService.definirHorarioReal(_id, _horarioReal);
+
+      if (resposta.sucesso) {
+        setAgendamentos((prev) =>
+          prev.map((a) => (a.id === _id ? { ...a, status: 'concluido' as StatusAgendamento } : a))
+        );
+        return { sucesso: true };
+      }
+
+      return { sucesso: false, erro: resposta.erro };
     } catch {
       return { sucesso: false, erro: 'Erro de conexão. Tente novamente.' };
     }
-  }, []);
+  }, [agendamentosService]);
 
   const limparErro = useCallback(() => setErro(null), []);
 

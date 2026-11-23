@@ -1,10 +1,10 @@
 /**
  * Hook useEstabelecimentos - Busca, filtros, paginação de estabelecimentos.
- * Integra com api.mock.ts, cache local, debounce de busca.
+ * Integra com ServiceProvider (DIP), cache local, debounce de busca.
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { api } from '@/servicos/api';
+import { useEstabelecimentosService } from '@/contexto/ServiceHooks';
 import type { Estabelecimento, FiltrosEstabelecimento, Nicho, FiltrosBusca } from '@/tipos';
 
 export interface EstadoEstabelecimentos {
@@ -29,6 +29,7 @@ const ITENS_POR_PAGINA = 12;
 const TEMPO_DEBOUNCE = 300;
 
 export const useEstabelecimentos = (filtrosIniciais: Partial<FiltrosEstabelecimento> = {}): EstadoEstabelecimentos & AcoesEstabelecimentos => {
+  const estabelecimentosService = useEstabelecimentosService();
   const [estabelecimentos, setEstabelecimentos] = useState<Estabelecimento[]>([]);
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
@@ -54,7 +55,7 @@ export const useEstabelecimentos = (filtrosIniciais: Partial<FiltrosEstabelecime
     nicho: f.nicho,
     precoMaximo: f.precoMaximo,
     avaliacaoMinima: f.avaliacaoMinima,
-    tipoServico: f.busca, // usa busca como tipoServico se necessário
+    tipoServico: f.busca,
     ordenacao: f.ordenacao as FiltrosBusca['ordenacao'],
     apenasBemAvaliados: f.avaliacaoMinima >= 4.8,
     apenasVagasHoje: f.apenasAbertos,
@@ -82,7 +83,7 @@ export const useEstabelecimentos = (filtrosIniciais: Partial<FiltrosEstabelecime
 
     try {
       const filtrosBusca = converterFiltros(filtrosAtuais);
-      const resposta = await api.estabelecimentos.buscar(filtrosBusca);
+      const resposta = await estabelecimentosService.buscar(filtrosBusca);
 
       if (resposta.sucesso && resposta.dados) {
         const todos = resposta.dados;
@@ -112,7 +113,7 @@ export const useEstabelecimentos = (filtrosIniciais: Partial<FiltrosEstabelecime
     } finally {
       setCarregando(false);
     }
-  }, [filtros, pagina, converterFiltros]);
+  }, [filtros, pagina, converterFiltros, estabelecimentosService]);
 
   const carregarMais = useCallback(async () => {
     if (carregando || !temMais) return;
@@ -125,7 +126,7 @@ export const useEstabelecimentos = (filtrosIniciais: Partial<FiltrosEstabelecime
 
     try {
       const filtrosBusca = converterFiltros(filtros);
-      const resposta = await api.estabelecimentos.buscar(filtrosBusca);
+      const resposta = await estabelecimentosService.buscar(filtrosBusca);
 
       if (resposta.sucesso && resposta.dados) {
         const todos = resposta.dados;
@@ -143,7 +144,7 @@ export const useEstabelecimentos = (filtrosIniciais: Partial<FiltrosEstabelecime
     } finally {
       setCarregando(false);
     }
-  }, [carregando, temMais, pagina, filtros, converterFiltros]);
+  }, [carregando, temMais, pagina, filtros, converterFiltros, estabelecimentosService]);
 
   const recarregar = useCallback(async () => {
     setPagina(1);
@@ -211,6 +212,7 @@ export const useEstabelecimentos = (filtrosIniciais: Partial<FiltrosEstabelecime
 
 /** Hook para estabelecimento único (detalhes) */
 export const useEstabelecimento = (id: string | null) => {
+  const estabelecimentosService = useEstabelecimentosService();
   const [estabelecimento, setEstabelecimento] = useState<Estabelecimento | null>(null);
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
@@ -221,7 +223,7 @@ export const useEstabelecimento = (id: string | null) => {
     setErro(null);
 
     try {
-      const resposta = await api.estabelecimentos.obter(id);
+      const resposta = await estabelecimentosService.obter(id);
       if (resposta.sucesso && resposta.dados) {
         setEstabelecimento(resposta.dados);
       } else {
@@ -232,7 +234,7 @@ export const useEstabelecimento = (id: string | null) => {
     } finally {
       setCarregando(false);
     }
-  }, [id]);
+  }, [id, estabelecimentosService]);
 
   useEffect(() => {
     buscar();
@@ -265,6 +267,7 @@ export const useNichos = () => {
 
 /** Hook para cidades disponíveis */
 export const useCidades = () => {
+  const estabelecimentosService = useEstabelecimentosService();
   const [cidades, setCidades] = useState<string[]>([]);
   const [carregando, setCarregando] = useState(false);
 
@@ -273,7 +276,7 @@ export const useCidades = () => {
       setCarregando(true);
       try {
         // Busca cidades dos estabelecimentos
-        const resposta = await api.estabelecimentos.buscar({
+        const resposta = await estabelecimentosService.buscar({
           nicho: 'todos',
           precoMaximo: 9999,
           avaliacaoMinima: 0,
@@ -292,7 +295,7 @@ export const useCidades = () => {
       }
     };
     buscar();
-  }, []);
+  }, [estabelecimentosService]);
 
   return { cidades, carregando };
 };

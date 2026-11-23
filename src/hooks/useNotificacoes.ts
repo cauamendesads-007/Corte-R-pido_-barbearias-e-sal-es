@@ -1,10 +1,11 @@
 /**
  * Hook useNotificacoes - Gerenciamento de notificações do usuário.
  * Tempo real (polling), marcar como lida, agrupar, badge count.
+ * Usa ServiceProvider (DIP) para injeção de dependência.
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { api } from '@/servicos/api';
+import { useNotificacoesService } from '@/contexto/ServiceHooks';
 import type { Notificacao, TipoNotificacao } from '@/tipos';
 import { useAuth } from './useAuth';
 
@@ -32,6 +33,7 @@ const ITENS_POR_PAGINA = 20;
 
 export const useNotificacoes = (): EstadoNotificacoes & AcoesNotificacoes => {
   const { usuario } = useAuth();
+  const notificacoesService = useNotificacoesService();
   const [notificacoes, setNotificacoes] = useState<Notificacao[]>([]);
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
@@ -49,7 +51,7 @@ export const useNotificacoes = (): EstadoNotificacoes & AcoesNotificacoes => {
     setErro(null);
 
     try {
-      const resposta = await api.notificacoes.listar(usuario.email, 'todos');
+      const resposta = await notificacoesService.listar(usuario.email, 'todos');
 
       if (resposta.sucesso && resposta.dados) {
         const todos = resposta.dados;
@@ -79,7 +81,7 @@ export const useNotificacoes = (): EstadoNotificacoes & AcoesNotificacoes => {
     } finally {
       setCarregando(false);
     }
-  }, [usuario, pagina]);
+  }, [usuario, pagina, notificacoesService]);
 
   const carregarMais = useCallback(async () => {
     if (carregando || !temMais) return;
@@ -106,7 +108,7 @@ export const useNotificacoes = (): EstadoNotificacoes & AcoesNotificacoes => {
 
   const marcarComoLida = useCallback(async (id: string) => {
     try {
-      const resposta = await api.notificacoes.marcarComoLida(id);
+      const resposta = await notificacoesService.marcarComoLida(id);
       if (resposta.sucesso) {
         setNotificacoes((prev) =>
           prev.map((n) => (n.id === id ? { ...n, lida: true, lidaEm: Date.now() } : n))
@@ -115,12 +117,12 @@ export const useNotificacoes = (): EstadoNotificacoes & AcoesNotificacoes => {
     } catch {
       // Silencioso
     }
-  }, []);
+  }, [notificacoesService]);
 
   const marcarTodasComoLidas = useCallback(async () => {
     if (!usuario) return;
     try {
-      const resposta = await api.notificacoes.marcarTodasComoLidas(usuario.email);
+      const resposta = await notificacoesService.marcarTodasComoLidas(usuario.email);
       if (resposta.sucesso) {
         setNotificacoes((prev) =>
           prev.map((n) => (!n.lida ? { ...n, lida: true, lidaEm: Date.now() } : n))
@@ -129,30 +131,30 @@ export const useNotificacoes = (): EstadoNotificacoes & AcoesNotificacoes => {
     } catch {
       // Silencioso
     }
-  }, [usuario]);
+  }, [usuario, notificacoesService]);
 
   const excluir = useCallback(async (id: string) => {
     try {
-      const resposta = await api.notificacoes.excluir(id);
+      const resposta = await notificacoesService.excluir(id);
       if (resposta.sucesso) {
         setNotificacoes((prev) => prev.filter((n) => n.id !== id));
       }
     } catch {
       // Silencioso
     }
-  }, []);
+  }, [notificacoesService]);
 
   const excluirTodasLidas = useCallback(async () => {
     if (!usuario) return;
     try {
-      const resposta = await api.notificacoes.excluirTodasLidas(usuario.email);
+      const resposta = await notificacoesService.excluirTodasLidas(usuario.email);
       if (resposta.sucesso) {
         setNotificacoes((prev) => prev.filter((n) => !n.lida));
       }
     } catch {
       // Silencioso
     }
-  }, [usuario]);
+  }, [usuario, notificacoesService]);
 
   const limparErro = useCallback(() => setErro(null), []);
 

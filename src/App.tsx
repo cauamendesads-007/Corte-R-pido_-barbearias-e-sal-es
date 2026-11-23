@@ -7,6 +7,7 @@ import React, { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ToastProvider } from '@/componentes';
 import { useAuth } from '@/hooks/useAuth';
+import { ServiceProvider } from '@/contexto/ServiceProvider';
 import './App.css';
 
 // Lazy loading das telas
@@ -64,110 +65,112 @@ const RotaPublica = ({ children }: { children: React.ReactNode }) => {
 
 const App = () => {
   return (
-    <ToastProvider>
-      <BrowserRouter>
-        <div className="app">
-          <Suspense fallback={<Carregando />}>
-            <Routes>
-              {/* Rotas públicas */}
-              <Route path="/login" element={<RotaPublica><Login /></RotaPublica>} />
-              <Route path="/cadastro" element={<RotaPublica><Cadastro /></RotaPublica>} />
-              <Route path="/recuperar-senha" element={<RotaPublica><div className="pagina-em-construcao">Recuperar senha</div></RotaPublica>} />
+    <ServiceProvider>
+      <ToastProvider>
+        <BrowserRouter>
+          <div className="app">
+            <Suspense fallback={<Carregando />}>
+              <Routes>
+                {/* Rotas públicas */}
+                <Route path="/login" element={<RotaPublica><Login /></RotaPublica>} />
+                <Route path="/cadastro" element={<RotaPublica><Cadastro /></RotaPublica>} />
+                <Route path="/recuperar-senha" element={<RotaPublica><div className="pagina-em-construcao">Recuperar senha</div></RotaPublica>} />
 
-              {/* Rotas principais (autenticadas) */}
-              <Route
-                path="/feed"
-                element={
-                  <RotaProtegida tiposPermitidos={['cliente', 'barbeiro', 'admin']}>
-                    <Feed />
-                  </RotaProtegida>
-                }
-              />
-              <Route
-                path="/explorar"
-                element={
-                  <RotaProtegida tiposPermitidos={['cliente', 'barbeiro', 'admin']}>
-                    <Explorar />
-                  </RotaProtegida>
-                }
-              />
-              <Route
-                path="/perfil"
-                element={
-                  <RotaProtegida tiposPermitidos={['cliente', 'barbeiro', 'admin']}>
-                    <Perfil />
-                  </RotaProtegida>
-                }
-              />
-              <Route
-                path="/notificacoes"
-                element={
-                  <RotaProtegida tiposPermitidos={['cliente', 'barbeiro', 'admin']}>
-                    <Notificacoes />
-                  </RotaProtegida>
-                }
-              />
-              <Route
-                path="/configuracoes"
-                element={
-                  <RotaProtegida tiposPermitidos={['cliente', 'barbeiro', 'admin']}>
-                    <Configuracoes />
-                  </RotaProtegida>
-                }
-              />
+                {/* Rotas principais (autenticadas) */}
+                <Route
+                  path="/feed"
+                  element={
+                    <RotaProtegida tiposPermitidos={['cliente', 'barbeiro', 'admin']}>
+                      <Feed />
+                    </RotaProtegida>
+                  }
+                />
+                <Route
+                  path="/explorar"
+                  element={
+                    <RotaProtegida tiposPermitidos={['cliente', 'barbeiro', 'admin']}>
+                      <Explorar />
+                    </RotaProtegida>
+                  }
+                />
+                <Route
+                  path="/perfil"
+                  element={
+                    <RotaProtegida tiposPermitidos={['cliente', 'barbeiro', 'admin']}>
+                      <Perfil />
+                    </RotaProtegida>
+                  }
+                />
+                <Route
+                  path="/notificacoes"
+                  element={
+                    <RotaProtegida tiposPermitidos={['cliente', 'barbeiro', 'admin']}>
+                      <Notificacoes />
+                    </RotaProtegida>
+                  }
+                />
+                <Route
+                  path="/configuracoes"
+                  element={
+                    <RotaProtegida tiposPermitidos={['cliente', 'barbeiro', 'admin']}>
+                      <Configuracoes />
+                    </RotaProtegida>
+                  }
+                />
 
-              {/* Painel Barbeiro */}
-              <Route
-                path="/painel/*"
-                element={
-                  <RotaProtegida tiposPermitidos={['barbeiro']}>
-                    <PainelBarbeiro />
-                  </RotaProtegida>
-                }
-              />
+                {/* Painel Barbeiro */}
+                <Route
+                  path="/painel/*"
+                  element={
+                    <RotaProtegida tiposPermitidos={['barbeiro']}>
+                      <PainelBarbeiro />
+                    </RotaProtegida>
+                  }
+                />
 
-              {/* Painel Admin */}
-              <Route
-                path="/admin/*"
-                element={
-                  <RotaProtegida tiposPermitidos={['admin']}>
-                    <PainelAdmin />
-                  </RotaProtegida>
-                }
-              />
+                {/* Painel Admin */}
+                <Route
+                  path="/admin/*"
+                  element={
+                    <RotaProtegida tiposPermitidos={['admin']}>
+                      <PainelAdmin />
+                    </RotaProtegida>
+                  }
+                />
 
-              {/* Estabelecimento e Agendamento */}
-              <Route
-                path="/estabelecimento/:slug"
-                element={
-                  <RotaProtegida tiposPermitidos={['cliente', 'barbeiro', 'admin']}>
-                    <Estabelecimento />
-                  </RotaProtegida>
-                }
-              />
-              <Route
-                path="/agendamento/:id"
-                element={
-                  <RotaProtegida tiposPermitidos={['cliente', 'barbeiro', 'admin']}>
-                    <Agendamento />
-                  </RotaProtegida>
-                }
-              />
+                {/* Estabelecimento e Agendamento */}
+                <Route
+                  path="/estabelecimento/:slug"
+                  element={
+                    <RotaProtegida tiposPermitidos={['cliente', 'barbeiro', 'admin']}>
+                      <Estabelecimento />
+                    </RotaProtegida>
+                  }
+                />
+                <Route
+                  path="/agendamento/:id"
+                  element={
+                    <RotaProtegida tiposPermitidos={['cliente', 'barbeiro', 'admin']}>
+                      <Agendamento />
+                    </RotaProtegida>
+                  }
+                />
 
-              {/* Páginas institucionais */}
-              <Route path="/sobre" element={<div className="pagina-em-construcao">Sobre nós</div>} />
-              <Route path="/privacidade" element={<div className="pagina-em-construcao">Política de Privacidade</div>} />
-              <Route path="/termos" element={<div className="pagina-em-construcao">Termos de Uso</div>} />
-              <Route path="/contato" element={<div className="pagina-em-construcao">Contato</div>} />
+                {/* Páginas institucionais */}
+                <Route path="/sobre" element={<div className="pagina-em-construcao">Sobre nós</div>} />
+                <Route path="/privacidade" element={<div className="pagina-em-construcao">Política de Privacidade</div>} />
+                <Route path="/termos" element={<div className="pagina-em-construcao">Termos de Uso</div>} />
+                <Route path="/contato" element={<div className="pagina-em-construcao">Contato</div>} />
 
-              {/* Redirecionamentos */}
-              <Route path="/" element={<Navigate to="/feed" replace />} />
-              <Route path="*" element={<Navigate to="/feed" replace />} />
-            </Routes>
-          </Suspense>
-        </div>
-      </BrowserRouter>
-    </ToastProvider>
+                {/* Redirecionamentos */}
+                <Route path="/" element={<Navigate to="/feed" replace />} />
+                <Route path="*" element={<Navigate to="/feed" replace />} />
+              </Routes>
+            </Suspense>
+          </div>
+        </BrowserRouter>
+      </ToastProvider>
+    </ServiceProvider>
   );
 };
 

@@ -1,10 +1,10 @@
 /**
  * Hook useAuth - Gerenciamento de autenticação do usuário.
- * Integra com api.mock.ts, persistência localStorage, renovação de token.
+ * Integra com ServiceProvider (DIP), persistência localStorage, renovação de token.
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { api } from '@/servicos/api';
+import { useAuthService } from '@/contexto/ServiceHooks';
 import type { Usuario, TipoUsuario, SessaoUsuario } from '@/tipos';
 
 export interface EstadoAuth {
@@ -35,6 +35,7 @@ const CHAVE_USUARIO = 'corte-rapido-usuario';
 const CHAVE_TOKEN = 'corte-rapido-token';
 
 export const useAuth = (): EstadoAuth & AcoesAuth => {
+  const authService = useAuthService();
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
@@ -50,7 +51,7 @@ export const useAuth = (): EstadoAuth & AcoesAuth => {
         if (usuarioSalvo && tokenSalvo) {
           const usuarioParseado = JSON.parse(usuarioSalvo);
           // Verifica se token ainda é válido (simulado)
-          const resposta = await api.autenticacao.validarToken(tokenSalvo);
+          const resposta = await authService.validarToken(tokenSalvo);
           if (resposta.sucesso && resposta.dados) {
             // validarToken retorna SessaoUsuario, mescla com usuario salvo
             const sessao = resposta.dados as SessaoUsuario;
@@ -70,7 +71,7 @@ export const useAuth = (): EstadoAuth & AcoesAuth => {
     };
 
     carregarUsuario();
-  }, []);
+  }, [authService]);
 
   const login = useCallback(async (email: string, senha: string, _tipo: TipoUsuario) => {
     void _tipo;
@@ -78,13 +79,13 @@ export const useAuth = (): EstadoAuth & AcoesAuth => {
     setCarregando(true);
 
     try {
-      const resposta = await api.autenticacao.login(email, senha);
+      const resposta = await authService.login(email, senha);
 
       if (resposta.sucesso && resposta.dados) {
         const sessao = resposta.dados as SessaoUsuario;
         // Busca usuário completo via API
         try {
-          const perfilResposta = await api.perfil.obter();
+          const perfilResposta = await authService.obterSessao();
           if (perfilResposta.sucesso && perfilResposta.dados) {
             localStorage.setItem(CHAVE_USUARIO, JSON.stringify(perfilResposta.dados));
             localStorage.setItem(CHAVE_TOKEN, 'mock-token-' + Date.now());
@@ -115,7 +116,7 @@ export const useAuth = (): EstadoAuth & AcoesAuth => {
     } finally {
       setCarregando(false);
     }
-  }, []);
+  }, [authService]);
 
   const cadastrar = useCallback(async (dados: {
     nome: string;
@@ -129,13 +130,19 @@ export const useAuth = (): EstadoAuth & AcoesAuth => {
     setCarregando(true);
 
     try {
-      const resposta = await api.autenticacao.cadastrar(dados);
+      // Apenas cadastro de cliente suportado por enquanto via IAuthService
+      const resposta = await authService.cadastrarCliente({
+        nome: dados.nome,
+        email: dados.email,
+        senha: dados.senha,
+        telefone: dados.telefone,
+      });
 
       if (resposta.sucesso && resposta.dados) {
         const sessao = resposta.dados as SessaoUsuario;
         // Busca usuário completo via API
         try {
-          const perfilResposta = await api.perfil.obter();
+          const perfilResposta = await authService.obterSessao();
           if (perfilResposta.sucesso && perfilResposta.dados) {
             localStorage.setItem(CHAVE_USUARIO, JSON.stringify(perfilResposta.dados));
             localStorage.setItem(CHAVE_TOKEN, 'mock-token-' + Date.now());
@@ -166,7 +173,7 @@ export const useAuth = (): EstadoAuth & AcoesAuth => {
     } finally {
       setCarregando(false);
     }
-  }, []);
+  }, [authService]);
 
   const sair = useCallback(() => {
     localStorage.removeItem(CHAVE_USUARIO);
@@ -181,7 +188,7 @@ export const useAuth = (): EstadoAuth & AcoesAuth => {
     setErro(null);
 
     try {
-      const resposta = await api.perfil.atualizar(dados);
+      const resposta = await authService.atualizarPerfilCliente(dados);
 
       if (resposta.sucesso && resposta.dados) {
         const usuarioAtualizado = { ...usuario, ...resposta.dados };
@@ -198,7 +205,7 @@ export const useAuth = (): EstadoAuth & AcoesAuth => {
       setErro(mensagem);
       return { sucesso: false, erro: mensagem };
     }
-  }, [usuario]);
+  }, [usuario, authService]);
 
   const limparErro = useCallback(() => setErro(null), []);
 
@@ -208,7 +215,7 @@ export const useAuth = (): EstadoAuth & AcoesAuth => {
     setErro(null);
 
     try {
-      const resposta = await api.autenticacao.alterarSenha(senhaAtual, novaSenha);
+      const resposta = await authService.alterarSenha(senhaAtual, novaSenha);
 
       if (resposta.sucesso) {
         return { sucesso: true };
@@ -222,7 +229,7 @@ export const useAuth = (): EstadoAuth & AcoesAuth => {
       setErro(mensagem);
       return { sucesso: false, erro: mensagem };
     }
-  }, [usuario]);
+  }, [usuario, authService]);
 
   const excluirConta = useCallback(async () => {
     if (!usuario) return { sucesso: false, erro: 'Usuário não autenticado' };
@@ -230,7 +237,7 @@ export const useAuth = (): EstadoAuth & AcoesAuth => {
     setErro(null);
 
     try {
-      const resposta = await api.autenticacao.excluirConta();
+      const resposta = await authService.excluirConta();
 
       if (resposta.sucesso) {
         localStorage.removeItem(CHAVE_USUARIO);
@@ -247,7 +254,7 @@ export const useAuth = (): EstadoAuth & AcoesAuth => {
       setErro(mensagem);
       return { sucesso: false, erro: mensagem };
     }
-  }, [usuario]);
+  }, [usuario, authService]);
 
   return {
     usuario,

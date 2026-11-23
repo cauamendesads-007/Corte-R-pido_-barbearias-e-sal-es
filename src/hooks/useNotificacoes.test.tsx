@@ -5,6 +5,30 @@
 
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
+import { ReactNode } from 'react';
+import { ServicesContext } from '@/contexto/ServicesContext';
+import type { INotificacoesService } from '@/features/notificacoes/services/INotificacoesService';
+import type { IAuthService } from '@/features/auth/services/IAuthService';
+import type { IEstabelecimentosService } from '@/features/estabelecimentos/services/IEstabelecimentosService';
+import type { IAgendamentosService } from '@/features/agendamentos/services/IAgendamentosService';
+import type { IFeedService } from '@/features/feed/services/IFeedService';
+import type { IPerfilService } from '@/features/perfil/services/IPerfilService';
+import type { IBarbeiroService } from '@/features/barbeiro/services/IBarbeiroService';
+import type { IAdminService } from '@/features/admin/services/IAdminService';
+import type { IMensagensService } from '@/features/mensagens/services/IMensagensService';
+import type { Notificacao } from '@/tipos';
+
+interface Services {
+  auth: IAuthService;
+  estabelecimentos: IEstabelecimentosService;
+  agendamentos: IAgendamentosService;
+  feed: IFeedService;
+  notificacoes: INotificacoesService;
+  perfil: IPerfilService;
+  barbeiro: IBarbeiroService;
+  admin: IAdminService;
+  mensagens: IMensagensService;
+}
 
 // Mock do atrasar para resolver imediatamente
 vi.mock('@/utilitarios/formatar', () => ({
@@ -16,32 +40,11 @@ vi.mock('@/utilitarios/formatar', () => ({
   calcularDistanciaKm: vi.fn(() => 0),
 }));
 
-vi.mock('@/servicos/api', () => ({
-  api: {
-    notificacoes: {
-      listar: vi.fn(),
-      marcarComoLida: vi.fn(),
-      marcarTodasComoLidas: vi.fn(),
-      excluir: vi.fn(),
-      excluirTodasLidas: vi.fn(),
-    },
-    autenticacao: {
-      validarToken: vi.fn(),
-    },
-    perfil: {
-      obter: vi.fn(),
-    },
-  },
-}));
-
 vi.mock('./useAuth', () => ({
   useAuth: vi.fn(),
 }));
 
-import { useNotificacoes, useNotificacoesFiltradas, useNotificacoesNaoLidas } from './useNotificacoes';
-import { api } from '@/servicos/api';
-import { useAuth } from './useAuth';
-
+// Mock do usuário - definido no top-level
 const mockUsuario = {
   id: 'user-1',
   nome: 'João Cliente',
@@ -54,11 +57,11 @@ const mockUsuario = {
   inspiracaoSalvas: [],
 };
 
-const mockNotificacoes = [
+const mockNotificacoes: Notificacao[] = [
   {
     id: 'notif-1',
     destinatario: 'cliente@demo.com',
-    tipo: 'agendamento' as const,
+    tipo: 'agendamento',
     titulo: 'Agendamento confirmado',
     mensagem: 'Seu agendamento foi confirmado para 20/12 às 10:00',
     lida: false,
@@ -68,7 +71,7 @@ const mockNotificacoes = [
   {
     id: 'notif-2',
     destinatario: 'cliente@demo.com',
-    tipo: 'mensagem' as const,
+    tipo: 'mensagem',
     titulo: 'Nova mensagem',
     mensagem: 'Carlos Silva: "Olá, tudo bem?"',
     lida: true,
@@ -78,7 +81,7 @@ const mockNotificacoes = [
   {
     id: 'notif-3',
     destinatario: 'cliente@demo.com',
-    tipo: 'pagamento' as const,
+    tipo: 'pagamento',
     titulo: 'Pagamento PIX confirmado',
     mensagem: 'Seu pagamento de R$ 40,00 foi confirmado',
     lida: false,
@@ -87,15 +90,58 @@ const mockNotificacoes = [
   },
 ];
 
+// Criar mock do INotificacoesService
+const createMockNotificacoesService = () => ({
+  listar: vi.fn().mockResolvedValue({ sucesso: true, dados: mockNotificacoes }),
+  marcarComoLida: vi.fn().mockResolvedValue({ sucesso: true }),
+  marcarTodasComoLidas: vi.fn().mockResolvedValue({ sucesso: true }),
+  excluir: vi.fn().mockResolvedValue({ sucesso: true }),
+  excluirTodasLidas: vi.fn().mockResolvedValue({ sucesso: true }),
+});
+
+// Provider de teste que usa mock services
+const TestServiceProvider = ({ children, notificacoesService }: { children: ReactNode; notificacoesService: INotificacoesService }) => {
+  const mockServices: Services = {
+    auth: {} as IAuthService,
+    estabelecimentos: {} as IEstabelecimentosService,
+    agendamentos: {} as IAgendamentosService,
+    feed: {} as IFeedService,
+    notificacoes: notificacoesService,
+    perfil: {} as IPerfilService,
+    barbeiro: {} as IBarbeiroService,
+    admin: {} as IAdminService,
+    mensagens: {} as IMensagensService,
+  };
+
+  return (
+    <ServicesContext.Provider value={mockServices}>
+      {children}
+    </ServicesContext.Provider>
+  );
+};
+
+// Helper para renderizar hook com TestServiceProvider
+const renderHookWithNotificacoes = <T,>(
+  hook: (props: T) => unknown,
+  notificacoesService: INotificacoesService,
+  options?: { initialProps?: T }
+) => {
+  return renderHook(hook, {
+    wrapper: ({ children }) => <TestServiceProvider notificacoesService={notificacoesService}>{children}</TestServiceProvider>,
+    initialProps: options?.initialProps,
+  });
+};
+
+import { useNotificacoes, useNotificacoesFiltradas, useNotificacoesNaoLidas } from './useNotificacoes';
+import { useAuth } from './useAuth';
+
 describe('useNotificacoes', () => {
+  let mockNotificacoesService: ReturnType<typeof createMockNotificacoesService>;
+
   beforeEach(() => {
     vi.clearAllMocks();
+    mockNotificacoesService = createMockNotificacoesService();
     (useAuth as vi.Mock).mockReturnValue({ usuario: mockUsuario });
-    api.notificacoes.listar.mockResolvedValue({ sucesso: true, dados: mockNotificacoes });
-    api.notificacoes.marcarComoLida.mockResolvedValue({ sucesso: true });
-    api.notificacoes.marcarTodasComoLidas.mockResolvedValue({ sucesso: true });
-    api.notificacoes.excluir.mockResolvedValue({ sucesso: true });
-    api.notificacoes.excluirTodasLidas.mockResolvedValue({ sucesso: true });
   });
 
   afterEach(() => {
@@ -104,18 +150,18 @@ describe('useNotificacoes', () => {
 
   describe('carregamento inicial', () => {
     it('deve carregar notificações do usuário', async () => {
-      const { result } = renderHook(() => useNotificacoes());
+      const { result } = renderHookWithNotificacoes(() => useNotificacoes(), mockNotificacoesService);
 
       await waitFor(() => expect(result.current.carregando).toBe(false));
 
-      expect(api.notificacoes.listar).toHaveBeenCalledWith('cliente@demo.com', 'todos');
+      expect(mockNotificacoesService.listar).toHaveBeenCalledWith('cliente@demo.com', 'todos');
       expect(result.current.notificacoes).toHaveLength(3);
       expect(result.current.naoLidas).toBe(2);
       expect(result.current.temMais).toBe(false);
     });
 
     it('deve ordenar por dataCriacao decrescente', async () => {
-      const { result } = renderHook(() => useNotificacoes());
+      const { result } = renderHookWithNotificacoes(() => useNotificacoes(), mockNotificacoesService);
 
       await waitFor(() => expect(result.current.carregando).toBe(false));
 
@@ -128,16 +174,16 @@ describe('useNotificacoes', () => {
     it('não deve carregar se usuário não autenticado', async () => {
       (useAuth as vi.Mock).mockReturnValue({ usuario: null });
 
-      const { result } = renderHook(() => useNotificacoes());
+      const { result } = renderHookWithNotificacoes(() => useNotificacoes(), mockNotificacoesService);
 
       expect(result.current.notificacoes).toHaveLength(0);
-      expect(api.notificacoes.listar).not.toHaveBeenCalled();
+      expect(mockNotificacoesService.listar).not.toHaveBeenCalled();
     });
   });
 
   describe('marcarComoLida', () => {
     it('deve marcar notificação específica como lida', async () => {
-      const { result } = renderHook(() => useNotificacoes());
+      const { result } = renderHookWithNotificacoes(() => useNotificacoes(), mockNotificacoesService);
 
       await waitFor(() => expect(result.current.carregando).toBe(false));
 
@@ -145,13 +191,13 @@ describe('useNotificacoes', () => {
         await result.current.marcarComoLida('notif-1');
       });
 
-      expect(api.notificacoes.marcarComoLida).toHaveBeenCalledWith('notif-1');
+      expect(mockNotificacoesService.marcarComoLida).toHaveBeenCalledWith('notif-1');
       expect(result.current.notificacoes.find(n => n.id === 'notif-1')?.lida).toBe(true);
       expect(result.current.naoLidas).toBe(1);
     });
 
     it('deve definir lidaEm com timestamp atual', async () => {
-      const { result } = renderHook(() => useNotificacoes());
+      const { result } = renderHookWithNotificacoes(() => useNotificacoes(), mockNotificacoesService);
 
       await waitFor(() => expect(result.current.carregando).toBe(false));
 
@@ -169,7 +215,7 @@ describe('useNotificacoes', () => {
 
   describe('marcarTodasComoLidas', () => {
     it('deve marcar todas como lidas', async () => {
-      const { result } = renderHook(() => useNotificacoes());
+      const { result } = renderHookWithNotificacoes(() => useNotificacoes(), mockNotificacoesService);
 
       await waitFor(() => expect(result.current.carregando).toBe(false));
 
@@ -177,7 +223,7 @@ describe('useNotificacoes', () => {
         await result.current.marcarTodasComoLidas();
       });
 
-      expect(api.notificacoes.marcarTodasComoLidas).toHaveBeenCalledWith('cliente@demo.com');
+      expect(mockNotificacoesService.marcarTodasComoLidas).toHaveBeenCalledWith('cliente@demo.com');
       expect(result.current.notificacoes.every(n => n.lida)).toBe(true);
       expect(result.current.naoLidas).toBe(0);
     });
@@ -185,7 +231,7 @@ describe('useNotificacoes', () => {
     it('não deve fazer nada se usuário não autenticado', async () => {
       (useAuth as vi.Mock).mockReturnValue({ usuario: null });
 
-      const { result } = renderHook(() => useNotificacoes());
+      const { result } = renderHookWithNotificacoes(() => useNotificacoes(), mockNotificacoesService);
 
       await waitFor(() => expect(result.current.carregando).toBe(false));
 
@@ -193,13 +239,13 @@ describe('useNotificacoes', () => {
         await result.current.marcarTodasComoLidas();
       });
 
-      expect(api.notificacoes.marcarTodasComoLidas).not.toHaveBeenCalled();
+      expect(mockNotificacoesService.marcarTodasComoLidas).not.toHaveBeenCalled();
     });
   });
 
   describe('excluir', () => {
     it('deve excluir notificação específica', async () => {
-      const { result } = renderHook(() => useNotificacoes());
+      const { result } = renderHookWithNotificacoes(() => useNotificacoes(), mockNotificacoesService);
 
       await waitFor(() => expect(result.current.carregando).toBe(false));
 
@@ -207,7 +253,7 @@ describe('useNotificacoes', () => {
         await result.current.excluir('notif-1');
       });
 
-      expect(api.notificacoes.excluir).toHaveBeenCalledWith('notif-1');
+      expect(mockNotificacoesService.excluir).toHaveBeenCalledWith('notif-1');
       expect(result.current.notificacoes.find(n => n.id === 'notif-1')).toBeUndefined();
       expect(result.current.notificacoes).toHaveLength(2);
     });
@@ -215,7 +261,7 @@ describe('useNotificacoes', () => {
 
   describe('excluirTodasLidas', () => {
     it('deve excluir apenas notificações lidas', async () => {
-      const { result } = renderHook(() => useNotificacoes());
+      const { result } = renderHookWithNotificacoes(() => useNotificacoes(), mockNotificacoesService);
 
       await waitFor(() => expect(result.current.carregando).toBe(false));
 
@@ -223,7 +269,7 @@ describe('useNotificacoes', () => {
         await result.current.excluirTodasLidas();
       });
 
-      expect(api.notificacoes.excluirTodasLidas).toHaveBeenCalledWith('cliente@demo.com');
+      expect(mockNotificacoesService.excluirTodasLidas).toHaveBeenCalledWith('cliente@demo.com');
       expect(result.current.notificacoes).toHaveLength(2); // apenas as não lidas
       expect(result.current.notificacoes.every(n => !n.lida)).toBe(true);
     });
@@ -235,9 +281,9 @@ describe('useNotificacoes', () => {
         ...mockNotificacoes[0],
         id: `notif-${i}`,
       }));
-      api.notificacoes.listar.mockResolvedValue({ sucesso: true, dados: muitasNotificacoes });
+      mockNotificacoesService.listar.mockResolvedValue({ sucesso: true, dados: muitasNotificacoes });
 
-      const { result } = renderHook(() => useNotificacoes());
+      const { result } = renderHookWithNotificacoes(() => useNotificacoes(), mockNotificacoesService);
 
       await waitFor(() => expect(result.current.carregando).toBe(false));
 
@@ -258,7 +304,7 @@ describe('useNotificacoes', () => {
 
   describe('recarregar', () => {
     it('deve resetar paginação e recarregar', async () => {
-      const { result } = renderHook(() => useNotificacoes());
+      const { result } = renderHookWithNotificacoes(() => useNotificacoes(), mockNotificacoesService);
 
       await waitFor(() => expect(result.current.carregando).toBe(false));
 
@@ -269,13 +315,13 @@ describe('useNotificacoes', () => {
       await waitFor(() => expect(result.current.carregando).toBe(false));
 
       expect(result.current.pagina).toBe(1);
-      expect(api.notificacoes.listar).toHaveBeenCalledTimes(2);
+      expect(mockNotificacoesService.listar).toHaveBeenCalledTimes(2);
     });
   });
 
   describe('polling', () => {
     it('deve configurar polling', async () => {
-      const { result } = renderHook(() => useNotificacoes());
+      const { result } = renderHookWithNotificacoes(() => useNotificacoes(), mockNotificacoesService);
 
       await waitFor(() => expect(result.current.carregando).toBe(false));
 
@@ -285,7 +331,7 @@ describe('useNotificacoes', () => {
     });
 
     it('deve limpar polling no unmount', async () => {
-      const { result, unmount } = renderHook(() => useNotificacoes());
+      const { result, unmount } = renderHookWithNotificacoes(() => useNotificacoes(), mockNotificacoesService);
 
       await waitFor(() => expect(result.current.carregando).toBe(false));
 
@@ -300,7 +346,6 @@ describe('useNotificacoesFiltradas', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     (useAuth as vi.Mock).mockReturnValue({ usuario: mockUsuario });
-    api.notificacoes.listar.mockResolvedValue({ sucesso: true, dados: mockNotificacoes });
   });
 
   afterEach(() => {
@@ -308,7 +353,10 @@ describe('useNotificacoesFiltradas', () => {
   });
 
   it('deve filtrar por tipo agendamento', async () => {
-    const { result } = renderHook(() => useNotificacoesFiltradas('agendamento'));
+    const mockService = createMockNotificacoesService();
+    mockService.listar.mockResolvedValue({ sucesso: true, dados: mockNotificacoes });
+
+    const { result } = renderHookWithNotificacoes(() => useNotificacoesFiltradas('agendamento'), mockService);
 
     await waitFor(() => expect(result.current.carregando).toBe(false));
 
@@ -317,7 +365,10 @@ describe('useNotificacoesFiltradas', () => {
   });
 
   it('deve filtrar por tipo mensagem', async () => {
-    const { result } = renderHook(() => useNotificacoesFiltradas('mensagem'));
+    const mockService = createMockNotificacoesService();
+    mockService.listar.mockResolvedValue({ sucesso: true, dados: mockNotificacoes });
+
+    const { result } = renderHookWithNotificacoes(() => useNotificacoesFiltradas('mensagem'), mockService);
 
     await waitFor(() => expect(result.current.carregando).toBe(false));
 
@@ -326,7 +377,10 @@ describe('useNotificacoesFiltradas', () => {
   });
 
   it('deve retornar todas se tipo não especificado', async () => {
-    const { result } = renderHook(() => useNotificacoesFiltradas(undefined));
+    const mockService = createMockNotificacoesService();
+    mockService.listar.mockResolvedValue({ sucesso: true, dados: mockNotificacoes });
+
+    const { result } = renderHookWithNotificacoes(() => useNotificacoesFiltradas(undefined), mockService);
 
     await waitFor(() => expect(result.current.carregando).toBe(false));
 
@@ -338,7 +392,6 @@ describe('useNotificacoesNaoLidas', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     (useAuth as vi.Mock).mockReturnValue({ usuario: mockUsuario });
-    api.notificacoes.listar.mockResolvedValue({ sucesso: true, dados: mockNotificacoes });
   });
 
   afterEach(() => {
@@ -346,7 +399,10 @@ describe('useNotificacoesNaoLidas', () => {
   });
 
   it('deve retornar apenas não lidas', async () => {
-    const { result } = renderHook(() => useNotificacoesNaoLidas());
+    const mockService = createMockNotificacoesService();
+    mockService.listar.mockResolvedValue({ sucesso: true, dados: mockNotificacoes });
+
+    const { result } = renderHookWithNotificacoes(() => useNotificacoesNaoLidas(), mockService);
 
     await waitFor(() => expect(result.current.carregando).toBe(false));
 
@@ -356,7 +412,10 @@ describe('useNotificacoesNaoLidas', () => {
   });
 
   it('deve expor marcarTodasComoLidas', async () => {
-    const { result } = renderHook(() => useNotificacoesNaoLidas());
+    const mockService = createMockNotificacoesService();
+    mockService.listar.mockResolvedValue({ sucesso: true, dados: mockNotificacoes });
+
+    const { result } = renderHookWithNotificacoes(() => useNotificacoesNaoLidas(), mockService);
 
     await waitFor(() => expect(result.current.carregando).toBe(false));
 
