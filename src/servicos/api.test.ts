@@ -1852,8 +1852,11 @@ describe('Mock API - Camada de Serviços', () => {
     });
 
     describe('obterSalvas', () => {
-      it('deve retornar publicações salvas do usuário', async () => {
+      beforeEach(() => {
         forcarSucesso();
+      });
+
+      it('deve retornar publicações salvas do usuário', async () => {
         const pubsPromise = api.feed.listar({ filtro: 'todos' });
         await esperarLatencia();
         const pubsResult = await pubsPromise;
