@@ -36,24 +36,28 @@ const Login = () => {
   const [erro, setErro] = useState('');
   const [mostrarSenha, setMostrarSenha] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent, emailOverride?: string, senhaOverride?: string, tipoOverride?: TipoAuth) => {
     e.preventDefault();
     setErro('');
     setCarregando(true);
 
-    if (!email || !senha) {
+    const emailUsar = emailOverride ?? email;
+    const senhaUsar = senhaOverride ?? senha;
+    const tipoUsar = tipoOverride ?? tipo;
+
+    if (!emailUsar || !senhaUsar) {
       setErro('Preencha todos os campos');
       setCarregando(false);
       return;
     }
 
-    const resultado = await login(email, senha, tipo);
+    const resultado = await login(emailUsar, senhaUsar, tipoUsar);
 
     if (resultado.sucesso) {
-      sucesso(`Bem-vindo${tipo === 'barbeiro' ? ' ao painel' : ''}!`);
+      sucesso(`Bem-vindo${tipoUsar === 'barbeiro' ? ' ao painel' : ''}!`);
 
       // Redireciona baseado no tipo
-      switch (tipo) {
+      switch (tipoUsar) {
         case 'barbeiro':
           navigate('/painel');
           break;
@@ -70,11 +74,16 @@ const Login = () => {
     setCarregando(false);
   };
 
-  const handleLoginRapido = async (tipoRapido: TipoAuth, emailRapido: string, senhaRapido: string) => {
+  const handleLoginRapido = async (tipoRapido: TipoAuth, emailRapido: string, senhaRapida: string) => {
     setTipo(tipoRapido);
     setEmail(emailRapido);
-    setSenha(senhaRapido);
-    await handleSubmit({ preventDefault: () => {}, currentTarget: null } as unknown as React.FormEvent<HTMLFormElement>);
+    setSenha(senhaRapida);
+    await handleSubmit(
+      { preventDefault: () => {}, currentTarget: null } as unknown as React.FormEvent<HTMLFormElement>,
+      emailRapido,
+      senhaRapida,
+      tipoRapido
+    );
   };
 
   return (
@@ -153,6 +162,7 @@ const Login = () => {
                 </div>
 
                 <BotaoPrimario
+                  tipo="submit"
                   className="login__btn-entrar"
                   carregando={carregando}
                   desabilitado={carregando}

@@ -31,7 +31,7 @@ import { atrasar, clonarProfundo, gerarId, formatarMoeda, formatarParaExibicao, 
 import type { EstadoGlobal } from '@/tipos';
 
 // Estado global simulado (em memória)
-let estadoGlobal = gerarEstadoInicial() as EstadoGlobal;
+export let estadoGlobal = gerarEstadoInicial() as EstadoGlobal;
 
 // Configuração de latência simulada (ms)
 const LATENCIA_MIN = 300;
@@ -71,7 +71,7 @@ function persistirEstado(): void {
 }
 
 /** Carrega estado do localStorage */
-function carregarEstado(): void {
+export function carregarEstado(): void {
   try {
     const salvo = localStorage.getItem('cr_estado_v1');
     if (salvo) {
@@ -2425,6 +2425,7 @@ export const api = {
     validarToken,
     alterarSenha,
     excluirConta,
+    sair,
   },
   estabelecimentos: {
     buscar: buscarEstabelecimentos,
@@ -2454,6 +2455,8 @@ export const api = {
     entrarNaFila,
     sairDaFila,
     chamarProximo,
+    adicionarPresencialNaFila,
+    removerDaFila,
   },
   agendamentos: {
     listar: listarAgendamentos,
@@ -2463,6 +2466,7 @@ export const api = {
     cancelar: cancelarAgendamento,
     confirmarPresenca,
     avaliar: avaliarAgendamento,
+    confirmarPagamentoPix,
     obterHorariosDisponiveis,
     listarBarbeiro,
     atualizarStatus,
@@ -2518,6 +2522,8 @@ export const api = {
     obterMensagens,
     enviarMensagem,
     enviarMensagemClientes,
+    enviarAvisoBarbeiros,
   },
+  adicionarAvaliacao,
 } as const;
 
