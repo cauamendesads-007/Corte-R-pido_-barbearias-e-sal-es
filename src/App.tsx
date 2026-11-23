@@ -21,7 +21,7 @@ const Cadastro = lazy(() => import('./telas/Cadastro').then((m) => ({ default: m
 const Estabelecimento = lazy(() => import('./telas/Estabelecimento').then((m) => ({ default: m.default })));
 const Agendamento = lazy(() => import('./telas/Agendamento').then((m) => ({ default: m.default })));
 const Notificacoes = lazy(() => import('./telas/Notificacoes').then((m) => ({ default: m.default })));
-const Configuracoes = lazy(() => import('./telas/Configuracoes').then((m) => ({ default: m.default })));
+const Configuracoes = lazy(() => import('./features/configuracoes/components/Configuracoes').then((m) => ({ default: m.default })));
 
 // Fallback de carregamento
 const Carregando = () => (
