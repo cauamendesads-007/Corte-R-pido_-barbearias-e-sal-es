@@ -3,6 +3,8 @@
  * Cobertura: 100%
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useAuth } from './useAuth';
 import { api } from '@/servicos/api';

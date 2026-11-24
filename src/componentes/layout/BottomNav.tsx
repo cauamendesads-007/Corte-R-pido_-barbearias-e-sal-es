@@ -6,14 +6,14 @@
 
 import React from 'react';
 import { useLocation, NavLink } from 'react-router-dom';
-import { ICONES } from '@/constantes';
+import { Icone } from '@/componentes/ui/Icone';
 import './BottomNav.css';
 
 export interface ItemBottomNav {
   caminho: string;
   rotulo: string;
-  icone: string;
-  iconeAtivo?: string;
+  icone: React.ReactNode;
+  iconeAtivo?: React.ReactNode;
   badge?: number | string;
   apenasAutenticado?: boolean;
   tipoUsuario?: 'cliente' | 'barbeiro' | 'admin';
@@ -28,25 +28,25 @@ export interface BottomNavProps {
 
 /** Configurações padrão por tipo de usuário */
 const ITENS_PADRAO_CLIENTE: ItemBottomNav[] = [
-  { caminho: '/feed', rotulo: 'Feed', icone: ICONES.grade, iconeAtivo: ICONES.grade },
-  { caminho: '/explorar', rotulo: 'Explorar', icone: ICONES.busca, iconeAtivo: ICONES.busca },
-  { caminho: '/agendamentos', rotulo: 'Agendamentos', icone: ICONES.calendario, iconeAtivo: ICONES.calendario, apenasAutenticado: true },
-  { caminho: '/inspiracoes', rotulo: 'Inspirações', icone: ICONES.coracaoVazio, iconeAtivo: ICONES.coracao, apenasAutenticado: true },
-  { caminho: '/perfil', rotulo: 'Perfil', icone: ICONES.usuario, iconeAtivo: ICONES.usuario, apenasAutenticado: true },
+  { caminho: '/feed', rotulo: 'Feed', icone: <Icone nome="grade" tamanho={24} />, iconeAtivo: <Icone nome="grade" tamanho={24} /> },
+  { caminho: '/explorar', rotulo: 'Explorar', icone: <Icone nome="busca" tamanho={24} />, iconeAtivo: <Icone nome="busca" tamanho={24} /> },
+  { caminho: '/agendamentos', rotulo: 'Agendamentos', icone: <Icone nome="calendario" tamanho={24} />, iconeAtivo: <Icone nome="calendario" tamanho={24} />, apenasAutenticado: true },
+  { caminho: '/inspiracoes', rotulo: 'Inspirações', icone: <Icone nome="coracaoVazio" tamanho={24} />, iconeAtivo: <Icone nome="coracao" tamanho={24} />, apenasAutenticado: true },
+  { caminho: '/perfil', rotulo: 'Perfil', icone: <Icone nome="usuario" tamanho={24} />, iconeAtivo: <Icone nome="usuario" tamanho={24} />, apenasAutenticado: true },
 ];
 
 const ITENS_PADRAO_BARBEIRO: ItemBottomNav[] = [
-  { caminho: '/painel', rotulo: 'Painel', icone: ICONES.grafico, iconeAtivo: ICONES.grafico, apenasAutenticado: true, tipoUsuario: 'barbeiro' },
-  { caminho: '/painel/agenda', rotulo: 'Agenda', icone: ICONES.calendario, iconeAtivo: ICONES.calendario, apenasAutenticado: true, tipoUsuario: 'barbeiro' },
-  { caminho: '/painel/fila', rotulo: 'Fila', icone: ICONES.fila, iconeAtivo: ICONES.fila, apenasAutenticado: true, tipoUsuario: 'barbeiro', badge: '!' },
-  { caminho: '/painel/servicos', rotulo: 'Serviços', icone: ICONES.tesoura, iconeAtivo: ICONES.tesoura, apenasAutenticado: true, tipoUsuario: 'barbeiro' },
-  { caminho: '/perfil', rotulo: 'Perfil', icone: ICONES.usuario, iconeAtivo: ICONES.usuario, apenasAutenticado: true, tipoUsuario: 'barbeiro' },
+  { caminho: '/painel', rotulo: 'Painel', icone: <Icone nome="grafico" tamanho={24} />, iconeAtivo: <Icone nome="grafico" tamanho={24} />, apenasAutenticado: true, tipoUsuario: 'barbeiro' },
+  { caminho: '/painel/agenda', rotulo: 'Agenda', icone: <Icone nome="calendario" tamanho={24} />, iconeAtivo: <Icone nome="calendario" tamanho={24} />, apenasAutenticado: true, tipoUsuario: 'barbeiro' },
+  { caminho: '/painel/fila', rotulo: 'Fila', icone: <Icone nome="fila" tamanho={24} />, iconeAtivo: <Icone nome="fila" tamanho={24} />, apenasAutenticado: true, tipoUsuario: 'barbeiro', badge: '!' },
+  { caminho: '/painel/servicos', rotulo: 'Serviços', icone: <Icone nome="tesoura" tamanho={24} />, iconeAtivo: <Icone nome="tesoura" tamanho={24} />, apenasAutenticado: true, tipoUsuario: 'barbeiro' },
+  { caminho: '/perfil', rotulo: 'Perfil', icone: <Icone nome="usuario" tamanho={24} />, iconeAtivo: <Icone nome="usuario" tamanho={24} />, apenasAutenticado: true, tipoUsuario: 'barbeiro' },
 ];
 
 const ITENS_PADRAO_PUBLICO: ItemBottomNav[] = [
-  { caminho: '/', rotulo: 'Início', icone: ICONES.casa, iconeAtivo: ICONES.casa },
-  { caminho: '/explorar', rotulo: 'Explorar', icone: ICONES.busca, iconeAtivo: ICONES.busca },
-  { caminho: '/login', rotulo: 'Entrar', icone: ICONES.usuario },
+  { caminho: '/', rotulo: 'Início', icone: <Icone nome="casa" tamanho={24} />, iconeAtivo: <Icone nome="casa" tamanho={24} /> },
+  { caminho: '/explorar', rotulo: 'Explorar', icone: <Icone nome="busca" tamanho={24} />, iconeAtivo: <Icone nome="busca" tamanho={24} /> },
+  { caminho: '/login', rotulo: 'Entrar', icone: <Icone nome="usuario" tamanho={24} /> },
 ];
 
 export const BottomNav = ({
@@ -88,7 +88,7 @@ export const BottomNav = ({
       data-testid={testId}
     >
       <div className="bottom-nav__container">
-        {itensVisiveis.map((item, _index) => {
+        {itensVisiveis.map((item) => {
           const ehAtivo = location.pathname.startsWith(item.caminho) && (item.caminho !== '/' || location.pathname === '/');
           const iconeExibicao = ehAtivo && item.iconeAtivo ? item.iconeAtivo : item.icone;
 
@@ -134,7 +134,7 @@ export const BottomNavSimples = ({
 }: {
   itens?: ItemBottomNav[];
   valor: string;
-  aoAlterar: (caminho: string) => void;
+  aoAlterar: (_caminho: string) => void;
   className?: string;
   'data-testid'?: string;
 }) => (

@@ -18,8 +18,8 @@ import {
   ChipGrupo,
   ToastProvider,
   useGlobalToast,
+  Icone,
 } from '@/componentes';
-import { ICONES } from '@/constantes';
 import './Login.css';
 
 type TipoAuth = 'cliente' | 'barbeiro' | 'admin';
@@ -74,13 +74,13 @@ const Login = () => {
     setTipo(tipoRapido);
     setEmail(emailRapido);
     setSenha(senhaRapido);
-    await handleSubmit(new Event('submit') as any);
+    await handleSubmit({ preventDefault: () => {}, stopPropagation: () => {}, nativeEvent: new Event('submit'), currentTarget: null, target: null, isDefaultPrevented: () => false, isPropagationStopped: () => false, persist: () => {} } as unknown as React.FormEvent<Element>);
   };
 
   return (
     <ToastProvider>
       <Container variante="tela-cheia" data-testid="login-container">
-        <div className="login__wrapper">
+        <main className="login__main">
           {/* Logo */}
           <header className="login__header">
             <Link to="/" className="login__logo" aria-label="Corte Rápido - Início">
@@ -90,131 +90,134 @@ const Login = () => {
           </header>
 
           {/* Card de login */}
-          <Cartao variante="padrao" className="login__card">
-            <CartaoCorpo className="login__corpo">
-              <h1 className="login__titulo">Entrar na sua conta</h1>
-              <p className="login__subtitulo">Acesse seu painel ou agende seu próximo corte</p>
+          <section className="login__card-section" aria-labelledby="login-titulo">
+            <Cartao variante="padrao" className="login__card">
+              <CartaoCorpo className="login__corpo">
+                <h1 id="login-titulo" className="login__titulo">Entrar na sua conta</h1>
+                <p className="login__subtitulo">Acesse seu painel ou agende seu próximo corte</p>
 
-              {/* Seletor de tipo */}
-              <fieldset className="login__tipo-grupo">
-                <legend>Entrar como</legend>
-                <ChipGrupo
-                  opcoes={[
-                    { valor: 'cliente', rotulo: '👤 Cliente', icone: ICONES.usuario },
-                    { valor: 'barbeiro', rotulo: '💈 Barbeiro', icone: ICONES.tesoura },
-                    { valor: 'admin', rotulo: '⚙️ Admin', icone: ICONES.configuracoes },
-                  ]}
-                  selecionados={[tipo]}
-                  aoAlterar={(v) => setTipo(v[0] as TipoAuth)}
-                  multiplo={false}
-                  variante="selecao"
-                  data-testid="login-tipo"
-                />
-              </fieldset>
+                {/* Seletor de tipo */}
+                <fieldset className="login__tipo-grupo">
+                  <legend>Entrar como</legend>
+                  <ChipGrupo
+                    opcoes={[
+                      { valor: 'cliente', rotulo: 'Cliente', icone: <Icone nome="usuario" tamanho={16} /> },
+                      { valor: 'barbeiro', rotulo: 'Barbeiro', icone: <Icone nome="tesoura" tamanho={16} /> },
+                      { valor: 'admin', rotulo: 'Admin', icone: <Icone nome="configuracoes" tamanho={16} /> },
+                    ]}
+                    selecionados={[tipo]}
+                    aoAlterar={(v) => setTipo(v[0] as TipoAuth)}
+                    multiplo={false}
+                    variante="selecao"
+                    data-testid="login-tipo"
+                  />
+                </fieldset>
 
-              {/* Formulário */}
-              <form onSubmit={handleSubmit} className="login__form" noValidate>
-                <CampoTexto
-                  label="E-mail"
-                  tipo="email"
-                  valor={email}
-                  aoAlterar={setEmail}
-                  placeholder="seu@email.com"
-                  autoComplete="email"
-                  obrigatorio
-                  erro={erro && !senha ? undefined : undefined}
-                  data-testid="login-email"
-                />
+                {/* Formulário */}
+                <form onSubmit={handleSubmit} className="login__form" noValidate>
+                  <CampoTexto
+                    label="E-mail"
+                    tipo="email"
+                    valor={email}
+                    aoAlterar={setEmail}
+                    placeholder="seu@email.com"
+                    autoComplete="email"
+                    obrigatorio
+                    erro={erro && !senha ? undefined : undefined}
+                    data-testid="login-email"
+                  />
 
-                <CampoSenha
-                  label="Senha"
-                  valor={senha}
-                  aoAlterar={setSenha}
-                  placeholder="••••••••"
-                  autoComplete="current-password"
-                  obrigatorio
-                  mostrarSenha={mostrarSenha}
-                  aoAlternarVisibilidade={() => setMostrarSenha(!mostrarSenha)}
-                  data-testid="login-senha"
-                />
+                  <CampoSenha
+                    label="Senha"
+                    valor={senha}
+                    aoAlterar={setSenha}
+                    placeholder="••••••••"
+                    autoComplete="current-password"
+                    obrigatorio
+                    mostrarSenha={mostrarSenha}
+                    aoAlternarVisibilidade={() => setMostrarSenha(!mostrarSenha)}
+                    data-testid="login-senha"
+                  />
 
-                {erro && (
-                  <div className="login__erro" role="alert" data-testid="login-erro">
-                    {ICONES.alerta} {erro}
+                  {erro && (
+                    <div className="login__erro" role="alert" data-testid="login-erro">
+                      <Icone nome="alerta" tamanho={16} /> {erro}
+                    </div>
+                  )}
+
+                  <div className="login__opcoes">
+                    <label className="login__lembrar">
+                      <input type="checkbox" />
+                      <span>Lembrar-me</span>
+                    </label>
+                    <Link to="/recuperar-senha" className="login__esqueci">Esqueci a senha</Link>
                   </div>
-                )}
 
-                <div className="login__opcoes">
-                  <label className="login__lembrar">
-                    <input type="checkbox" />
-                    <span>Lembrar-me</span>
-                  </label>
-                  <Link to="/recuperar-senha" className="login__esqueci">Esqueci a senha</Link>
+                  <BotaoPrimario
+                    className="login__btn-entrar"
+                    carregando={carregando}
+                    desabilitado={carregando}
+                    data-testid="login-btn-entrar"
+                  >
+                    Entrar
+                  </BotaoPrimario>
+                </form>
+
+                {/* Divisor */}
+                <div className="login__divisor" role="separator" aria-label="ou">
+                  <span>ou</span>
                 </div>
 
-                <BotaoPrimario
-                  className="login__btn-entrar"
-                  carregando={carregando}
-                  desabilitado={carregando}
-                  data-testid="login-btn-entrar"
-                >
-                  Entrar
-                </BotaoPrimario>
-              </form>
+                {/* Login rápido (demo) */}
+                <section className="login__rapido" aria-labelledby="login-rapido-titulo">
+                  <h2 id="login-rapido-titulo" className="sr-only">Acesso rápido (demo)</h2>
+                  <p className="login__rapido-texto">Acesso rápido (demo):</p>
+                  <div className="login__rapido-botoes">
+                    <BotaoSecundario
+                      tamanho="pequeno"
+                      aoClicar={() => handleLoginRapido('cliente', 'cliente@demo.com', '123456')}
+                      desabilitado={carregando}
+                      data-testid="login-demo-cliente"
+                    >
+                      Cliente Demo
+                    </BotaoSecundario>
+                    <BotaoSecundario
+                      tamanho="pequeno"
+                      aoClicar={() => handleLoginRapido('barbeiro', 'barbeiro@demo.com', '123456')}
+                      desabilitado={carregando}
+                      data-testid="login-demo-barbeiro"
+                    >
+                      Barbeiro Demo
+                    </BotaoSecundario>
+                    <BotaoSecundario
+                      tamanho="pequeno"
+                      aoClicar={() => handleLoginRapido('admin', 'admin@demo.com', '123456')}
+                      desabilitado={carregando}
+                      data-testid="login-demo-admin"
+                    >
+                      Admin Demo
+                    </BotaoSecundario>
+                  </div>
+                </section>
 
-              {/* Divisor */}
-              <div className="login__divisor">
-                <span>ou</span>
-              </div>
-
-              {/* Login rápido (demo) */}
-              <div className="login__rapido">
-                <p className="login__rapido-texto">Acesso rápido (demo):</p>
-                <div className="login__rapido-botoes">
-                  <BotaoSecundario
-                    tamanho="pequeno"
-                    aoClicar={() => handleLoginRapido('cliente', 'cliente@demo.com', '123456')}
-                    desabilitado={carregando}
-                    data-testid="login-demo-cliente"
-                  >
-                    Cliente Demo
-                  </BotaoSecundario>
-                  <BotaoSecundario
-                    tamanho="pequeno"
-                    aoClicar={() => handleLoginRapido('barbeiro', 'barbeiro@demo.com', '123456')}
-                    desabilitado={carregando}
-                    data-testid="login-demo-barbeiro"
-                  >
-                    Barbeiro Demo
-                  </BotaoSecundario>
-                  <BotaoSecundario
-                    tamanho="pequeno"
-                    aoClicar={() => handleLoginRapido('admin', 'admin@demo.com', '123456')}
-                    desabilitado={carregando}
-                    data-testid="login-demo-admin"
-                  >
-                    Admin Demo
-                  </BotaoSecundario>
-                </div>
-              </div>
-
-              {/* Cadastro */}
-              <p className="login__cadastro">
-                Não tem conta? <Link to="/cadastro">Cadastrar grátis</Link>
-              </p>
-            </CartaoCorpo>
-          </Cartao>
+                {/* Cadastro */}
+                <p className="login__cadastro">
+                  Não tem conta? <Link to="/cadastro">Cadastrar grátis</Link>
+                </p>
+              </CartaoCorpo>
+            </Cartao>
+          </section>
 
           {/* Footer */}
           <footer className="login__footer">
             <p>© 2024 Corte Rápido. Todos os direitos reservados.</p>
-            <nav>
-              <Link to="/privacidade">Privacidade</Link>
-              <Link to="/termos">Termos</Link>
-              <Link to="/contato">Contato</Link>
+            <nav aria-label="Links legais">
+              <Link to="/privacidade" rel="noopener noreferrer">Privacidade</Link>
+              <Link to="/termos" rel="noopener noreferrer">Termos</Link>
+              <Link to="/contato" rel="noopener noreferrer">Contato</Link>
             </nav>
           </footer>
-        </div>
+        </main>
       </Container>
     </ToastProvider>
   );

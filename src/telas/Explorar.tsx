@@ -17,8 +17,9 @@ import {
   Select,
   Modal,
   BotaoSecundario,
+  Icone,
 } from '@/componentes';
-import { ICONES, NICHOS } from '@/constantes';
+import { NICHOS } from '@/constantes';
 import './Explorar.css';
 
 const Explorar = () => {
@@ -133,14 +134,14 @@ const Explorar = () => {
 
         <div className="explorar__acoes">
           <BotaoIcone
-            icone={visualizacao === 'grid' ? ICONES.lista : ICONES.grade}
+            icone={visualizacao === 'grid' ? <Icone nome="lista" tamanho={20} /> : <Icone nome="grade" tamanho={20} />}
             variante="fantasma"
             aoClicar={() => setVisualizacao((v) => v === 'grid' ? 'lista' : 'grid')}
             ariaLabel={visualizacao === 'grid' ? 'Visualizar como lista' : 'Visualizar como grade'}
             data-testid="explorar-toggle-visualizacao"
           />
           <BotaoIcone
-            icone={temFiltrosAtivos ? ICONES.filtroAtivo : ICONES.filtro}
+            icone={temFiltrosAtivos ? <Icone nome="filtroAtivo" tamanho={20} /> : <Icone nome="filtro" tamanho={20} />}
             variante="fantasma"
             aoClicar={() => setFiltrosAbertos(true)}
             ariaLabel="Filtros"
@@ -158,7 +159,8 @@ const Explorar = () => {
         tamanho="tela-cheia"
         data-testid="modal-filtros"
       >
-        <div className="filtros-modal">
+        <form className="filtros-modal" role="dialog" aria-modal="true" aria-labelledby="filtros-titulo">
+          <h2 id="filtros-titulo" className="sr-only">Filtros de busca</h2>
           <div className="filtros-modal__secao">
             <h3>Ordenar por</h3>
             <Select
@@ -177,14 +179,17 @@ const Explorar = () => {
 
           <div className="filtros-modal__secao">
             <h3>Nicho</h3>
-            <ChipGrupo
-              opcoes={[{ valor: 'todos', rotulo: 'Todos' }, ...nichosDisponiveis]}
-              selecionados={[nichoSelecionado]}
-              aoAlterar={handleNicho}
-              multiplo={false}
-              variante="selecao"
-              data-testid="filtros-nicho"
-            />
+            <fieldset>
+              <legend className="sr-only">Filtrar por nicho</legend>
+              <ChipGrupo
+                opcoes={[{ valor: 'todos', rotulo: 'Todos' }, ...nichosDisponiveis]}
+                selecionados={[nichoSelecionado]}
+                aoAlterar={handleNicho}
+                multiplo={false}
+                variante="selecao"
+                data-testid="filtros-nicho"
+              />
+            </fieldset>
           </div>
 
           <div className="filtros-modal__secao">
@@ -200,36 +205,42 @@ const Explorar = () => {
           </div>
 
           <div className="filtros-modal__secao">
-            <label className="filtros-modal__toggle">
-              <input
-                type="checkbox"
-                checked={apenasAbertos}
-                onChange={(e) => setApenasAbertos(e.target.checked)}
-              />
-              <span>Apenas abertos agora</span>
-            </label>
+            <fieldset>
+              <legend>Apenas abertos agora</legend>
+              <label className="filtros-modal__toggle">
+                <input
+                  type="checkbox"
+                  checked={apenasAbertos}
+                  onChange={(e) => setApenasAbertos(e.target.checked)}
+                />
+                <span>Apenas abertos agora</span>
+              </label>
+            </fieldset>
           </div>
 
           <div className="filtros-modal__secao">
             <h3>Avaliação mínima</h3>
-            <div className="filtros-modal__avaliacao">
+            <div className="filtros-modal__avaliacao" role="radiogroup" aria-label="Avaliação mínima">
               {[1, 2, 3, 4, 5].map((n) => (
                 <button
                   key={n}
                   type="button"
+                  role="radio"
+                  aria-checked={avaliacaoMinima >= n}
                   className={`filtros-modal__estrela ${avaliacaoMinima >= n ? 'filtros-modal__estrela--ativa' : ''}`}
                   onClick={() => setAvaliacaoMinima(n)}
                   aria-label={`${n} estrela${n > 1 ? 's' : ''} ou mais`}
                 >
-                  {ICONES.estrela}
+                  <Icone nome="estrela" tamanho={20} />
                 </button>
               ))}
             </div>
           </div>
 
           <div className="filtros-modal__secao">
-            <h3>Preço máximo: R$ {precoMaximo}</h3>
+            <label htmlFor="preco-maximo">Preço máximo: R$ {precoMaximo}</label>
             <input
+              id="preco-maximo"
               type="range"
               min="0"
               max="500"
@@ -245,82 +256,86 @@ const Explorar = () => {
               Limpar filtros
             </BotaoSecundario>
           )}
-        </div>
+        </form>
       </Modal>
 
       {/* Resultados */}
-      <div className="explorar__resultados">
-        <div className="explorar__contador">
-          {estabelecimentos.length} estabelecimento{estabelecimentos.length !== 1 ? 's' : ''} encontrado{estabelecimentos.length !== 1 ? 's' : ''}
+      <main className="explorar__main" role="main">
+        <div className="explorar__resultados">
+          <div className="explorar__contador" aria-live="polite">
+            {estabelecimentos.length} estabelecimento{estabelecimentos.length !== 1 ? 's' : ''} encontrado{estabelecimentos.length !== 1 ? 's' : ''}
+          </div>
+
+          {estabelecimentos.length > 0 ? (
+            <>
+              {visualizacao === 'grid' ? (
+                <div className="explorar__grid" role="list" aria-label="Estabelecimentos">
+                  {estabelecimentos.map((estabelecimento) => (
+                    <article key={estabelecimento.id} className="explorar__card-item">
+                      <Link
+                        to={`/estabelecimento/${estabelecimento.slug}`}
+                        className="explorar__card-link"
+                        data-testid={`explorar-card-${estabelecimento.id}`}
+                      >
+                        <CartaoEstabelecimento
+                          estabelecimento={estabelecimento}
+                          data-testid={`explorar-card-${estabelecimento.id}`}
+                        />
+                      </Link>
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <div className="explorar__lista" role="list" aria-label="Estabelecimentos">
+                  {estabelecimentos.map((estabelecimento) => (
+                    <article key={estabelecimento.id} className="explorar__card-item">
+                      <Link
+                        to={`/estabelecimento/${estabelecimento.slug}`}
+                        className="explorar__card-link"
+                        data-testid={`explorar-card-${estabelecimento.id}`}
+                      >
+                        <CartaoEstabelecimento
+                          estabelecimento={estabelecimento}
+                          data-testid={`explorar-card-${estabelecimento.id}`}
+                        />
+                      </Link>
+                    </article>
+                  ))}
+                </div>
+              )}
+
+              {temMais && (
+                <div className="explorar__carregar-mais">
+                  <BotaoSecundario aoClicar={carregarMais} desabilitado={carregando}>
+                    {carregando ? 'Carregando...' : 'Carregar mais'}
+                  </BotaoSecundario>
+                </div>
+              )}
+            </>
+          ) : (
+            <section className="explorar__vazio" data-testid="explorar-vazio" aria-labelledby="vazio-titulo">
+              <div className="explorar__vazio-icone" aria-hidden="true"><Icone nome="busca" tamanho={48} /></div>
+              <h2 id="vazio-titulo" className="explorar__vazio-titulo">Nenhum estabelecimento encontrado</h2>
+              <p className="explorar__vazio-texto">
+                {temFiltrosAtivos
+                  ? 'Tente ajustar seus filtros ou busque por outro termo.'
+                  : 'Cadastre-se como barbeiro para aparecer aqui!'}
+              </p>
+              {temFiltrosAtivos && (
+                <BotaoSecundario aoClicar={limparFiltros}>Limpar filtros</BotaoSecundario>
+              )}
+            </section>
+          )}
+
+          {erro && (
+            <div className="explorar__erro" role="alert">
+              <span><Icone nome="alerta" tamanho={20} /></span>
+              <p>{erro}</p>
+              <BotaoSecundario aoClicar={recarregar}>Tentar novamente</BotaoSecundario>
+            </div>
+          )}
         </div>
-
-        {estabelecimentos.length > 0 ? (
-          <>
-            {visualizacao === 'grid' ? (
-              <div className="explorar__grid" role="list" aria-label="Estabelecimentos">
-                {estabelecimentos.map((estabelecimento) => (
-                  <Link
-                    key={estabelecimento.id}
-                    to={`/estabelecimento/${estabelecimento.slug}`}
-                    className="explorar__card-link"
-                    data-testid={`explorar-card-${estabelecimento.id}`}
-                  >
-                    <CartaoEstabelecimento
-                      estabelecimento={estabelecimento}
-                      data-testid={`explorar-card-${estabelecimento.id}`}
-                    />
-                  </Link>
-                ))}
-              </div>
-            ) : (
-              <div className="explorar__lista" role="list" aria-label="Estabelecimentos">
-                {estabelecimentos.map((estabelecimento) => (
-                  <Link
-                    key={estabelecimento.id}
-                    to={`/estabelecimento/${estabelecimento.slug}`}
-                    className="explorar__card-link"
-                    data-testid={`explorar-card-${estabelecimento.id}`}
-                  >
-                    <CartaoEstabelecimento
-                      estabelecimento={estabelecimento}
-                      data-testid={`explorar-card-${estabelecimento.id}`}
-                    />
-                  </Link>
-                ))}
-              </div>
-            )}
-
-            {temMais && (
-              <div className="explorar__carregar-mais">
-                <BotaoSecundario aoClicar={carregarMais} desabilitado={carregando}>
-                  {carregando ? 'Carregando...' : 'Carregar mais'}
-                </BotaoSecundario>
-              </div>
-            )}
-          </>
-        ) : (
-          <div className="explorar__vazio" data-testid="explorar-vazio">
-            <div className="explorar__vazio-icone">{ICONES.busca}</div>
-            <h2 className="explorar__vazio-titulo">Nenhum estabelecimento encontrado</h2>
-            <p className="explorar__vazio-texto">
-              {temFiltrosAtivos
-                ? 'Tente ajustar seus filtros ou busque por outro termo.'
-                : 'Cadastre-se como barbeiro para aparecer aqui!'}
-            </p>
-            {temFiltrosAtivos && (
-              <BotaoSecundario aoClicar={limparFiltros}>Limpar filtros</BotaoSecundario>
-            )}
-          </div>
-        )}
-
-        {erro && (
-          <div className="explorar__erro" role="alert">
-            <span>{ICONES.alerta}</span>
-            <p>{erro}</p>
-            <BotaoSecundario aoClicar={recarregar}>Tentar novamente</BotaoSecundario>
-          </div>
-        )}
-      </div>
+      </main>
     </Container>
   );
 };

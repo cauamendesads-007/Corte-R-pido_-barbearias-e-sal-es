@@ -4,7 +4,8 @@
  */
 
 import React, { forwardRef } from 'react';
-import { ICONES } from '@/constantes';
+import { Icone } from '@/componentes';
+import type { ChipOpcao, StatusAgendamento, VarianteChip } from './Chip.tipos';
 import './Chip.css';
 
 interface ChipProps {
@@ -47,7 +48,7 @@ export const Chip = forwardRef<HTMLDivElement, ChipProps>(
     const isRemovivel = aoRemover && !desabilitado;
     const isClicavel = aoClicar && !desabilitado && !aoRemover;
 
-    const handleClick = (_e: React.MouseEvent<HTMLDivElement>) => {
+    const handleClick = () => {
       if (desabilitado || aoRemover) return;
       aoClicar?.();
     };
@@ -94,7 +95,7 @@ export const Chip = forwardRef<HTMLDivElement, ChipProps>(
             aria-label={`Remover ${children}`}
             tabIndex={-1}
           >
-            {ICONES.x}
+            <Icone nome="x" tamanho={14} />
           </button>
         )}
       </div>
@@ -106,7 +107,7 @@ Chip.displayName = 'Chip';
 
 /** Chip de status (para filtros de agendamento, etc.) */
 interface ChipStatusProps {
-  status: 'agendado' | 'confirmado' | 'concluido' | 'cancelado' | 'pago' | 'no_local' | 'aguardando_pix';
+  status: StatusAgendamento;
   className?: string;
   'data-testid'?: string;
 }
@@ -148,20 +149,13 @@ export const ChipStatus = ({
   );
 };
 
-/** Opção de chip para grupos */
-export interface ChipOpcao {
-  valor: string;
-  rotulo: string;
-  icone?: React.ReactNode;
-}
-
 /** Grupo de chips para seleção múltipla */
 interface ChipGrupoProps {
   opcoes: ChipOpcao[];
   valores?: string[];
   selecionados?: string[]; // alias para valores
-  aoAlterar: (valores: string[]) => void;
-  variante?: 'padrao' | 'selecao' | 'filtro' | 'status' | 'nicho';
+  aoAlterar: (_valores: string[]) => void;
+  variante?: VarianteChip;
   className?: string;
   'data-testid'?: string;
   multiplo?: boolean;
@@ -211,24 +205,3 @@ export const ChipGrupo = ({
   );
 };
 
-/** Nichos disponíveis para chips de nicho */
-export const CHIP_NICHOS: ChipOpcao[] = [
-  { valor: 'barbearia', rotulo: 'Barbearia', icone: '✂️' },
-  { valor: 'salao', rotulo: 'Salão', icone: '💇' },
-  { valor: 'esmalteria', rotulo: 'Esmalteria', icone: '💅' },
-  { valor: 'estetica', rotulo: 'Estética', icone: '✨' },
-  { valor: 'massagem', rotulo: 'Massagem', icone: '💆' },
-  { valor: 'depilacao', rotulo: 'Depilação', icone: '🪒' },
-  { valor: 'barbearia_salao', rotulo: 'Barbearia + Salão', icone: '💈' },
-];
-
-/** Status de agendamento para chips de status */
-export const CHIP_STATUS_AGENDAMENTO: ChipOpcao[] = [
-  { valor: 'agendado', rotulo: 'Agendado' },
-  { valor: 'confirmado', rotulo: 'Confirmado' },
-  { valor: 'concluido', rotulo: 'Concluído' },
-  { valor: 'cancelado', rotulo: 'Cancelado' },
-  { valor: 'pago', rotulo: 'Pago' },
-  { valor: 'no_local', rotulo: 'No local' },
-  { valor: 'aguardando_pix', rotulo: 'Aguardando PIX' },
-];

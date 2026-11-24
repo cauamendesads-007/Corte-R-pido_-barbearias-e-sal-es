@@ -18,9 +18,9 @@ export interface EstadoNotificacoes {
 }
 
 export interface AcoesNotificacoes {
-  marcarComoLida: (id: string) => Promise<void>;
+  marcarComoLida: (_id: string) => Promise<void>;
   marcarTodasComoLidas: () => Promise<void>;
-  excluir: (id: string) => Promise<void>;
+  excluir: (_id: string) => Promise<void>;
   excluirTodasLidas: () => Promise<void>;
   recarregar: () => Promise<void>;
   carregarMais: () => Promise<void>;

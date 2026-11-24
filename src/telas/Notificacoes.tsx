@@ -13,28 +13,29 @@ import {
   Skeleton,
   ToastProvider,
   useGlobalToast,
+  Icone,
 } from '@/componentes';
-import { ICONES } from '@/constantes';
 import { formatarTempoRelativo } from '@/utilitarios/formatar';
+import type { Notificacao } from '@/tipos';
 import './Notificacoes.css';
 
 type TipoFiltro = 'todas' | 'agendamentos' | 'mensagens' | 'pagamentos' | 'administracao';
 
-const TIPOS_FILTRO: { valor: TipoFiltro; rotulo: string; icone: string }[] = [
-  { valor: 'todas', rotulo: 'Todas', icone: ICONES.sino },
-  { valor: 'agendamentos', rotulo: 'Agendamentos', icone: ICONES.calendario },
-  { valor: 'mensagens', rotulo: 'Mensagens', icone: ICONES.mensagem },
-  { valor: 'pagamentos', rotulo: 'Pagamentos', icone: ICONES.pix },
-  { valor: 'administracao', rotulo: 'Administração', icone: ICONES.configuracoes },
+const TIPOS_FILTRO: { valor: TipoFiltro; rotulo: string; icone: React.ReactNode }[] = [
+  { valor: 'todas', rotulo: 'Todas', icone: <Icone nome="sino" tamanho={16} /> },
+  { valor: 'agendamentos', rotulo: 'Agendamentos', icone: <Icone nome="calendario" tamanho={16} /> },
+  { valor: 'mensagens', rotulo: 'Mensagens', icone: <Icone nome="mensagem" tamanho={16} /> },
+  { valor: 'pagamentos', rotulo: 'Pagamentos', icone: <Icone nome="pix" tamanho={16} /> },
+  { valor: 'administracao', rotulo: 'Administração', icone: <Icone nome="configuracoes" tamanho={16} /> },
 ];
 
-const ICONES_TIPO: Record<string, string> = {
-  agendamento: ICONES.calendario,
-  reagendamento: ICONES.calendario,
-  cancelamento: ICONES.xCirculo,
-  mensagem: ICONES.mensagem,
-  administracao: ICONES.configuracoes,
-  pagamento: ICONES.pix,
+const ICONES_TIPO: Record<string, React.ReactNode> = {
+  agendamento: <Icone nome="calendario" tamanho={16} />,
+  reagendamento: <Icone nome="calendario" tamanho={16} />,
+  cancelamento: <Icone nome="xCirculo" tamanho={16} />,
+  mensagem: <Icone nome="mensagem" tamanho={16} />,
+  administracao: <Icone nome="configuracoes" tamanho={16} />,
+  pagamento: <Icone nome="pix" tamanho={16} />,
 };
 
 const Notificacoes = () => {
@@ -83,7 +84,7 @@ const Notificacoes = () => {
   const handleMarcarComoLida = useCallback(async (notificacaoId: string) => {
     try {
       await marcarComoLida(notificacaoId);
-    } catch (e) {
+    } catch {
       toastErro('Erro ao marcar como lida');
     }
   }, [marcarComoLida, toastErro]);
@@ -92,7 +93,7 @@ const Notificacoes = () => {
     try {
       await marcarTodasComoLidas();
       sucesso('Todas as notificações marcadas como lidas');
-    } catch (e) {
+    } catch {
       toastErro('Erro ao marcar todas');
     }
   }, [marcarTodasComoLidas, sucesso, toastErro]);
@@ -101,12 +102,12 @@ const Notificacoes = () => {
     e.stopPropagation();
     try {
       await excluir(notificacaoId);
-    } catch (e) {
+    } catch {
       toastErro('Erro ao excluir');
     }
   }, [excluir, toastErro]);
 
-  const handleAbrirLink = useCallback((notificacao: any) => {
+  const handleAbrirLink = useCallback((notificacao: Notificacao) => {
     if (notificacao.estabelecimentoId) {
       // TODO: navegar para estabelecimento ou agendamento
     }
@@ -145,7 +146,7 @@ const Notificacoes = () => {
           <div className="notificacoes__header-actions">
             {naoLidas > 0 && (
               <BotaoPrimario tamanho="pequeno" aoClicar={handleMarcarTodas} data-testid="btn-marcar-todas">
-                {ICONES.check} Marcar todas como lidas
+                <Icone nome="check" tamanho={16} /> Marcar todas como lidas
               </BotaoPrimario>
             )}
           </div>
@@ -174,66 +175,68 @@ const Notificacoes = () => {
 
         {erro && (
           <div className="notificacoes__erro" role="alert">
-            {ICONES.alerta} {erro}
+            <Icone nome="alerta" tamanho={16} /> {erro}
             <Botao tamanho="pequeno" aoClicar={recarregar}>Tentar novamente</Botao>
           </div>
         )}
 
-        {notificacoesFiltradas.length === 0 ? (
-          <div className="notificacoes__vazio" role="status">
-            <span className="notificacoes__vazio-icone" aria-hidden="true">{ICONES.sino}</span>
-            <h2>Nenhuma notificação</h2>
-            <p>
-              {filtro !== 'todas'
-                ? `Nenhuma notificação do tipo "${TIPOS_FILTRO.find(t => t.valor === filtro)?.rotulo}"`
-                : 'Você está em dia!'}
-            </p>
-          </div>
-        ) : (
-          <>
-            <ul className="notificacoes__lista" role="list" aria-label="Lista de notificações">
-              {notificacoesFiltradas.map((notif) => (
-                <li
-                  key={notif.id}
-                  className={`notificacoes__item ${!notif.lida ? 'notificacoes__item--nao-lida' : ''}`}
-                  onClick={() => handleAbrirLink(notif)}
-                  data-testid={`notificacao-${notif.id}`}
-                >
-                  <div className="notificacoes__item-icone">
-                    <span aria-hidden="true">{ICONES_TIPO[notif.tipo] || ICONES.sino}</span>
-                    {!notif.lida && <span className="notificacoes__item-dot" aria-hidden="true" />}
-                  </div>
-                  <div className="notificacoes__item-conteudo">
-                    <header className="notificacoes__item-header">
-                      <strong className="notificacoes__item-titulo">{notif.titulo}</strong>
-                      <time className="notificacoes__item-tempo" dateTime={new Date(notif.dataCriacao).toISOString()}>
-                        {formatarTempoRelativo(notif.dataCriacao)}
-                      </time>
-                    </header>
-                    <p className="notificacoes__item-texto">{notif.texto}</p>
-                    {notif.estabelecimentoId && (
-                      <span className="notificacoes__item-estabelecimento">
-                        {ICONES.localizacao} Estabelecimento
-                      </span>
-                    )}
-                  </div>
-                  <button
-                    className="notificacoes__item-excluir"
-                    onClick={(e) => handleExcluir(notif.id, e)}
-                    aria-label="Excluir notificação"
+        <main className="notificacoes__main" role="main">
+          {notificacoesFiltradas.length === 0 ? (
+            <section className="notificacoes__vazio" role="status" aria-labelledby="vazio-titulo">
+              <span className="notificacoes__vazio-icone" aria-hidden="true"><Icone nome="sino" tamanho={48} /></span>
+              <h2 id="vazio-titulo">Nenhuma notificação</h2>
+              <p>
+                {filtro !== 'todas'
+                  ? `Nenhuma notificação do tipo "${TIPOS_FILTRO.find(t => t.valor === filtro)?.rotulo}"`
+                  : 'Você está em dia!'}
+              </p>
+            </section>
+          ) : (
+            <>
+              <ul className="notificacoes__lista" role="list" aria-label="Lista de notificações">
+                {notificacoesFiltradas.map((notif) => (
+                  <li
+                    key={notif.id}
+                    className={`notificacoes__item ${!notif.lida ? 'notificacoes__item--nao-lida' : ''}`}
+                    onClick={() => handleAbrirLink(notif)}
+                    data-testid={`notificacao-${notif.id}`}
                   >
-                    {ICONES.x}
-                  </button>
-                </li>
-              ))}
-            </ul>
-            {temMais && (
-              <div ref={sentinelRef} className="notificacoes__sentinela" aria-hidden="true">
-                {carregando && <span className="notificacoes__carregando-mais">Carregando mais...</span>}
-              </div>
-            )}
-          </>
-        )}
+                    <div className="notificacoes__item-icone">
+                      <span aria-hidden="true">{ICONES_TIPO[notif.tipo] || <Icone nome="sino" tamanho={16} />}</span>
+                      {!notif.lida && <span className="notificacoes__item-dot" aria-hidden="true" />}
+                    </div>
+                    <div className="notificacoes__item-conteudo">
+                      <header className="notificacoes__item-header">
+                        <strong className="notificacoes__item-titulo">{notif.titulo}</strong>
+                        <time className="notificacoes__item-tempo" dateTime={new Date(notif.dataCriacao).toISOString()}>
+                          {formatarTempoRelativo(notif.dataCriacao)}
+                        </time>
+                      </header>
+                      <p className="notificacoes__item-texto">{notif.texto}</p>
+                      {notif.estabelecimentoId && (
+                        <span className="notificacoes__item-estabelecimento">
+                          <Icone nome="localizacao" tamanho={14} /> Estabelecimento
+                        </span>
+                      )}
+                    </div>
+                    <button
+                      className="notificacoes__item-excluir"
+                      onClick={(e) => handleExcluir(notif.id, e)}
+                      aria-label="Excluir notificação"
+                    >
+                      <Icone nome="x" tamanho={16} />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              {temMais && (
+                <div ref={sentinelRef} className="notificacoes__sentinela" aria-hidden="true">
+                  {carregando && <span className="notificacoes__carregando-mais">Carregando mais...</span>}
+                </div>
+              )}
+            </>
+          )}
+        </main>
       </Container>
     </ToastProvider>
   );

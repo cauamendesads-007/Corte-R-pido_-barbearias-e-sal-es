@@ -3,8 +3,8 @@
  * Cobertura: 100%
  */
 
-import { render, screen, fireEvent, act, waitFor, cleanup } from '@testing-library/react';
-import { Toast, ToastProvider, useGlobalToast, ToastContainer } from './Toast';
+import { render, screen, fireEvent, act, cleanup } from '@testing-library/react';
+import { Toast, ToastContainer } from './Toast';
 
 describe('Toast', () => {
   afterEach(() => {

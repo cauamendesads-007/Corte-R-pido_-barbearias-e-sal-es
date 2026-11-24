@@ -327,7 +327,7 @@ export interface PropsCampoTexto extends PropsComponenteBase {
   tipo?: 'text' | 'email' | 'password' | 'tel' | 'number' | 'search';
   placeholder?: string;
   valor: string;
-  aoAlterar: (valor: string) => void;
+  aoAlterar: (_valor: string) => void;
   erro?: string;
   ajuda?: string;
   desabilitado?: boolean;

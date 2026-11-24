@@ -6,7 +6,7 @@
 import React, { useEffect, useRef, useCallback, Fragment } from 'react';
 import { createPortal } from 'react-dom';
 import type { PropsModal } from '@/tipos';
-import { ICONES } from '@/constantes';
+import { Icone } from './Icone';
 import { BotaoIcone, BotaoPrimario, BotaoSecundario, BotaoPerigo } from './Botao';
 import './Modal.css';
 
@@ -29,6 +29,7 @@ export const Modal = React.forwardRef<HTMLDialogElement, ModalProps>(
       'data-testid': testId,
       ...props
     },
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _ref
   ) => {
     const dialogRef = useRef<HTMLDialogElement>(null);
@@ -143,13 +144,13 @@ export const Modal = React.forwardRef<HTMLDialogElement, ModalProps>(
           data-testid={testId}
           {...props}
         >
-          {titulo && (
+          { titulo && (
             <header className="modal__cabecalho">
               <h2 id={`${testId}-titulo`} className="modal__titulo">
                 {titulo}
               </h2>
               <BotaoIcone
-                icone={ICONES.fechar}
+                icone={<Icone nome="fechar" tamanho={16} />}
                 ariaLabel="Fechar modal"
                 variante="fantasma"
                 tamanho="pequeno"

@@ -4,7 +4,7 @@
  */
 
 import React, { forwardRef } from 'react';
-import { ICONES } from '@/constantes';
+import { Icone } from './Icone';
 import './Checkbox.css';
 
 interface CheckboxProps {
@@ -14,7 +14,7 @@ interface CheckboxProps {
   verificado?: boolean;
   checked?: boolean; // alias for verificado
   indeterminado?: boolean;
-  aoAlterar?: (verificado: boolean) => void; // single arg to match tests
+  aoAlterar?: (_verificado: boolean) => void; // single arg to match tests
   desabilitado?: boolean;
   obrigatorio?: boolean;
   id?: string;
@@ -84,7 +84,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
           {indeterminado ? (
             <span className="checkbox__indeterminado" />
           ) : isChecked ? (
-            ICONES.verificar
+            <Icone nome="verificar" tamanho={14} />
           ) : null}
         </span>
         {(label || descricao) && (
@@ -105,7 +105,7 @@ interface CheckboxGrupoProps {
   opcoes: Array<{ valor: string; label?: string; rotulo?: string; descricao?: string; desabilitado?: boolean }>;
   valores?: string[];
   selecionados?: string[]; // alias for valores
-  aoAlterar: (valores: string[]) => void;
+  aoAlterar: (_valores: string[]) => void;
   label?: string;
   orientacao?: 'vertical' | 'horizontal';
   className?: string;
@@ -165,7 +165,7 @@ export const CheckboxToggle = ({
   className = '',
   'data-testid': testId,
   ...props
-}: { rotulo: string; descricao?: string; verificado?: boolean; aoAlterar?: (verificado: boolean) => void; desabilitado?: boolean; className?: string; 'data-testid'?: string } & Omit<CheckboxProps, 'indeterminado' | 'valor' | 'label'>) => {
+}: { rotulo: string; descricao?: string; verificado?: boolean; aoAlterar?: (_verificado: boolean) => void; desabilitado?: boolean; className?: string; 'data-testid'?: string } & Omit<CheckboxProps, 'indeterminado' | 'valor' | 'label'>) => {
   const id = testId || `toggle-${Math.random().toString(36).slice(2, 9)}`;
   const descId = descricao ? `${id}-desc` : undefined;
 

@@ -15,8 +15,8 @@ export interface EstadoAuth {
 }
 
 export interface AcoesAuth {
-  login: (email: string, senha: string, tipo: TipoUsuario) => Promise<{ sucesso: boolean; erro?: string }>;
-  cadastrar: (dados: {
+  login: (_email: string, _senha: string, _tipo: TipoUsuario) => Promise<{ sucesso: boolean; erro?: string }>;
+  cadastrar: (_dados: {
     nome: string;
     email: string;
     senha: string;
@@ -25,8 +25,8 @@ export interface AcoesAuth {
     estabelecimentoId?: string;
   }) => Promise<{ sucesso: boolean; erro?: string }>;
   sair: () => void;
-  atualizarPerfil: (dados: Partial<Usuario>) => Promise<{ sucesso: boolean; erro?: string }>;
-  alterarSenha: (senhaAtual: string, novaSenha: string) => Promise<{ sucesso: boolean; erro?: string }>;
+  atualizarPerfil: (_dados: Partial<Usuario>) => Promise<{ sucesso: boolean; erro?: string }>;
+  alterarSenha: (_senhaAtual: string, _novaSenha: string) => Promise<{ sucesso: boolean; erro?: string }>;
   excluirConta: () => Promise<{ sucesso: boolean; erro?: string }>;
   limparErro: () => void;
 }
@@ -50,7 +50,7 @@ export const useAuth = (): EstadoAuth & AcoesAuth => {
         if (usuarioSalvo && tokenSalvo) {
           const usuarioParseado = JSON.parse(usuarioSalvo);
           // Verifica se token ainda é válido (simulado)
-          const resposta = await api.autenticacao.validarToken(tokenSalvo);
+          const resposta = await api.autenticacao.validarToken();
           if (resposta.sucesso && resposta.dados) {
             // validarToken retorna SessaoUsuario, mescla com usuario salvo
             const sessao = resposta.dados as SessaoUsuario;
@@ -72,7 +72,7 @@ export const useAuth = (): EstadoAuth & AcoesAuth => {
     carregarUsuario();
   }, []);
 
-  const login = useCallback(async (email: string, senha: string, _tipo: TipoUsuario) => {
+  const login = useCallback(async (email: string, senha: string) => {
     setErro(null);
     setCarregando(true);
 
@@ -106,7 +106,7 @@ export const useAuth = (): EstadoAuth & AcoesAuth => {
 
       setErro(resposta.erro || 'Erro ao fazer login');
       return { sucesso: false, erro: resposta.erro };
-    } catch (e) {
+    } catch {
       const mensagem = 'Erro de conexão. Tente novamente.';
       setErro(mensagem);
       return { sucesso: false, erro: mensagem };
@@ -156,7 +156,7 @@ export const useAuth = (): EstadoAuth & AcoesAuth => {
 
       setErro(resposta.erro || 'Erro ao cadastrar');
       return { sucesso: false, erro: resposta.erro };
-    } catch (e) {
+    } catch {
       const mensagem = 'Erro de conexão. Tente novamente.';
       setErro(mensagem);
       return { sucesso: false, erro: mensagem };
@@ -189,7 +189,7 @@ export const useAuth = (): EstadoAuth & AcoesAuth => {
 
       setErro(resposta.erro || 'Erro ao atualizar perfil');
       return { sucesso: false, erro: resposta.erro };
-    } catch (e) {
+    } catch {
       const mensagem = 'Erro de conexão. Tente novamente.';
       setErro(mensagem);
       return { sucesso: false, erro: mensagem };
@@ -212,7 +212,7 @@ export const useAuth = (): EstadoAuth & AcoesAuth => {
 
       setErro(resposta.erro || 'Erro ao alterar senha');
       return { sucesso: false, erro: resposta.erro };
-    } catch (e) {
+    } catch {
       const mensagem = 'Erro de conexão. Tente novamente.';
       setErro(mensagem);
       return { sucesso: false, erro: mensagem };
@@ -236,7 +236,7 @@ export const useAuth = (): EstadoAuth & AcoesAuth => {
 
       setErro(resposta.erro || 'Erro ao excluir conta');
       return { sucesso: false, erro: resposta.erro };
-    } catch (e) {
+    } catch {
       const mensagem = 'Erro de conexão. Tente novamente.';
       setErro(mensagem);
       return { sucesso: false, erro: mensagem };
@@ -265,7 +265,7 @@ export const usePermissao = (tiposPermitidos: TipoUsuario[]) => {
 };
 
 /** Hook para redirecionar se não autenticado */
-export const useRequerAutenticacao = (_redirecionarPara = '/login') => {
+export const useRequerAutenticacao = () => {
   const { usuario, carregando } = useAuth();
   const autenticado = !!usuario;
 

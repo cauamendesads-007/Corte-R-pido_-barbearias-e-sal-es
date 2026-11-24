@@ -84,7 +84,9 @@ describe('CampoTexto', () => {
   it('aplica ícone de sufixo com botão', () => {
     const onClick = vi.fn();
     render(<CampoTexto label="Nome" valor="" aoAlterar={vi.fn()} iconeSufixo={<span>🔍</span>} aoClicarIconeSufixo={onClick} />);
-    fireEvent.click(screen.getByLabelText('Nome').parentElement?.querySelector('button')!);
+    const wrapper = screen.getByLabelText('Nome').parentElement;
+    const botao = wrapper?.querySelector('button');
+    if (botao) fireEvent.click(botao);
     expect(onClick).toHaveBeenCalledTimes(1);
   });
 
@@ -122,10 +124,13 @@ describe('CampoSenha', () => {
     const input = screen.getByLabelText('Senha');
     expect(input).toHaveAttribute('type', 'password');
 
-    fireEvent.click(input.parentElement?.querySelector('button')!);
+    const wrapper = input.parentElement;
+    const botao1 = wrapper?.querySelector('button');
+    if (botao1) fireEvent.click(botao1);
     expect(input).toHaveAttribute('type', 'text');
 
-    fireEvent.click(input.parentElement?.querySelector('button')!);
+    const botao2 = wrapper?.querySelector('button');
+    if (botao2) fireEvent.click(botao2);
     expect(input).toHaveAttribute('type', 'password');
   });
 

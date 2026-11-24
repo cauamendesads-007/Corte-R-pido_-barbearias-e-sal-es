@@ -23,6 +23,7 @@ import type {
   ResultadoServico,
   NichoEstabelecimento,
   StatusEstabelecimento,
+  StatusAgendamento,
   Comentario,
   TipoLayout,
 } from '@/tipos';
@@ -324,7 +325,7 @@ export async function excluirConta(): Promise<ResultadoServico<void>> {
 // ============================================================================
 
 /** Validar token de sessão */
-export async function validarToken(_token: string): Promise<ResultadoServico<SessaoUsuario | null>> {
+export async function validarToken(): Promise<ResultadoServico<SessaoUsuario | null>> {
   await simularLatencia();
   simularErroAleatorio();
 
@@ -357,7 +358,7 @@ export async function recuperarSenha(email: string): Promise<ResultadoServico<vo
 }
 
 /** Confirmar e-mail (simulado) */
-export async function confirmarEmail(_token: string): Promise<ResultadoServico<SessaoUsuario | null>> {
+export async function confirmarEmail(): Promise<ResultadoServico<SessaoUsuario | null>> {
   await simularLatencia();
   simularErroAleatorio();
 
@@ -382,7 +383,7 @@ export async function confirmarEmail(_token: string): Promise<ResultadoServico<S
 }
 
 /** Login (alias para entrar) */
-export async function login(email: string, senha: string, _tipo?: string): Promise<ResultadoServico<SessaoUsuario>> {
+export async function login(email: string, senha: string): Promise<ResultadoServico<SessaoUsuario>> {
   return entrar(email, senha);
 }
 
@@ -1264,7 +1265,7 @@ export async function listarBarbeiro(estabelecimentoId: string): Promise<Resulta
 }
 
 /** Atualizar status do agendamento (wrapper) */
-export async function atualizarStatus(agendamentoId: string, status: string): Promise<ResultadoServico<void>> {
+export async function atualizarStatus(agendamentoId: string, status: StatusAgendamento): Promise<ResultadoServico<void>> {
   await simularLatencia();
   simularErroAleatorio();
 
@@ -1272,7 +1273,7 @@ export async function atualizarStatus(agendamentoId: string, status: string): Pr
   Object.keys(estadoGlobal.agendamentos).forEach((estId) => {
     const idx = estadoGlobal.agendamentos[estId].findIndex((a) => a.id === agendamentoId);
     if (idx !== -1) {
-      estadoGlobal.agendamentos[estId][idx].status = status as any;
+      estadoGlobal.agendamentos[estId][idx].status = status;
       encontrado = true;
     }
   });
@@ -2143,8 +2144,7 @@ export async function obterAssinatura(estabelecimentoId: string): Promise<Result
 
 /** Atualizar contrato/assinatura (admin) */
 export async function atualizarContrato(
-  estabelecimentoId: string,
-  _dados: { planoId: string; inicioContrato: string; vencimento: string; desconto?: { tipo: 'percentual' | 'valor_fixo'; valor: number; motivo?: string } | null }
+  estabelecimentoId: string
 ): Promise<ResultadoServico<void>> {
   await simularLatencia();
   simularErroAleatorio();
@@ -2385,7 +2385,7 @@ export async function listarAssinaturasAdmin(): Promise<ResultadoServico<Record<
 // ============================================================================
 
 /** Listar conversas (simulado) */
-export async function listarConversas(_usuarioEmail: string): Promise<ResultadoServico<Array<{ id: string; participante: string; ultimaMensagem: string; data: number; naoLidas: number }>>> {
+export async function listarConversas(): Promise<ResultadoServico<Array<{ id: string; participante: string; ultimaMensagem: string; data: number; naoLidas: number }>>> {
   await simularLatencia();
   simularErroAleatorio();
 
@@ -2395,7 +2395,7 @@ export async function listarConversas(_usuarioEmail: string): Promise<ResultadoS
 }
 
 /** Obter mensagens de uma conversa (simulado) */
-export async function obterMensagens(_conversaId: string): Promise<ResultadoServico<Array<{ id: string; remetente: string; texto: string; data: number; lida: boolean }>>> {
+export async function obterMensagens(): Promise<ResultadoServico<Array<{ id: string; remetente: string; texto: string; data: number; lida: boolean }>>> {
   await simularLatencia();
   simularErroAleatorio();
 
@@ -2404,7 +2404,7 @@ export async function obterMensagens(_conversaId: string): Promise<ResultadoServ
 }
 
 /** Enviar mensagem (simulado) */
-export async function enviarMensagem(_conversaId: string, _texto: string): Promise<ResultadoServico<void>> {
+export async function enviarMensagem(): Promise<ResultadoServico<void>> {
   await simularLatencia();
   simularErroAleatorio();
 

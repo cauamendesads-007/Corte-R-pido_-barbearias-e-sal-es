@@ -22,8 +22,8 @@ import {
   ToastProvider,
   useGlobalToast,
   Skeleton,
+  Icone,
 } from '@/componentes';
-import { ICONES } from '@/constantes';
 import { formatarDataCurta } from '@/utilitarios/formatar';
 import './Agendamento.css';
 
@@ -75,7 +75,7 @@ const Agendamento = () => {
       await cancelar(agendamento.id);
       sucesso('Agendamento cancelado');
       navigate(isBarbeiro ? '/painel/agenda' : '/perfil/agendamentos');
-    } catch (e) {
+    } catch {
       toastErro('Erro ao cancelar');
     }
   }, [agendamento, cancelar, sucesso, toastErro, navigate, isBarbeiro]);
@@ -86,7 +86,7 @@ const Agendamento = () => {
       await reagendar(agendamento.id, novaData, novoHorario);
       sucesso('Agendamento reagendado');
       setMostrarModalReagendar(false);
-    } catch (e) {
+    } catch {
       toastErro('Erro ao reagendar');
     }
   }, [agendamento, reagendar, sucesso, toastErro, novaData, novoHorario]);
@@ -97,7 +97,7 @@ const Agendamento = () => {
       await avaliar(agendamento.id, avaliacaoEstrelas, avaliacaoComentario);
       sucesso('Obrigado pela avaliação!');
       setMostrarModalAvaliar(false);
-    } catch (e) {
+    } catch {
       toastErro('Erro ao enviar avaliação');
     }
   }, [agendamento, avaliar, sucesso, toastErro, avaliacaoEstrelas, avaliacaoComentario]);
@@ -120,7 +120,7 @@ const Agendamento = () => {
       <ToastProvider>
         <Container variante="com-cabecalho" data-testid="agendamento-container">
           <div className="agendamento__erro" role="alert">
-            <span className="agendamento__erro-icone" aria-hidden="true">{ICONES.alerta}</span>
+            <span className="agendamento__erro-icone" aria-hidden="true"><Icone nome="alerta" tamanho={24} /></span>
             <h2>Agendamento não encontrado</h2>
             <p>Este agendamento não existe ou foi removido.</p>
             <BotaoPrimario aoClicar={() => navigate(isBarbeiro ? '/painel/agenda' : '/perfil/agendamentos')}>
@@ -133,10 +133,10 @@ const Agendamento = () => {
   }
 
   const statusConfig = {
-    pendente: { label: 'Pendente', variante: 'aviso' as const, icone: ICONES.relogio },
-    confirmado: { label: 'Confirmado', variante: 'sucesso' as const, icone: ICONES.verificarCirculo },
-    concluido: { label: 'Concluído', variante: 'padrao' as const, icone: ICONES.verificarCirculo },
-    cancelado: { label: 'Cancelado', variante: 'perigo' as const, icone: ICONES.xCirculo },
+    pendente: { label: 'Pendente', variante: 'aviso' as const, icone: <Icone nome="relogio" tamanho={16} /> },
+    confirmado: { label: 'Confirmado', variante: 'sucesso' as const, icone: <Icone nome="verificarCirculo" tamanho={16} /> },
+    concluido: { label: 'Concluído', variante: 'padrao' as const, icone: <Icone nome="verificarCirculo" tamanho={16} /> },
+    cancelado: { label: 'Cancelado', variante: 'perigo' as const, icone: <Icone nome="xCirculo" tamanho={16} /> },
   } as const;
 
   const status = statusConfig[agendamento.status as keyof typeof statusConfig] || statusConfig.pendente;
@@ -147,7 +147,7 @@ const Agendamento = () => {
         <header className="agendamento__header">
           <div className="agendamento__header-conteudo">
             <Link to={isBarbeiro ? '/painel/agenda' : '/perfil/agendamentos'} className="agendamento__voltar" aria-label="Voltar">
-              {ICONES.voltar}
+              <Icone nome="voltar" tamanho={20} />
             </Link>
             <div>
               <h1 className="agendamento__titulo">Detalhes do agendamento</h1>
@@ -161,7 +161,7 @@ const Agendamento = () => {
           </div>
         </header>
 
-        <main className="agendamento__conteudo">
+        <main className="agendamento__conteudo" role="main">
           <CartaoAgendamento
             agendamento={{
               ...agendamento,
@@ -179,7 +179,7 @@ const Agendamento = () => {
                 {isCliente && (
                   <BotaoSecundario
                     aoClicar={() => setMostrarModalReagendar(true)}
-                    iconeEsquerda={ICONES.calendario}
+                    iconeEsquerda={<Icone nome="calendario" tamanho={16} />}
                     data-testid="btn-reagendar"
                   >
                     Reagendar
@@ -188,7 +188,7 @@ const Agendamento = () => {
                 {isBarbeiro && (
                   <BotaoPrimario
                     aoClicar={() => { /* TODO: confirmar */ }}
-                    iconeEsquerda={ICONES.verificarCirculo}
+                    iconeEsquerda={<Icone nome="verificarCirculo" tamanho={16} />}
                     data-testid="btn-confirmar"
                   >
                     Confirmar
@@ -196,7 +196,7 @@ const Agendamento = () => {
                 )}
                 <BotaoPerigo
                   aoClicar={() => setMostrarModalCancelar(true)}
-                  iconeEsquerda={ICONES.x}
+                  iconeEsquerda={<Icone nome="x" tamanho={16} />}
                   data-testid="btn-cancelar"
                 >
                   Cancelar
@@ -207,7 +207,7 @@ const Agendamento = () => {
             {agendamento.status === 'confirmado' && isBarbeiro && (
               <BotaoPrimario
                 aoClicar={() => { /* TODO: concluir */ }}
-                iconeEsquerda={ICONES.verificarCirculo}
+                iconeEsquerda={<Icone nome="verificarCirculo" tamanho={16} />}
                 data-testid="btn-concluir"
               >
                 Marcar como concluído
@@ -217,7 +217,7 @@ const Agendamento = () => {
             {agendamento.status === 'concluido' && isCliente && !agendamento.avaliacao && (
               <BotaoSecundario
                 aoClicar={() => setMostrarModalAvaliar(true)}
-                iconeEsquerda={ICONES.estrela}
+                iconeEsquerda={<Icone nome="estrela" tamanho={16} />}
                 data-testid="btn-avaliar"
               >
                 Avaliar
@@ -226,15 +226,15 @@ const Agendamento = () => {
           </section>
 
           {agendamento.status === 'concluido' && agendamento.avaliacao && (
-            <section className="agendamento__avaliacao-existente" aria-label="Sua avaliação">
-              <h3>Sua avaliação</h3>
-              <div className="agendamento__avaliacao-card">
-                <div className="agendamento__avaliacao-estrelas">
-                  {'★'.repeat(agendamento.avaliacao.estrelas)}{'☆'.repeat(5 - agendamento.avaliacao.estrelas)}
+            <section className="agendamento__avaliacao-existente" aria-labelledby="avaliacao-titulo">
+              <h3 id="avaliacao-titulo">Sua avaliação</h3>
+              <article className="agendamento__avaliacao-card">
+                <div className="agendamento__avaliacao-estrelas" aria-label={`${agendamento.avaliacao.estrelas} de 5 estrelas`}>
+                  <span aria-hidden="true">{'★'.repeat(agendamento.avaliacao.estrelas)}{'☆'.repeat(5 - agendamento.avaliacao.estrelas)}</span>
                 </div>
                 <p>{agendamento.avaliacao.comentario || 'Sem comentário'}</p>
-                <small>Enviado em {formatarDataCurta(agendamento.avaliacao.data)}</small>
-              </div>
+                <time dateTime={agendamento.avaliacao.data}>Enviado em {formatarDataCurta(agendamento.avaliacao.data)}</time>
+              </article>
             </section>
           )}
         </main>
@@ -258,7 +258,7 @@ const Agendamento = () => {
           titulo="Reagendar agendamento"
           data-testid="modal-reagendar"
         >
-          <div className="modal-reagendar__conteudo">
+          <form className="modal-reagendar__conteudo" onSubmit={(e) => { e.preventDefault(); handleReagendar(); }}>
             <p>Selecione a nova data e horário:</p>
             <div className="modal-reagendar__campos">
               <label>
@@ -287,11 +287,11 @@ const Agendamento = () => {
             </div>
             <div className="modal-reagendar__botoes">
               <BotaoSecundario aoClicar={() => setMostrarModalReagendar(false)}>Cancelar</BotaoSecundario>
-              <BotaoPrimario aoClicar={handleReagendar} desabilitado={!novaData || !novoHorario}>
+              <BotaoPrimario tipo="submit" desabilitado={!novaData || !novoHorario}>
                 Confirmar
               </BotaoPrimario>
             </div>
-          </div>
+          </form>
         </Modal>
 
         {/* Modal Avaliar */}
@@ -305,22 +305,25 @@ const Agendamento = () => {
           titulo="Avaliar estabelecimento"
           data-testid="modal-avaliar"
         >
-          <div className="modal-avaliar__conteudo">
-            <div className="modal-avaliar__estrelas" role="radiogroup" aria-label="Selecione a nota">
-              {[1, 2, 3, 4, 5].map((estrela) => (
-                <button
-                  key={estrela}
-                  type="button"
-                  role="radio"
-                  aria-checked={avaliacaoEstrelas === estrela}
-                  onClick={() => setAvaliacaoEstrelas(estrela)}
-                  className={avaliacaoEstrelas >= estrela ? 'ativa' : ''}
-                  aria-label={`${estrela} estrela${estrela > 1 ? 's' : ''}`}
-                >
-                  ★
-                </button>
-              ))}
-            </div>
+          <form className="modal-avaliar__conteudo" onSubmit={(e) => { e.preventDefault(); handleAvaliar(); }}>
+            <fieldset className="modal-avaliar__estrelas">
+              <legend>Selecione a nota</legend>
+              <div role="radiogroup" aria-label="Selecione a nota">
+                {[1, 2, 3, 4, 5].map((estrela) => (
+                  <button
+                    key={estrela}
+                    type="button"
+                    role="radio"
+                    aria-checked={avaliacaoEstrelas === estrela}
+                    onClick={() => setAvaliacaoEstrelas(estrela)}
+                    className={avaliacaoEstrelas >= estrela ? 'ativa' : ''}
+                    aria-label={`${estrela} estrela${estrela > 1 ? 's' : ''}`}
+                  >
+                    ★
+                  </button>
+                ))}
+              </div>
+            </fieldset>
             <label className="modal-avaliar__comentario">
               <span>Comentário (opcional)</span>
               <textarea
@@ -337,11 +340,11 @@ const Agendamento = () => {
                 setAvaliacaoEstrelas(0);
                 setAvaliacaoComentario('');
               }}>Cancelar</Botao>
-              <BotaoPrimario aoClicar={handleAvaliar} desabilitado={avaliacaoEstrelas === 0}>
+              <BotaoPrimario tipo="submit" desabilitado={avaliacaoEstrelas === 0}>
                 Enviar
               </BotaoPrimario>
             </div>
-          </div>
+          </form>
         </Modal>
       </Container>
     </ToastProvider>

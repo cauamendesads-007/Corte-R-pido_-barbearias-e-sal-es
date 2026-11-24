@@ -22,8 +22,8 @@ import {
   Avatar,
   ToastProvider,
   useGlobalToast,
+  Icone,
 } from '@/componentes';
-import { ICONES } from '@/constantes';
 import './Configuracoes.css';
 
 const Configuracoes = () => {
@@ -70,7 +70,7 @@ const Configuracoes = () => {
     try {
       await atualizarPerfil({ nome, bio, whatsapp, cidade, avatar: avatarPreview || undefined });
       sucesso('Perfil atualizado com sucesso');
-    } catch (e) {
+    } catch {
       setErro('Erro ao atualizar perfil');
     } finally {
       setCarregando(false);
@@ -94,7 +94,7 @@ const Configuracoes = () => {
       setSenhaAtual('');
       setNovaSenha('');
       setConfirmarNovaSenha('');
-    } catch (e) {
+    } catch {
       setErro('Erro ao alterar senha. Verifique a senha atual.');
     } finally {
       setCarregando(false);
@@ -106,7 +106,7 @@ const Configuracoes = () => {
     try {
       await excluirConta();
       sucesso('Conta excluída');
-    } catch (e) {
+    } catch {
       toastErro('Erro ao excluir conta');
     } finally {
       setCarregando(false);
@@ -135,48 +135,58 @@ const Configuracoes = () => {
           <button
             role="tab"
             aria-selected={abaAtiva === 'perfil'}
+            aria-controls="painel-perfil"
+            id="aba-perfil"
             onClick={() => setAbaAtiva('perfil')}
             className={abaAtiva === 'perfil' ? 'configuracoes__aba ativa' : 'configuracoes__aba'}
           >
-            {ICONES.usuario} Perfil
+            <span aria-hidden="true"><Icone nome="usuario" tamanho={18} /></span> Perfil
           </button>
           <button
             role="tab"
             aria-selected={abaAtiva === 'notificacoes'}
+            aria-controls="painel-notificacoes"
+            id="aba-notificacoes"
             onClick={() => setAbaAtiva('notificacoes')}
             className={abaAtiva === 'notificacoes' ? 'configuracoes__aba ativa' : 'configuracoes__aba'}
           >
-            {ICONES.sino} Notificações
+            <span aria-hidden="true"><Icone nome="sino" tamanho={18} /></span> Notificações
           </button>
           <button
             role="tab"
             aria-selected={abaAtiva === 'privacidade'}
+            aria-controls="painel-privacidade"
+            id="aba-privacidade"
             onClick={() => setAbaAtiva('privacidade')}
             className={abaAtiva === 'privacidade' ? 'configuracoes__aba ativa' : 'configuracoes__aba'}
           >
-            {ICONES.cadeado} Privacidade
+            <span aria-hidden="true"><Icone nome="cadeado" tamanho={18} /></span> Privacidade
           </button>
           <button
             role="tab"
             aria-selected={abaAtiva === 'aparencia'}
+            aria-controls="painel-aparencia"
+            id="aba-aparencia"
             onClick={() => setAbaAtiva('aparencia')}
             className={abaAtiva === 'aparencia' ? 'configuracoes__aba ativa' : 'configuracoes__aba'}
           >
-            {ICONES.tema} Aparência
+            <span aria-hidden="true"><Icone nome="tema" tamanho={18} /></span> Aparência
           </button>
           <button
             role="tab"
             aria-selected={abaAtiva === 'conta'}
+            aria-controls="painel-conta"
+            id="aba-conta"
             onClick={() => setAbaAtiva('conta')}
             className={abaAtiva === 'conta' ? 'configuracoes__aba ativa' : 'configuracoes__aba'}
           >
-            {ICONES.configuracoes} Conta
+            <span aria-hidden="true"><Icone nome="configuracoes" tamanho={18} /></span> Conta
           </button>
         </nav>
 
-        <main className="configuracoes__conteudo" role="tabpanel" aria-label={`Configurações de ${abaAtiva}`}>
+        <main className="configuracoes__conteudo" role="main">
           {/* Perfil */}
-          {abaAtiva === 'perfil' && (
+          <section className="configuracoes__painel" role="tabpanel" id="painel-perfil" aria-labelledby="aba-perfil" hidden={abaAtiva !== 'perfil'}>
             <form onSubmit={(e) => { e.preventDefault(); handleSalvarPerfil(); }} className="configuracoes__form">
               <Cartao variante="padrao">
                 <CartaoCabecalho>
@@ -192,7 +202,7 @@ const Configuracoes = () => {
                     />
                     <label className="configuracoes__avatar-label">
                       <input type="file" accept="image/*" onChange={handleAvatarChange} hidden />
-                      {ICONES.camera} Alterar foto
+                      <Icone nome="camera" tamanho={16} /> Alterar foto
                     </label>
                   </div>
 
@@ -239,16 +249,17 @@ const Configuracoes = () => {
                 </CartaoCorpo>
               </Cartao>
             </form>
-          )}
+          </section>
 
           {/* Notificações */}
-          {abaAtiva === 'notificacoes' && (
+          <section className="configuracoes__painel" role="tabpanel" id="painel-notificacoes" aria-labelledby="aba-notificacoes" hidden={abaAtiva !== 'notificacoes'}>
             <Cartao variante="padrao">
               <CartaoCabecalho>
                 <h2>Preferências de notificação</h2>
               </CartaoCabecalho>
               <CartaoCorpo>
-                <div className="configuracoes__toggle-grupo">
+                <fieldset className="configuracoes__toggle-grupo">
+                  <legend>Preferências de notificação</legend>
                   <Toggle
                     rotulo="Lembretes de agendamento"
                     descricao="Receber avisos antes dos seus horários marcados"
@@ -277,19 +288,20 @@ const Configuracoes = () => {
                     aoAlterar={setNotifWhatsApp}
                     data-testid="toggle-whatsapp"
                   />
-                </div>
+                </fieldset>
               </CartaoCorpo>
             </Cartao>
-          )}
+          </section>
 
           {/* Privacidade */}
-          {abaAtiva === 'privacidade' && (
+          <section className="configuracoes__painel" role="tabpanel" id="painel-privacidade" aria-labelledby="aba-privacidade" hidden={abaAtiva !== 'privacidade'}>
             <Cartao variante="padrao">
               <CartaoCabecalho>
                 <h2>Privacidade e visibilidade</h2>
               </CartaoCabecalho>
               <CartaoCorpo>
-                <div className="configuracoes__toggle-grupo">
+                <fieldset className="configuracoes__toggle-grupo">
+                  <legend>Visibilidade do perfil</legend>
                   <Toggle
                     rotulo="Perfil público"
                     descricao="Permitir que outros usuários vejam seu perfil e avaliações"
@@ -311,23 +323,23 @@ const Configuracoes = () => {
                     aoAlterar={setHistoricoVisivel}
                     data-testid="toggle-historico"
                   />
-                </div>
+                </fieldset>
 
-                <div className="configuracoes__secao">
+                <section className="configuracoes__secao">
                   <h3>Dados da conta</h3>
                   <p className="configuracoes__descricao">
                     Gerencie seus dados pessoais e solicite a exclusão conforme a LGPD.
                   </p>
-                  <BotaoSecundario iconeEsquerda={ICONES.setaBaixo} aoClicar={() => { /* TODO: exportar dados */ }}>
+                  <BotaoSecundario iconeEsquerda={<Icone nome="setaBaixo" tamanho={16} />} aoClicar={() => { /* TODO: exportar dados */ }}>
                     Baixar meus dados
                   </BotaoSecundario>
-                </div>
+                </section>
               </CartaoCorpo>
             </Cartao>
-          )}
+          </section>
 
           {/* Aparência */}
-          {abaAtiva === 'aparencia' && (
+          <section className="configuracoes__painel" role="tabpanel" id="painel-aparencia" aria-labelledby="aba-aparencia" hidden={abaAtiva !== 'aparencia'}>
             <Cartao variante="padrao">
               <CartaoCabecalho>
                 <h2>Tema e exibição</h2>
@@ -337,9 +349,9 @@ const Configuracoes = () => {
                   <legend>Tema</legend>
                   <ChipGrupo
                     opcoes={[
-                      { valor: 'claro', rotulo: 'Claro', icone: ICONES.sol },
-                      { valor: 'escuro', rotulo: 'Escuro', icone: ICONES.lua },
-                      { valor: 'sistema', rotulo: 'Sistema', icone: ICONES.monitor },
+                      { valor: 'claro', rotulo: 'Claro', icone: <Icone nome="sol" tamanho={16} /> },
+                      { valor: 'escuro', rotulo: 'Escuro', icone: <Icone nome="lua" tamanho={16} /> },
+                      { valor: 'sistema', rotulo: 'Sistema', icone: <Icone nome="monitor" tamanho={16} /> },
                     ]}
                     selecionados={[tema]}
                     aoAlterar={(v: string[]) => setTema(v[0] as 'claro' | 'escuro' | 'sistema')}
@@ -349,7 +361,8 @@ const Configuracoes = () => {
                   />
                 </fieldset>
 
-                <div className="configuracoes__toggle-grupo">
+                <fieldset className="configuracoes__toggle-grupo">
+                  <legend>Exibição</legend>
                   <Toggle
                     rotulo="Fonte maior"
                     descricao="Aumentar tamanho do texto em toda a aplicação"
@@ -364,10 +377,10 @@ const Configuracoes = () => {
                     aoAlterar={setReduzirAnimacoes}
                     data-testid="toggle-reduzir-animacoes"
                   />
-                </div>
+                </fieldset>
               </CartaoCorpo>
             </Cartao>
-          )}
+          </section>
 
           {/* Conta */}
           {abaAtiva === 'conta' && (
@@ -428,7 +441,7 @@ const Configuracoes = () => {
                   </p>
                   <BotaoPerigo
                     aoClicar={() => setMostrarModalExcluir(true)}
-                    iconeEsquerda={ICONES.lixeira}
+                    iconeEsquerda={<Icone nome="lixeira" tamanho={16} />}
                     data-testid="btn-excluir-conta"
                   >
                     Excluir minha conta
@@ -446,7 +459,7 @@ const Configuracoes = () => {
                   </p>
                   <BotaoSecundario
                     aoClicar={sair}
-                    iconeEsquerda={ICONES.sair}
+                    iconeEsquerda={<Icone nome="sair" tamanho={16} />}
                     carregando={carregando}
                     data-testid="btn-sair"
                   >

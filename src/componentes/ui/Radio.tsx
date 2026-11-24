@@ -12,7 +12,7 @@ interface RadioProps {
   valor: string;
   verificado?: boolean;
   selecionado?: string; // alias for controlled selection (test compat)
-  aoAlterar?: (valor: string) => void;
+  aoAlterar?: (_valor: string) => void;
   desabilitado?: boolean;
   obrigatorio?: boolean;
   id?: string;
@@ -99,7 +99,7 @@ interface RadioGrupoProps {
   opcoes: Array<{ valor: string; label?: string; rotulo?: string; descricao?: string; desabilitado?: boolean }>;
   valor?: string;
   selecionado?: string; // alias for valor (test compat)
-  aoAlterar: (valor: string) => void;
+  aoAlterar: (_valor: string) => void;
   label?: string;
   orientacao?: 'vertical' | 'horizontal';
   name?: string;
@@ -243,7 +243,7 @@ RadioCard.displayName = 'RadioCard';
 interface RadioCardGrupoProps {
   opcoes: Array<{ valor: string; label: string; descricao?: string; children?: React.ReactNode; desabilitado?: boolean }>;
   valor: string;
-  aoAlterar: (valor: string) => void;
+  aoAlterar: (_valor: string) => void;
   label?: string;
   colunas?: number;
   className?: string;

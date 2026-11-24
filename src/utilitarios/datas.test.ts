@@ -36,8 +36,6 @@ describe('adicionarDias', () => {
   });
 
   it('usa hoje como padrão', () => {
-    const hoje = new Date();
-    const esperado = hoje.toISOString().split('T')[0];
     // Não podemos testar exatamente pois depende do momento da execução
     expect(typeof adicionarDias()).toBe('string');
   });

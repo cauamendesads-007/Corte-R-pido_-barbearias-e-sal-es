@@ -5,7 +5,7 @@
 
 import React, { forwardRef, useId, useState, useCallback } from 'react';
 import type { PropsCampoTexto } from '@/tipos';
-import { ICONES } from '@/constantes';
+import { Icone } from './Icone';
 import './Textarea.css';
 
 interface TextareaProps extends Omit<PropsCampoTexto, 'tipo' | 'inputMode'> {
@@ -74,7 +74,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
     );
 
     const handleBlur = useCallback(
-      (_e: React.FocusEvent<HTMLTextAreaElement>) => {
+      () => {
         // onBlur pode ser passado via props se necessário
       },
       []
@@ -134,7 +134,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
 
         {erro && (
           <p id={erroId} className="textarea__erro" role="alert">
-            {ICONES.alerta} {erro}
+            <Icone nome="alerta" tamanho={14} /> {erro}
           </p>
         )}
 

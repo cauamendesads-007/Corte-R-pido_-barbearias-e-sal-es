@@ -18,8 +18,8 @@ import {
   CampoBusca,
   ToastProvider,
   useGlobalToast,
+  Icone,
 } from '@/componentes';
-import { ICONES } from '@/constantes';
 import './Feed.css';
 
 const Feed = () => {
@@ -128,7 +128,7 @@ const Feed = () => {
           <h1 className="feed__titulo">Feed</h1>
           {usuario?.papel === 'barbeiro' && (
             <BotaoPrimario
-              iconeEsquerda={ICONES.mais}
+              iconeEsquerda={<Icone nome="mais" tamanho={16} />}
               aoClicar={() => setNovaPublicacaoAberta(true)}
               className="feed__btn-nova"
               data-testid="feed-nova-publicacao"
@@ -139,69 +139,74 @@ const Feed = () => {
         </header>
 
         {/* Lista de publicações */}
-        <div className="feed__lista" role="feed" aria-label="Publicações">
-          {publicacoes
-            .filter((p) => p.tipo !== 'texto') // CartaoPublicacao só suporta imagem/video
-            .map((publicacao) => (
-              <CartaoPublicacao
-                key={publicacao.id}
-                publicacao={{
-                  ...publicacao,
-                  tipo: publicacao.tipo as 'imagem' | 'video',
-                  usuarioCurtiu: publicacao.usuarioCurtiu ?? false,
-                  usuarioSalvou: publicacao.usuarioSalvou ?? false,
-                  estabelecimento: {
-                    id: publicacao.estabelecimentoId,
-                    nome: '',
-                    cidade: '',
-                    tema: { cor: '' },
-                    avaliacao: 0,
-                  },
-                }}
-                aoCurtir={() => curtir(publicacao.id)}
-                aoSalvar={() => salvar(publicacao.id)}
-                aoCompartilhar={() => compartilhar(publicacao.id)}
-                aoAbrir={() => {}}
-                aoAgendar={() => {}}
-                data-testid={`feed-publicacao-${publicacao.id}`}
-              />
+        <main className="feed__main" role="main">
+          <section className="feed__lista" aria-label="Publicações">
+            {publicacoes
+              .filter((p) => p.tipo !== 'texto') // CartaoPublicacao só suporta imagem/video
+              .map((publicacao) => (
+                <article key={publicacao.id} className="feed__publicacao-item">
+                  <CartaoPublicacao
+                    publicacao={{
+                      ...publicacao,
+                      tipo: publicacao.tipo as 'imagem' | 'video',
+                      usuarioCurtiu: publicacao.usuarioCurtiu ?? false,
+                      usuarioSalvou: publicacao.usuarioSalvou ?? false,
+                      estabelecimento: {
+                        id: publicacao.estabelecimentoId,
+                        nome: '',
+                        cidade: '',
+                        tema: { cor: '' },
+                        avaliacao: 0,
+                      },
+                    }}
+                    aoCurtir={() => curtir(publicacao.id)}
+                    aoSalvar={() => salvar(publicacao.id)}
+                    aoCompartilhar={() => compartilhar(publicacao.id)}
+                    aoAbrir={() => {}}
+                    aoAgendar={() => {}}
+                    data-testid={`feed-publicacao-${publicacao.id}`}
+                  />
+                </article>
+              ))}
+
+            {/* Skeletons durante carregamento mais */}
+            {carregandoMais && Array.from({ length: 2 }).map((_, i) => (
+              <div key={`skeleton-${i}`} className="feed__skeleton-item" aria-hidden="true">
+                <Skeleton variante="publicacao" data-testid={`feed-skeleton-${i}`} />
+              </div>
             ))}
 
-          {/* Skeletons durante carregamento mais */}
-          {carregandoMais && Array.from({ length: 2 }).map((_, i) => (
-            <Skeleton key={`skeleton-${i}`} variante="publicacao" data-testid={`feed-skeleton-${i}`} />
-          ))}
+            {/* Sentinela para intersection observer */}
+            <div ref={sentinelaRef} data-testid="feed-sentinela" aria-hidden="true" />
+          </section>
 
-          {/* Sentinela para intersection observer */}
-          <div ref={sentinelaRef} data-testid="feed-sentinela" />
-        </div>
+          {/* Estado vazio */}
+          {publicacoes.length === 0 && !carregando && (
+            <section className="feed__vazio" data-testid="feed-vazio" aria-labelledby="vazio-titulo">
+              <div className="feed__vazio-icone" aria-hidden="true"><Icone nome="feed" tamanho={48} /></div>
+              <h2 id="vazio-titulo" className="feed__vazio-titulo">Nenhuma publicação ainda</h2>
+              <p className="feed__vazio-texto">
+                {usuario?.papel === 'barbeiro'
+                  ? 'Seja o primeiro a compartilhar seus cortes!'
+                  : 'Siga barbeiros e salões para ver suas publicações aqui.'}
+              </p>
+              {usuario?.papel === 'barbeiro' && (
+                <BotaoPrimario iconeEsquerda={<Icone nome="mais" tamanho={16} />} aoClicar={() => setNovaPublicacaoAberta(true)}>
+                  Criar primeira publicação
+                </BotaoPrimario>
+              )}
+            </section>
+          )}
 
-        {/* Estado vazio */}
-        {publicacoes.length === 0 && !carregando && (
-          <div className="feed__vazio" data-testid="feed-vazio">
-            <div className="feed__vazio-icone">{ICONES.feed}</div>
-            <h2 className="feed__vazio-titulo">Nenhuma publicação ainda</h2>
-            <p className="feed__vazio-texto">
-              {usuario?.papel === 'barbeiro'
-                ? 'Seja o primeiro a compartilhar seus cortes!'
-                : 'Siga barbeiros e salões para ver suas publicações aqui.'}
-            </p>
-            {usuario?.papel === 'barbeiro' && (
-              <BotaoPrimario iconeEsquerda={ICONES.mais} aoClicar={() => setNovaPublicacaoAberta(true)}>
-                Criar primeira publicação
-              </BotaoPrimario>
-            )}
-          </div>
-        )}
-
-        {/* Erro */}
-        {erro && (
-          <div className="feed__erro" data-testid="feed-erro" role="alert">
-            <span>{ICONES.alerta}</span>
-            <p>{erro}</p>
-            <BotaoSecundario aoClicar={recarregar}>Tentar novamente</BotaoSecundario>
-          </div>
-        )}
+          {/* Erro */}
+          {erro && (
+            <div className="feed__erro" data-testid="feed-erro" role="alert">
+              <span><Icone nome="alerta" tamanho={20} /></span>
+              <p>{erro}</p>
+              <BotaoSecundario aoClicar={recarregar}>Tentar novamente</BotaoSecundario>
+            </div>
+          )}
+        </main>
       </Container>
 
       {/* Modal Nova Publicação */}
@@ -214,7 +219,7 @@ const Feed = () => {
         tamanho="grande"
         data-testid="modal-nova-publicacao"
       >
-        <div className="nova-publicacao">
+        <form className="nova-publicacao" onSubmit={(e) => { e.preventDefault(); handleCriarPublicacao(); }}>
           <Textarea
             label="Legenda"
             placeholder="Conte sobre este corte, técnica usada, produtos..."
@@ -239,21 +244,22 @@ const Feed = () => {
             <legend>Mídias (máx. 5)</legend>
             <div className="nova-publicacao__midias-grid">
               {midias.map((midia, index) => (
-                <div key={index} className="nova-publicacao__midia-item">
+                <figure key={index} className="nova-publicacao__midia-item">
                   {midia.tipo === 'video' ? (
                     <video src={midia.src} controls playsInline />
                   ) : (
-                    <img src={midia.src} alt="" />
+                    <img src={midia.src} alt={`Mídia ${index + 1} da publicação`} />
                   )}
+                  <figcaption className="sr-only">Mídia {index + 1}</figcaption>
                   <button
                     type="button"
                     className="nova-publicacao__midia-remover"
                     onClick={() => handleRemoverMidia(index)}
-                    aria-label="Remover mídia"
+                    aria-label={`Remover mídia ${index + 1}`}
                   >
-                    {ICONES.x}
+                    <Icone nome="x" tamanho={16} />
                   </button>
-                </div>
+                </figure>
               ))}
               {midias.length < 5 && (
                 <label className="nova-publicacao__midia-add">
@@ -264,13 +270,13 @@ const Feed = () => {
                     onChange={(e) => Array.from(e.target.files || []).forEach(handleAdicionarMidia)}
                     hidden
                   />
-                  {ICONES.mais}
+                  <Icone nome="mais" tamanho={24} />
                   <span>Adicionar</span>
                 </label>
               )}
             </div>
           </fieldset>
-        </div>
+        </form>
       </ModalFormulario>
     </ToastProvider>
   );

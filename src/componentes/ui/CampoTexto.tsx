@@ -5,12 +5,12 @@
 
 import React, { forwardRef, useId, useCallback } from 'react';
 import type { PropsCampoTexto } from '@/tipos';
-import { ICONES } from '@/constantes';
+import { Icone } from './Icone';
 import { formatarWhatsapp } from '@/utilitarios';
 import './CampoTexto.css';
 
 interface CampoTextoProps extends PropsCampoTexto {
-  iconePrefixo?: string;
+  iconePrefixo?: React.ReactNode;
   iconeSufixo?: React.ReactNode;
   aoClicarIconeSufixo?: () => void;
   className?: string;
@@ -40,7 +40,6 @@ export const CampoTexto = forwardRef<HTMLInputElement, CampoTextoProps>(
       iconeSufixo,
       aoClicarIconeSufixo,
       className = '',
-      valorComoNumero = false,
       min,
       max,
       step,
@@ -146,7 +145,7 @@ export const CampoTexto = forwardRef<HTMLInputElement, CampoTextoProps>(
 
         {erro && (
           <p id={erroId} className="campo-texto__erro" role="alert">
-            {ICONES.alerta} {erro}
+            <Icone nome="alerta" tamanho={14} /> {erro}
           </p>
         )}
 
@@ -164,7 +163,7 @@ CampoTexto.displayName = 'CampoTexto';
 
 /** Props base para campos derivados */
 interface CampoDerivadoProps extends Omit<PropsCampoTexto, 'tipo' | 'inputMode'> {
-  iconePrefixo?: string;
+  iconePrefixo?: React.ReactNode;
   iconeSufixo?: React.ReactNode;
   aoClicarIconeSufixo?: () => void;
   className?: string;
@@ -173,14 +172,12 @@ interface CampoDerivadoProps extends Omit<PropsCampoTexto, 'tipo' | 'inputMode'>
 
 /** Campo de senha com botão mostrar/ocultar */
 export const CampoSenha = ({
-  iconeSufixo,
-  aoClicarIconeSufixo,
   aoAlternarVisibilidade,
   mostrarSenha,
   ...props
 }: CampoDerivadoProps & {
   mostrarSenha?: boolean;
-  aoAlternarVisibilidade?: (mostrar: boolean) => void;
+  aoAlternarVisibilidade?: (_mostrar: boolean) => void;
 }) => {
   const [mostrarInterno, setMostrarInterno] = React.useState(false);
   const controlado = typeof mostrarSenha === 'boolean';
@@ -191,14 +188,13 @@ export const CampoSenha = ({
     if (!controlado) {
       setMostrarInterno(novoEstado);
     }
-    aoClicarIconeSufixo?.();
     aoAlternarVisibilidade?.(novoEstado);
   };
 
   return (
     <CampoTexto
       tipo={mostrar ? 'text' : 'password'}
-      iconeSufixo={mostrar ? ICONES.olhoFechado : ICONES.olho}
+      iconeSufixo={<Icone nome={mostrar ? 'olhoFechado' : 'olho'} tamanho={18} />}
       aoClicarIconeSufixo={handleToggle}
       {...props}
     />
@@ -207,7 +203,7 @@ export const CampoSenha = ({
 
 /** Campo de busca com ícone de lupa */
 export const CampoBusca = ({
-  iconePrefixo = ICONES.busca,
+  iconePrefixo = <Icone nome="busca" tamanho={18} />,
   placeholder = 'Buscar...',
   label = 'Buscar',
   ...props
@@ -224,7 +220,7 @@ export const CampoBusca = ({
 
 /** Campo WhatsApp com máscara automática */
 export const CampoWhatsapp = ({
-  iconePrefixo = ICONES.telefone,
+  iconePrefixo = <Icone nome="telefone" tamanho={18} />,
   placeholder = '(DD) 9xxxx-xxxx',
   inputMode = 'tel',
   maxLength = 15,

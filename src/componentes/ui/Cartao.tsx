@@ -5,7 +5,7 @@
 
 import React, { forwardRef } from 'react';
 import type { PropsCartaoEstabelecimento } from '@/tipos';
-import { ICONES } from '@/constantes';
+import { Icone } from './Icone';
 import { formatarMoeda, formatarNumeroCurto, formatarTempoRelativo, corTextoContrastante } from '@/utilitarios';
 import { BotaoIcone, BotaoPrimario, BotaoSecundario, BotaoPerigo } from './Botao';
 import './Cartao.css';
@@ -174,7 +174,7 @@ export const CartaoEstabelecimento = ({
 
         {temFila && (
           <CartaoBadge variante="aviso" className="cartao-estabelecimento__fila">
-            {ICONES.relogio} {estabelecimento.fila.length} na fila · ~{esperaEstimada} min
+            <Icone nome="relogio" tamanho={12} /> {estabelecimento.fila.length} na fila · ~{esperaEstimada} min
           </CartaoBadge>
         )}
       </CartaoMidia>
@@ -189,7 +189,7 @@ export const CartaoEstabelecimento = ({
             <p className="cartao-estabelecimento__meta">
               {estabelecimento.avaliacao ? (
                 <>
-                  {ICONES.estrela} {estabelecimento.avaliacao.toFixed(1)}
+                  <Icone nome="estrela" tamanho={12} /> {estabelecimento.avaliacao.toFixed(1)}
                 </>
               ) : (
                 'Novo'
@@ -209,7 +209,7 @@ export const CartaoEstabelecimento = ({
 
         {horarioDisponivelHoje && (
           <CartaoBadge variante="sucesso" className="cartao-estabelecimento__disponivel">
-            {ICONES.verificarCirculo} Hoje, {horarioDisponivelHoje}
+            <Icone nome="verificarCirculo" tamanho={12} /> Hoje, {horarioDisponivelHoje}
           </CartaoBadge>
         )}
       </CartaoCorpo>
@@ -313,7 +313,7 @@ export const CartaoPublicacao = ({
         <p className="cartao-publicacao__preco-meta">
           <span className="cartao-publicacao__preco">{tagServico ? 'Preço do serviço' : ''}</span>
           <span className="cartao-publicacao__avaliacao">
-            {estabelecimento.avaliacao ? `${ICONES.estrela} ${estabelecimento.avaliacao.toFixed(1)}` : 'Novo'}
+            {estabelecimento.avaliacao ? `${<Icone nome="estrela" tamanho={12} />} ${estabelecimento.avaliacao.toFixed(1)}` : 'Novo'}
           </span>
         </p>
         <p className="cartao-publicacao__legenda">{legenda}</p>
@@ -322,7 +322,7 @@ export const CartaoPublicacao = ({
       <CartaoRodape className="cartao-publicacao__rodape">
         <div className="cartao-publicacao__acoes">
           <BotaoIcone
-            icone={usuarioCurtiu ? ICONES.coracao : ICONES.coracaoVazio}
+            icone={usuarioCurtiu ? <Icone nome="coracao" tamanho={16} /> : <Icone nome="coracaoVazio" tamanho={16} />}
             variante="fantasma"
             tamanho="pequeno"
             aoClicar={aoCurtir}
@@ -332,7 +332,7 @@ export const CartaoPublicacao = ({
           <span className="cartao-publicacao__contador">{formatarNumeroCurto(curtidas.length)}</span>
 
           <BotaoIcone
-            icone={usuarioSalvou ? ICONES.salvar : ICONES.salvarVazio}
+            icone={usuarioSalvou ? <Icone nome="salvar" tamanho={16} /> : <Icone nome="salvarVazio" tamanho={16} />}
             variante="fantasma"
             tamanho="pequeno"
             aoClicar={aoSalvar}
@@ -342,7 +342,7 @@ export const CartaoPublicacao = ({
           <span className="cartao-publicacao__contador">{formatarNumeroCurto(salvos.length)}</span>
 
           <BotaoIcone
-            icone={ICONES.compartilhar}
+            icone={<Icone nome="compartilhar" tamanho={16} />}
             variante="fantasma"
             tamanho="pequeno"
             aoClicar={aoCompartilhar}
@@ -352,7 +352,7 @@ export const CartaoPublicacao = ({
 
           {comentarios.length > 0 && (
             <span className="cartao-publicacao__comentarios">
-              {ICONES.mensagem} {formatarNumeroCurto(comentarios.length)}
+              <Icone nome="mensagem" tamanho={16} /> {formatarNumeroCurto(comentarios.length)}
             </span>
           )}
         </div>
@@ -384,7 +384,7 @@ interface CartaoServicoProps {
   aoSelecionar: () => void;
   aoEditar?: () => void;
   aoExcluir?: () => void;
-  aoAdicionarMidia?: (arquivo: File) => void;
+  aoAdicionarMidia?: (_arquivo: File) => void;
   className?: string;
   'data-testid'?: string;
 }
@@ -417,7 +417,7 @@ export const CartaoServico = ({
         </label>
 
         <div className="cartao-servico__detalhes">
-          <span className="cartao-servico__duracao">{ICONES.relogio} {servico.duracaoMinutos} min</span>
+          <span className="cartao-servico__duracao"><Icone nome="relogio" tamanho={12} /> {servico.duracaoMinutos} min</span>
           <strong className="cartao-servico__preco">{formatarMoeda(servico.preco)}</strong>
         </div>
 
@@ -437,7 +437,7 @@ export const CartaoServico = ({
                     onClick={(e) => { e.stopPropagation(); aoExcluir(); }}
                     aria-label="Remover mídia"
                   >
-                    {ICONES.x}
+                    <Icone nome="fechar" tamanho={12} />
                   </button>
                 )}
               </div>
@@ -447,7 +447,7 @@ export const CartaoServico = ({
 
         {aoAdicionarMidia && (
           <label className="cartao-servico__add-midia">
-            {ICONES.mais} Cortes exemplo
+            <Icone nome="mais" tamanho={16} /> Cortes exemplo
             <input
               type="file"
               accept="image/*,video/*"
@@ -460,10 +460,10 @@ export const CartaoServico = ({
         {(aoEditar || aoExcluir) && (
           <div className="cartao-servico__acoes">
             {aoEditar && (
-              <BotaoIcone icone={ICONES.editar} variante="fantasma" tamanho="pequeno" aoClicar={aoEditar} ariaLabel="Editar serviço" />
+              <BotaoIcone icone={<Icone nome="editar" tamanho={16} />} variante="fantasma" tamanho="pequeno" aoClicar={aoEditar} ariaLabel="Editar serviço" />
             )}
             {aoExcluir && (
-              <BotaoIcone icone={ICONES.lixeira} variante="perigo" tamanho="pequeno" aoClicar={aoExcluir} ariaLabel="Excluir serviço" />
+              <BotaoIcone icone={<Icone nome="lixeira" tamanho={16} />} variante="perigo" tamanho="pequeno" aoClicar={aoExcluir} ariaLabel="Excluir serviço" />
             )}
           </div>
         )}
