@@ -364,8 +364,10 @@ describe('useAgendamentos', () => {
 
       await waitFor(() => expect(result.current.carregando).toBe(false));
 
+      let createResult: { sucesso: boolean; agendamento?: unknown; erro?: string } = { sucesso: false };
+
       await act(async () => {
-        await result.current.criar({
+        createResult = await result.current.criar({
           estabelecimentoId: 'corte-rapido',
           servicosIds: ['serv-1', 'serv-2'],
           dia: '2025-12-25',
@@ -374,6 +376,12 @@ describe('useAgendamentos', () => {
         });
       });
 
+      // Aguarda o mock ser chamado (flusha promessas internas)
+      await waitFor(() => expect(mockAgendamentosService.criar).toHaveBeenCalled());
+
+      expect(createResult.sucesso).toBe(true);
+      expect(createResult.agendamento).toBeDefined();
+      expect(mockEstabelecimentosService.obter).toHaveBeenCalledWith('corte-rapido');
       const criarCalls = mockAgendamentosService.criar.mock.calls;
       expect(criarCalls).toHaveLength(1);
       expect(criarCalls[0][0]).toMatchObject({
@@ -504,7 +512,9 @@ describe('useAgendamentos', () => {
       });
 
       expect(confirmResult.sucesso).toBe(true);
-      expect(result.current.agendamentos.find((a) => a.id === 'bk-1')?.status).toBe('confirmado');
+      await waitFor(() => {
+        expect(result.current.agendamentos.find((a) => a.id === 'bk-1')?.status).toBe('confirmado');
+      });
     });
   });
 

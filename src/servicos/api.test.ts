@@ -31,6 +31,15 @@ Object.defineProperty(window, 'localStorage', {
 // Mock de Math.random para controlar taxa de erro
 const originalRandom = Math.random;
 
+// Helper para obter data local no formato YYYY-MM-DD (igual ao formatarParaInput)
+const getDataLocal = () => {
+  const d = new Date();
+  const ano = d.getFullYear();
+  const mes = String(d.getMonth() + 1).padStart(2, '0');
+  const dia = String(d.getDate()).padStart(2, '0');
+  return `${ano}-${mes}-${dia}`;
+};
+
 // Importar após configurar mocks
 import * as apiModule from './api';
 import { api } from './api';
@@ -1137,7 +1146,7 @@ describe('Mock API - Camada de Serviços', () => {
   describe('Agendamentos', () => {
     const estId = 'corte-rapido';
     const clienteEmail = 'cliente@demo.com';
-    const hoje = new Date().toISOString().split('T')[0];
+    const hoje = getDataLocal();
 
     describe('listarBarbeiro / listar', () => {
       it('deve listar agendamentos do estabelecimento ordenados', async () => {

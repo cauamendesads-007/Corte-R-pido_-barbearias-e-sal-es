@@ -5,12 +5,12 @@
 
 import React from 'react';
 import type { PropsBotao } from '@/tipos';
-import { ICONES } from '@/constantes';
+import { Icone } from './Icone';
 import './Botao.css';
 
 interface BotaoProps extends PropsBotao {
-  iconeEsquerda?: string;
-  iconeDireita?: string;
+  iconeEsquerda?: React.ReactNode;
+  iconeDireita?: React.ReactNode;
   className?: string;
 }
 
@@ -48,7 +48,7 @@ export const Botao = React.forwardRef<HTMLButtonElement, BotaoProps>(
       <>
         {carregando && (
           <span className="botao__spinner" aria-hidden="true">
-            {ICONES.carregando}
+            <Icone nome="carregando" tamanho={20} />
           </span>
         )}
         {!carregando && iconeEsquerda && (
@@ -107,7 +107,7 @@ export const BotaoFantasma = (props: Omit<BotaoProps, 'variante'>) => (
 );
 
 /** Botão apenas ícone (para toolbars, headers) */
-export const BotaoIcone = React.forwardRef<HTMLButtonElement, Omit<BotaoProps, 'children' | 'iconeEsquerda' | 'iconeDireita'> & { icone: string }>(
+export const BotaoIcone = React.forwardRef<HTMLButtonElement, Omit<BotaoProps, 'children' | 'iconeEsquerda' | 'iconeDireita'> & { icone: React.ReactNode }>(
   ({
     icone,
     ariaLabel,

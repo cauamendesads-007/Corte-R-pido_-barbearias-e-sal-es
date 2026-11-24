@@ -9,7 +9,7 @@ export { CampoTexto, CampoSenha, CampoBusca, CampoWhatsapp, CampoNumero } from '
 export { Modal, ModalConfirmacao, ModalFormulario } from './Modal';
 export { Cartao, CartaoCabecalho, CartaoMidia, CartaoCorpo, CartaoRodape, CartaoBadge,
   CartaoEstabelecimento, CartaoPublicacao, CartaoServico, CartaoAgendamento } from './Cartao';
-export { Chip, ChipGrupo } from './Chip';
+export { Chip, ChipGrupo, ChipStatus } from './Chip';
 export { CHIP_NICHOS, CHIP_STATUS_AGENDAMENTO } from './Chip.constants';
 export { Avatar, AvatarGrupo, AvatarNotificacao } from './Avatar';
 export { Toast, ToastContainer } from './Toast';
@@ -22,6 +22,8 @@ export { Select } from './Select';
 export { Checkbox, CheckboxGrupo, CheckboxToggle } from './Checkbox';
 export { Radio, RadioGrupo, RadioCard, RadioCardGrupo } from './Radio';
 export { Mapa } from './Mapa';
+export { ErrorBoundary, comErrorBoundary, useErrorHandler } from './ErrorBoundary';
+export { Icone, IconeGrupo, usarIconeBruto, type NomeIcone, type IconeProps } from './Icone';
 
 export type {
   PropsBotao,

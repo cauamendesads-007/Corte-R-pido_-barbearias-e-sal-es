@@ -143,7 +143,7 @@ const Configuracoes = () => {
     } finally {
       setCarregando(false);
     }
-  }, [alterarSenha, conta, sucesso]);
+  }, [alterarSenha, conta, sucesso, setConta]);
 
   const handleExcluirConta = useCallback(async () => {
     setCarregando(true);

@@ -9,7 +9,7 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import './Mapa.css';
-import { ICONES } from '@/constantes';
+import { Icone, usarIconeBruto } from './Icone';
 import type { Estabelecimento } from '@/tipos';
 import L from 'leaflet';
 import 'leaflet.markercluster';
@@ -123,12 +123,13 @@ const Mapa = forwardRef<HTMLDivElement, MapaProps>(
               { icon: isSelecionado ? ICONE_SELECIONADO : ICONE_PADRAO }
             );
 
+            const iconeEstrela = usarIconeBruto('estrela');
             const popupContent = `
               <div class="mapa__popup-conteudo">
                 <strong>${estabelecimento.nome}</strong>
                 <p>${estabelecimento.cidade}</p>
                 <p class="mapa__popup-avaliacao">
-                  ${ICONES.estrela} ${estabelecimento.avaliacao?.toFixed(1) || '–'}
+                  ${iconeEstrela} ${estabelecimento.avaliacao?.toFixed(1) || '–'}
                   <span>(${estabelecimento.avaliacoes?.length || 0})</span>
                 </p>
                 <span class="mapa__popup-nicho">${estabelecimento.nicho}</span>
@@ -146,7 +147,7 @@ const Mapa = forwardRef<HTMLDivElement, MapaProps>(
       return (
         <div ref={ref} className={`mapa mapa--vazio ${className}`} data-testid={testId} role="region" aria-label="Mapa sem estabelecimentos">
           <div className="mapa__vazio">
-            <span aria-hidden="true">{ICONES.mapa}</span>
+            <Icone nome="mapa" tamanho={32} aria-hidden="true" />
             <p>Nenhum estabelecimento para exibir no mapa</p>
           </div>
         </div>
@@ -184,7 +185,7 @@ const Mapa = forwardRef<HTMLDivElement, MapaProps>(
             aria-label="Centralizar mapa em Belo Horizonte"
             data-testid="mapa-btn-centralizar"
           >
-            {ICONES.localizacao}
+            <Icone nome="localizacao" tamanho={20} aria-hidden="true" />
           </button>
           <button
             type="button"
@@ -207,7 +208,7 @@ const Mapa = forwardRef<HTMLDivElement, MapaProps>(
             aria-label="Ir para minha localização"
             data-testid="mapa-btn-minha-localizacao"
           >
-            {ICONES.gps}
+            <Icone nome="gps" tamanho={20} aria-hidden="true" />
           </button>
         </div>
 

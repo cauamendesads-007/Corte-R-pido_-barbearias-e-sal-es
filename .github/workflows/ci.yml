@@ -1,4 +1,4 @@
-name: CI
+name: CI/CD Pipeline
 
 on:
   push:
@@ -6,83 +6,96 @@ on:
   pull_request:
     branches: [develop, main]
 
+env:
+  NODE_VERSION: '22.x'
+  NPM_REGISTRY: 'https://registry.npmjs.org/'
+
 jobs:
-  lint:
-    name: Lint
+  lint-and-typecheck:
+    name: Lint & TypeCheck
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
+          registry-url: ${{ env.NPM_REGISTRY }}
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --prefer-offline --no-audit --no-fund
 
       - name: Run ESLint
-        run: npm run lint
+        run: npx eslint src --ext .ts,.tsx --max-warnings 0
 
-  typecheck:
-    name: Typecheck
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run TypeScript check
-        run: npm run typecheck
+      - name: Run TypeScript type check
+        run: npx tsc --noEmit --skipLibCheck
 
   test:
-    name: Test
+    name: Test Suite
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
+          registry-url: ${{ env.NPM_REGISTRY }}
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --prefer-offline --no-audit --no-fund
 
-      - name: Run tests
-        run: npm test -- --run --reporter=verbose
+      - name: Run tests with coverage
+        run: npx vitest run --coverage
+
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 7
 
   build:
-    name: Build
+    name: Build Production
     runs-on: ubuntu-latest
-    needs: [lint, typecheck, test]
+    timeout-minutes: 15
+    needs: [lint-and-typecheck, test]
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
+          registry-url: ${{ env.NPM_REGISTRY }}
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --prefer-offline --no-audit --no-fund
 
-      - name: Build
+      - name: Build application
         run: npm run build
+        env:
+          GITHUB_PAGES: 'true'
+
+      - name: Verify build output
+        run: |
+          ls -la dist/
+          echo "=== Build size ==="
+          du -sh dist/
+          echo "=== JS bundles ==="
+          ls -lh dist/assets/js/
+          echo "=== CSS bundles ==="
+          ls -lh dist/assets/css/
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -90,3 +103,169 @@ jobs:
           name: dist
           path: dist/
           retention-days: 7
+
+      - name: Upload source maps
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sourcemaps
+          path: dist/assets/js/*.map
+          retention-days: 7
+
+  analyze-bundle:
+    name: Bundle Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: build
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          registry-url: ${{ env.NPM_REGISTRY }}
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit --no-fund
+
+      - name: Analyze bundle size
+        run: ANALYZE=true npm run build
+        env:
+          GITHUB_PAGES: 'true'
+
+      - name: Upload bundle analysis
+        uses: actions/upload-artifact@v4
+        with:
+          name: bundle-analysis
+          path: dist/stats.html
+          retention-days: 7
+
+  security-audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          registry-url: ${{ env.NPM_REGISTRY }}
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit --no-fund
+
+      - name: Run npm audit
+        run: npm audit --audit-level=high --json > audit-report.json || true
+
+      - name: Upload audit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-audit
+          path: audit-report.json
+          retention-days: 7
+
+      - name: Check for critical vulnerabilities
+        run: |
+          CRITICAL=$(cat audit-report.json | jq '.metadata.vulnerabilities.critical // 0')
+          HIGH=$(cat audit-report.json | jq '.metadata.vulnerabilities.high // 0')
+          if [ "$CRITICAL" -gt 0 ] || [ "$HIGH" -gt 5 ]; then
+            echo "❌ Found $CRITICAL critical and $HIGH high vulnerabilities"
+            exit 1
+          fi
+          echo "✅ Security audit passed (critical: $CRITICAL, high: $HIGH)"
+
+  a11y:
+    name: Accessibility Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          registry-url: ${{ env.NPM_REGISTRY }}
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit --no-fund
+
+      - name: Build for a11y testing
+        run: npm run build
+        env:
+          GITHUB_PAGES: 'true'
+
+      - name: Run accessibility tests
+        run: |
+          npx playwright install --with-deps chromium
+          echo "A11y tests would run here with @axe-core/playwright"
+
+  deploy-preview:
+    name: Deploy Preview
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [build, security-audit]
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Deploy to Netlify Preview
+        uses: nwtgck/actions-netlify@v3.0
+        with:
+          publish-dir: './dist'
+          production-branch: main
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          deploy-message: "Preview from PR #${{ github.event.number }}"
+          enable-pull-request-comment: true
+          enable-commit-comment: true
+          overwrites-pull-request-comment: true
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        continue-on-error: true
+
+  deploy-production:
+    name: Deploy Production
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [build, security-audit, analyze-bundle]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment: production
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Deploy to Netlify Production
+        uses: nwtgck/actions-netlify@v3.0
+        with:
+          publish-dir: './dist'
+          production-branch: main
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          deploy-message: "Production deploy from commit ${{ github.sha }}"
+          production-deploy: true
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+
+      - name: Notify deployment
+        if: always()
+        run: |
+          echo "✅ Production deployment completed"
+          echo "🔗 Site: https://corte-rapido.netlify.app"

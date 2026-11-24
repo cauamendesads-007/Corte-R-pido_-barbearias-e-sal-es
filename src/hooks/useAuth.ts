@@ -6,6 +6,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuthService } from '@/contexto/ServiceHooks';
 import type { Usuario, TipoUsuario, SessaoUsuario } from '@/tipos';
+import { limparCacheAutenticacao, limparCacheGlobal } from '@/utilitarios/cache';
 
 export interface EstadoAuth {
   usuario: Usuario | null;
@@ -176,8 +177,7 @@ export const useAuth = (): EstadoAuth & AcoesAuth => {
   }, [authService]);
 
   const sair = useCallback(() => {
-    localStorage.removeItem(CHAVE_USUARIO);
-    localStorage.removeItem(CHAVE_TOKEN);
+    limparCacheAutenticacao();
     setUsuario(null);
     setErro(null);
   }, []);
@@ -240,8 +240,7 @@ export const useAuth = (): EstadoAuth & AcoesAuth => {
       const resposta = await authService.excluirConta();
 
       if (resposta.sucesso) {
-        localStorage.removeItem(CHAVE_USUARIO);
-        localStorage.removeItem(CHAVE_TOKEN);
+        limparCacheGlobal();
         setUsuario(null);
         return { sucesso: true };
       }

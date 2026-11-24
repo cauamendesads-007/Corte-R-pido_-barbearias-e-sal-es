@@ -325,7 +325,7 @@ export interface PropsBotao extends PropsComponenteBase {
 /** Props para componentes de input */
 export interface PropsCampoTexto extends PropsComponenteBase {
   label: string;
-  tipo?: 'text' | 'email' | 'password' | 'tel' | 'number' | 'search';
+  tipo?: 'text' | 'email' | 'password' | 'tel' | 'number' | 'search' | 'time' | 'date' | 'url';
   placeholder?: string;
   valor: string;
   aoAlterar: (_valor: string) => void;

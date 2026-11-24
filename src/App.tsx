@@ -6,6 +6,7 @@
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ToastProvider } from '@/componentes';
+import { ErrorBoundary } from '@/componentes';
 import { useAuth } from '@/hooks/useAuth';
 import { ServiceProvider } from '@/contexto/ServiceProvider';
 import './App.css';
@@ -13,7 +14,7 @@ import './App.css';
 // Lazy loading das telas
 const Feed = lazy(() => import('./telas/Feed').then((m) => ({ default: m.default })));
 const Explorar = lazy(() => import('./telas/Explorar').then((m) => ({ default: m.default })));
-const Perfil = lazy(() => import('./telas/Perfil').then((m) => ({ default: m.default })));
+const Perfil = lazy(() => import('./features/perfil/components/Perfil').then((m) => ({ default: m.default })));
 const PainelBarbeiro = lazy(() => import('./features/barbeiro/components/PainelBarbeiro').then((m) => ({ default: m.default })));
 const PainelAdmin = lazy(() => import('./features/admin/components/PainelAdmin').then((m) => ({ default: m.default })));
 const Login = lazy(() => import('./telas/Login').then((m) => ({ default: m.default })));
@@ -28,6 +29,41 @@ const Carregando = () => (
   <div className="app__carregando" role="status" aria-label="Carregando">
     <div className="app__spinner" aria-hidden="true" />
   </div>
+);
+
+/** ErrorBoundary por rota - isola erros em rotas específicas */
+const RotaComErrorBoundary = ({ children, fallback }: {
+  children: React.ReactNode;
+  fallback?: React.ReactNode;
+}) => (
+  <ErrorBoundary
+    fallbackRender={({ error, resetErrorBoundary, errorId }) => (
+      fallback || (
+        <div className="rota-error-boundary" role="alert">
+          <div className="rota-error-boundary__conteudo">
+            <h2>Erro ao carregar esta página</h2>
+            <p>Algo deu errado ao carregar o conteúdo. Tente recarregar ou navegar para outra página.</p>
+            <details>
+              <summary>Detalhes técnicos</summary>
+              <pre>
+                <strong>Error ID:</strong> {errorId}
+                <br />
+                <strong>Mensagem:</strong> {error.message}
+              </pre>
+            </details>
+            <button onClick={resetErrorBoundary} className="botao botao--primario">
+              Tentar novamente
+            </button>
+            <button onClick={() => window.location.href = '/feed'} className="botao botao--secundario">
+              Ir para o feed
+            </button>
+          </div>
+        </div>
+      )
+    )}
+  >
+    {children}
+  </ErrorBoundary>
 );
 
 /** Wrapper de rota protegida */
@@ -63,14 +99,61 @@ const RotaPublica = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+/** ErrorBoundary global - captura erros não tratados em toda a app */
+const ErrorBoundaryGlobal = ({ children }: { children: React.ReactNode }) => (
+  <ErrorBoundary
+    fallbackRender={({ error, resetErrorBoundary, errorId }) => (
+      <div className="error-boundary-global" role="alert">
+        <div className="error-boundary-global__conteudo">
+          <h1>Erro Crítico da Aplicação</h1>
+          <p>Ocorreu um erro inesperado que impede o funcionamento da aplicação.</p>
+          <details>
+            <summary>Detalhes técnicos</summary>
+            <pre>
+              <strong>Error ID:</strong> {errorId}
+              <br />
+              <strong>Mensagem:</strong> {error.message}
+              <br />
+              <strong>Stack:</strong> {error.stack || 'N/A'}
+            </pre>
+          </details>
+          <div className="error-boundary-global__acoes">
+            <button onClick={resetErrorBoundary} className="botao botao--primario">
+              Tentar Recuperar
+            </button>
+            <button onClick={() => window.location.reload()} className="botao botao--secundario">
+              Recarregar Página
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    onError={(error, errorInfo) => {
+      // Log para serviço de monitoramento (Sentry, LogRocket, etc.)
+      console.error('[ErrorBoundaryGlobal] Erro crítico capturado:', {
+        errorId: `global-${Date.now()}`,
+        message: error.message,
+        stack: error.stack,
+        componentStack: errorInfo.componentStack,
+        timestamp: new Date().toISOString(),
+        url: window.location.href,
+      });
+    }}
+    resetKeys={[]}
+  >
+    {children}
+  </ErrorBoundary>
+);
+
 const App = () => {
   return (
     <ServiceProvider>
       <ToastProvider>
         <BrowserRouter>
-          <div className="app">
-            <Suspense fallback={<Carregando />}>
-              <Routes>
+          <ErrorBoundaryGlobal>
+            <div className="app">
+              <Suspense fallback={<Carregando />}>
+                <Routes>
                 {/* Rotas públicas */}
                 <Route path="/login" element={<RotaPublica><Login /></RotaPublica>} />
                 <Route path="/cadastro" element={<RotaPublica><Cadastro /></RotaPublica>} />
@@ -81,7 +164,9 @@ const App = () => {
                   path="/feed"
                   element={
                     <RotaProtegida tiposPermitidos={['cliente', 'barbeiro', 'admin']}>
-                      <Feed />
+                      <RotaComErrorBoundary>
+                        <Feed />
+                      </RotaComErrorBoundary>
                     </RotaProtegida>
                   }
                 />
@@ -89,7 +174,9 @@ const App = () => {
                   path="/explorar"
                   element={
                     <RotaProtegida tiposPermitidos={['cliente', 'barbeiro', 'admin']}>
-                      <Explorar />
+                      <RotaComErrorBoundary>
+                        <Explorar />
+                      </RotaComErrorBoundary>
                     </RotaProtegida>
                   }
                 />
@@ -97,7 +184,9 @@ const App = () => {
                   path="/perfil"
                   element={
                     <RotaProtegida tiposPermitidos={['cliente', 'barbeiro', 'admin']}>
-                      <Perfil />
+                      <RotaComErrorBoundary>
+                        <Perfil />
+                      </RotaComErrorBoundary>
                     </RotaProtegida>
                   }
                 />
@@ -105,7 +194,9 @@ const App = () => {
                   path="/notificacoes"
                   element={
                     <RotaProtegida tiposPermitidos={['cliente', 'barbeiro', 'admin']}>
-                      <Notificacoes />
+                      <RotaComErrorBoundary>
+                        <Notificacoes />
+                      </RotaComErrorBoundary>
                     </RotaProtegida>
                   }
                 />
@@ -113,7 +204,9 @@ const App = () => {
                   path="/configuracoes"
                   element={
                     <RotaProtegida tiposPermitidos={['cliente', 'barbeiro', 'admin']}>
-                      <Configuracoes />
+                      <RotaComErrorBoundary>
+                        <Configuracoes />
+                      </RotaComErrorBoundary>
                     </RotaProtegida>
                   }
                 />
@@ -123,7 +216,9 @@ const App = () => {
                   path="/painel/*"
                   element={
                     <RotaProtegida tiposPermitidos={['barbeiro']}>
-                      <PainelBarbeiro />
+                      <RotaComErrorBoundary>
+                        <PainelBarbeiro />
+                      </RotaComErrorBoundary>
                     </RotaProtegida>
                   }
                 />
@@ -133,7 +228,9 @@ const App = () => {
                   path="/admin/*"
                   element={
                     <RotaProtegida tiposPermitidos={['admin']}>
-                      <PainelAdmin />
+                      <RotaComErrorBoundary>
+                        <PainelAdmin />
+                      </RotaComErrorBoundary>
                     </RotaProtegida>
                   }
                 />
@@ -143,7 +240,9 @@ const App = () => {
                   path="/estabelecimento/:slug"
                   element={
                     <RotaProtegida tiposPermitidos={['cliente', 'barbeiro', 'admin']}>
-                      <Estabelecimento />
+                      <RotaComErrorBoundary>
+                        <Estabelecimento />
+                      </RotaComErrorBoundary>
                     </RotaProtegida>
                   }
                 />
@@ -151,7 +250,9 @@ const App = () => {
                   path="/agendamento/:id"
                   element={
                     <RotaProtegida tiposPermitidos={['cliente', 'barbeiro', 'admin']}>
-                      <Agendamento />
+                      <RotaComErrorBoundary>
+                        <Agendamento />
+                      </RotaComErrorBoundary>
                     </RotaProtegida>
                   }
                 />
@@ -168,6 +269,7 @@ const App = () => {
               </Routes>
             </Suspense>
           </div>
+          </ErrorBoundaryGlobal>
         </BrowserRouter>
       </ToastProvider>
     </ServiceProvider>
