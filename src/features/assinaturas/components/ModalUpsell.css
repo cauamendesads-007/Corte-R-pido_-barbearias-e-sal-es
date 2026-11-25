@@ -1,0 +1,141 @@
+/**
+ * ModalUpsell.css - Estilos para modal de upsell contextual
+ * Compartilha tokens do Design System com outros modais.
+ */
+
+.modal-upsell .modal-content {
+  max-width: 520px;
+}
+
+.upsell-comparacao {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 20px 0;
+  flex-wrap: wrap;
+}
+
+.upsell-plano-atual,
+.upsell-plano-sugerido {
+  flex: 1;
+  min-width: 180px;
+  max-width: 220px;
+  text-align: center;
+  padding: 16px;
+  border-radius: 10px;
+  background: var(--color-surface, #ffffff);
+  border: 2px solid var(--color-border, #e0e0e0);
+}
+
+.upsell-plano-sugerido {
+  border-color: var(--color-primary, #2563eb);
+  background: var(--color-primary-light, #eff6ff);
+}
+
+.upsell-plano-label {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text-secondary, #666666);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  margin-bottom: 12px;
+}
+
+.upsell-limite-atual,
+.upsell-limite-sugerido {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.upsell-valor {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--color-text, #1a1a1a);
+  line-height: 1;
+}
+
+.upsell-plano-sugerido .upsell-valor {
+  color: var(--color-primary, #2563eb);
+}
+
+.upsell-maximo {
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary, #666666);
+}
+
+.upsell-barra {
+  height: 6px;
+  background: var(--color-border, #e0e0e0);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.upsell-barra-preenchimento {
+  height: 100%;
+  background: var(--color-primary, #2563eb);
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .upsell-barra-preenchimento {
+    transition: none;
+  }
+}
+
+.upsell-seta {
+  font-size: 1.5rem;
+  color: var(--color-primary, #2563eb);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.upsell-preco {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--color-primary, #2563eb);
+  margin-top: 8px;
+}
+
+.upsell-beneficios {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px;
+}
+
+.upsell-beneficios li {
+  font-size: 0.8125rem;
+  color: var(--color-text, #1a1a1a);
+  padding-left: 4px;
+}
+
+/* Responsivo */
+@media (max-width: 520px) {
+  .upsell-comparacao {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .upsell-plano-atual,
+  .upsell-plano-sugerido {
+    max-width: none;
+    width: 100%;
+  }
+
+  .upsell-seta {
+    transform: rotate(90deg);
+  }
+
+  .upsell-beneficios {
+    grid-template-columns: 1fr;
+  }
+}

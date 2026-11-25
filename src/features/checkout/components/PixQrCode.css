@@ -1,0 +1,387 @@
+/**
+ * PixQrCode.css - Design System 6 estados, WCAG 2.2 AA
+ * Animações suaves, prefers-reduced-motion, alto contraste.
+ */
+
+.pix-qrcode {
+  --cor-fundo: var(--color-surface, #ffffff);
+  --cor-borda: var(--color-border, #e0e0e0);
+  --cor-texto: var(--color-text, #1a1a1a);
+  --cor-texto-secundario: var(--color-text-secondary, #666666);
+  --cor-primaria: var(--color-primary, #2563eb);
+  --cor-primaria-hover: var(--color-primary-hover, #1d4ed8);
+  --cor-sucesso: var(--color-success, #16a34a);
+  --cor-aviso: var(--color-warning, #f59e0b);
+  --cor-erro: var(--color-error, #dc2626);
+  --cor-fundo-destaque: var(--color-primary-light, #eff6ff);
+  --sombra: var(--shadow-md, 0 4px 6px -1px rgb(0 0 0 / 0.1));
+  --raio: var(--radius-lg, 12px);
+  --espacamento: var(--spacing-md, 16px);
+  --transicao: var(--transition-fast, 150ms ease);
+
+  background: var(--cor-fundo);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  padding: var(--espacamento);
+  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pix-qrcode,
+  .pix-qrcode * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (prefers-contrast: high) {
+  .pix-qrcode {
+    --cor-borda: #000;
+    --cor-texto-secundario: #333;
+  }
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+
+.pix-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.pix-metodo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pix-icone {
+  font-size: 2rem;
+}
+
+.pix-metodo strong {
+  display: block;
+  font-size: 1.125rem;
+  color: var(--cor-texto);
+}
+
+.pix-valor {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--cor-primaria);
+}
+
+.pix-tempo {
+  text-align: right;
+}
+
+.tempo-label {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--cor-texto-secundario);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.tempo-valor {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--cor-aviso);
+  font-family: monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.tempo-expirado {
+  display: block;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--cor-erro);
+  animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tempo-expirado {
+    animation: none;
+  }
+}
+
+/* ============================================
+   QR CODE CONTAINER
+   ============================================ */
+
+.pix-qrcode-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
+  background: var(--cor-fundo);
+  border: 2px dashed var(--cor-borda);
+  border-radius: 12px;
+  margin-bottom: 24px;
+  min-height: 200px;
+}
+
+.pix-qrcode-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: var(--sombra);
+}
+
+.pix-qrcode-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: var(--cor-texto-secundario);
+  text-align: center;
+}
+
+.qrcode-placeholder {
+  opacity: 0.5;
+}
+
+.pix-copia-cola-label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--cor-primaria);
+}
+
+/* ============================================
+   PIX COPIA E COLA
+   ============================================ */
+
+.pix-copia-cola {
+  margin-bottom: 24px;
+}
+
+.pix-copia-cola-label {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--cor-texto-secundario);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.pix-copia-cola-input-wrapper {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.pix-copia-cola-input {
+  flex: 1;
+  min-height: 80px;
+  padding: 12px;
+  border: 2px solid var(--cor-borda);
+  border-radius: 8px;
+  font-family: monospace;
+  font-size: 0.75rem;
+  color: var(--cor-texto);
+  background: var(--cor-fundo);
+  resize: vertical;
+  transition: border-color var(--transicao);
+}
+
+.pix-copia-cola-input:focus-visible {
+  outline: none;
+  border-color: var(--cor-primaria);
+  box-shadow: 0 0 0 3px var(--cor-fundo-destaque);
+}
+
+.btn-copiar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+  border: 2px solid var(--cor-primaria);
+  border-radius: 8px;
+  background: var(--cor-primaria);
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--transicao);
+  flex-shrink: 0;
+}
+
+.btn-copiar:hover:not(:disabled) {
+  background: var(--cor-primaria-hover);
+  border-color: var(--cor-primaria-hover);
+}
+
+.btn-copiar:focus-visible {
+  outline: 2px solid var(--cor-primaria);
+  outline-offset: 2px;
+}
+
+.btn-copiar.copiado {
+  background: var(--cor-sucesso);
+  border-color: var(--cor-sucesso);
+  cursor: default;
+}
+
+.btn-copiar:disabled {
+  opacity: 0.8;
+}
+
+.pix-copia-cola-desc {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--cor-texto-secundario);
+}
+
+/* ============================================
+   INSTRUÇÕES
+   ============================================ */
+
+.pix-instrucoes {
+  padding: 16px;
+  background: var(--cor-fundo-destaque);
+  border-radius: 10px;
+  border: 1px solid var(--cor-borda);
+}
+
+.pix-instrucoes h4 {
+  margin: 0 0 12px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--cor-texto);
+}
+
+.pix-instrucoes ol {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 0.875rem;
+  color: var(--cor-texto);
+  line-height: 1.8;
+}
+
+.pix-instrucoes li::marker {
+  color: var(--cor-primaria);
+  font-weight: 600;
+}
+
+.pix-nota {
+  margin: 12px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--cor-borda);
+  font-size: 0.8125rem;
+  color: var(--cor-sucesso);
+  font-weight: 500;
+}
+
+/* ============================================
+   EXPIRADO
+   ============================================ */
+
+.pix-expirado {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  margin-top: 16px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.expirado-icone {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.pix-expirado strong {
+  display: block;
+  color: var(--cor-erro);
+  margin-bottom: 4px;
+}
+
+.pix-expirado p {
+  margin: 0 0 12px;
+  font-size: 0.875rem;
+  color: var(--cor-texto-secundario);
+}
+
+.btn-gerar-novo {
+  padding: 8px 16px;
+  border: 2px solid var(--cor-erro);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--cor-erro);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transicao);
+}
+
+.btn-gerar-novo:hover {
+  background: var(--cor-erro);
+  color: white;
+}
+
+.btn-gerar-novo:focus-visible {
+  outline: 2px solid var(--cor-erro);
+  outline-offset: 2px;
+}
+
+/* ============================================
+   ESTADO EXPIRADO GERAL
+   ============================================ */
+
+.pix-qrcode.expirado .pix-qrcode-image {
+  opacity: 0.5;
+  filter: grayscale(1);
+}
+
+.pix-qrcode.expirado .tempo-valor {
+  color: var(--cor-erro);
+}
+
+/* ============================================
+   RESPONSIVO
+   ============================================ */
+
+@media (max-width: 480px) {
+  .pix-header {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+  }
+
+  .pix-tempo {
+    text-align: center;
+  }
+
+  .pix-copia-cola-input-wrapper {
+    flex-direction: column;
+  }
+
+  .btn-copiar {
+    width: 100%;
+  }
+
+  .pix-qrcode-container {
+    padding: 16px;
+  }
+}
