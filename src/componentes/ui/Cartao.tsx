@@ -232,9 +232,9 @@ interface CartaoPublicacaoProps {
     tagServico?: string;
     src?: string;
     tipo: 'imagem' | 'video';
-    curtidas: string[];
-    salvos: string[];
-    comentarios: Array<{ id: string; nomeAutor: string; texto: string }>;
+    curtidas: number;
+    salvos: number;
+    comentarios: number;
     dataCriacao: number;
     usuarioCurtiu: boolean;
     usuarioSalvou: boolean;
@@ -285,7 +285,7 @@ export const CartaoPublicacao = ({
         </div>
       </CartaoCabecalho>
 
-      {(src || (tipo as string) !== 'texto') ? (
+      {(src || tipo) ? (
         <CartaoMidia
           className="cartao-publicacao__midia"
           src={src}
@@ -329,7 +329,7 @@ export const CartaoPublicacao = ({
             ariaLabel={usuarioCurtiu ? 'Descurtir' : 'Curtir'}
             data-testid={`${testId}-curtir`}
           />
-          <span className="cartao-publicacao__contador">{formatarNumeroCurto(curtidas.length)}</span>
+          <span className="cartao-publicacao__contador">{formatarNumeroCurto(curtidas)}</span>
 
           <BotaoIcone
             icone={usuarioSalvou ? <Icone nome="salvar" tamanho={16} /> : <Icone nome="salvarVazio" tamanho={16} />}
@@ -339,7 +339,7 @@ export const CartaoPublicacao = ({
             ariaLabel={usuarioSalvou ? 'Remover das inspirações' : 'Salvar'}
             data-testid={`${testId}-salvar`}
           />
-          <span className="cartao-publicacao__contador">{formatarNumeroCurto(salvos.length)}</span>
+          <span className="cartao-publicacao__contador">{formatarNumeroCurto(salvos)}</span>
 
           <BotaoIcone
             icone={<Icone nome="compartilhar" tamanho={16} />}
@@ -350,9 +350,9 @@ export const CartaoPublicacao = ({
             data-testid={`${testId}-compartilhar`}
           />
 
-          {comentarios.length > 0 && (
+          {comentarios > 0 && (
             <span className="cartao-publicacao__comentarios">
-              <Icone nome="mensagem" tamanho={16} /> {formatarNumeroCurto(comentarios.length)}
+              <Icone nome="mensagem" tamanho={16} /> {formatarNumeroCurto(comentarios)}
             </span>
           )}
         </div>

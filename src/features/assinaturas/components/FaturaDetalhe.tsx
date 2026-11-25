@@ -3,7 +3,6 @@
  * Acessível, 6 estados, WCAG 2.2 AA.
  */
 
-import React from 'react';
 import type { Fatura, FaturaItem } from '../types';
 import { formatarMoeda, formatarDataRelativa, formatarStatusFatura } from '../types';
 import './FaturaDetalhe.css';

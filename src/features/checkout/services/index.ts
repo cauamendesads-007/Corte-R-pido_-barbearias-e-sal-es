@@ -114,13 +114,17 @@ class CheckoutService implements ICheckoutService {
     const sessao = MOCK_SESSOES.get(id);
     if (!sessao) throw new Error('SESSAO_INEXISTENTE');
 
+    const pixDados = dadosPagamento as Partial<DadosPagamentoPix> | undefined;
+    const cartaoDados = dadosPagamento as Partial<DadosPagamentoCartao> | undefined;
+    const boletoDados = dadosPagamento as Partial<DadosPagamentoBoleto> | undefined;
+
     const atualizada: CheckoutSession = {
       ...sessao,
       status,
       dataPagamento: status === 'aprovado' ? new Date().toISOString() : sessao.dataPagamento,
-      pix: dadosPagamento?.['qrCode'] ? { ...sessao.pix, ...dadosPagamento } as DadosPagamentoPix : sessao.pix,
-      cartao: dadosPagamento?.['numero'] ? { ...sessao.cartao, ...dadosPagamento } as DadosPagamentoCartao : sessao.cartao,
-      boleto: dadosPagamento?.['codigoBarras'] ? { ...sessao.boleto, ...dadosPagamento } as DadosPagamentoBoleto : sessao.boleto,
+      pix: pixDados?.qrCode ? { ...sessao.pix, ...pixDados } as DadosPagamentoPix : sessao.pix,
+      cartao: cartaoDados?.numero ? { ...sessao.cartao, ...cartaoDados } as DadosPagamentoCartao : sessao.cartao,
+      boleto: boletoDados?.codigoBarras ? { ...sessao.boleto, ...boletoDados } as DadosPagamentoBoleto : sessao.boleto,
     };
 
     MOCK_SESSOES.set(id, atualizada);

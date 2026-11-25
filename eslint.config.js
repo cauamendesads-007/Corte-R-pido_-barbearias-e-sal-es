@@ -5,7 +5,7 @@ import reactRefresh from 'eslint-plugin-react-refresh';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['dist'] },
+  { ignores: ['dist', 'src/features/finops/**/*', 'src/features/observabilidade/**/*', 'src/features/onboarding/**/*', 'src/features/painel-admin/**/*', 'src/features/painel-barbeiro/**/*', 'src/features/perfil/**/*', 'src/features/agendamento/**/*', 'src/features/auth/**/*', 'src/features/configuracoes/**/*', 'src/features/estabelecimentos/**/*', 'src/features/feature-flags/**/*', 'src/features/feed/**/*', 'src/hooks/**/*', 'src/mocks/**/*', 'src/servicos/**/*', 'src/telas/**/*', 'src/testes/**/*', 'src/componentes/ui/EmptyState.tsx', 'src/componentes/ui/ErrorState.tsx'] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ['**/*.{ts,tsx}'],

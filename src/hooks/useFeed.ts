@@ -133,10 +133,10 @@ export const useFeed = (tipo: 'todos' | 'seguindo' | 'inspiracoes' | 'populares'
     if (!publicacao || !usuario) return;
 
     const jaCurtiu = publicacao.usuarioCurtiu;
-    const novaContagem = jaCurtiu ? publicacao.curtidas.length - 1 : publicacao.curtidas.length + 1;
+    const novaContagem = jaCurtiu ? publicacao.curtidas - 1 : publicacao.curtidas + 1;
 
     // Otimista
-    aplicarOtimista(id, { usuarioCurtiu: !jaCurtiu, curtidas: Array(novaContagem).fill('') });
+    aplicarOtimista(id, { usuarioCurtiu: !jaCurtiu, curtidas: novaContagem });
 
     try {
       const resposta = await api.feed.curtir(id, usuario.email);
@@ -204,10 +204,10 @@ export const useFeed = (tipo: 'todos' | 'seguindo' | 'inspiracoes' | 'populares'
       const primeiraMidia = dados.midias[0];
       const resposta = await api.feed.criar({
         estabelecimentoId: dados.estabelecimentoId,
-        tipo: primeiraMidia?.tipo || 'texto',
-        src: primeiraMidia?.src,
+        tipo: 'outro',
         legenda: dados.legenda,
         tagServico,
+        midias: primeiraMidia ? [{ tipo: primeiraMidia.tipo, src: primeiraMidia.src }] : [],
       });
 
       if (resposta.sucesso && resposta.dados) {

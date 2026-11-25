@@ -1,0 +1,65 @@
+/**
+ * Estilos do Perfil - Página principal do perfil.
+ * Design system escuro, 6 estados, responsivo, reduced-motion, high-contrast.
+ */
+
+.perfil {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-6);
+  min-height: 100%;
+}
+
+.perfil__erro-global {
+  margin-bottom: var(--espaco-4);
+}
+
+.perfil__erro {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Header skeleton */
+.perfil__header-skeleton {
+  border-radius: var(--raio-xl);
+  overflow: hidden;
+}
+
+.perfil__abas-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+}
+
+/* Abas */
+.perfil__abas {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+  .perfil {
+    gap: var(--espaco-4);
+  }
+}
+
+/* High Contrast */
+@media (prefers-contrast: high) {
+  .perfil__erro-global,
+  .perfil__erro {
+    border-width: 2px;
+  }
+}
+
+/* Print */
+@media print {
+  .perfil__abas {
+    display: none !important;
+  }
+
+  .perfil {
+    gap: var(--espaco-4);
+  }
+}

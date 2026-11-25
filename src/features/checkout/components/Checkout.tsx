@@ -3,10 +3,11 @@
  * Idempotência, AbortController, LGPD-ready, WCAG 2.2 AA.
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import type {
   ItemCheckout,
   CheckoutSession,
+  DadosPagamentoCartao,
 } from '../types';
 import { useCheckout } from '../hooks/useCheckout';
 import { StickySummary } from './StickySummary';
@@ -94,7 +95,7 @@ export function Checkout({
     try {
       const resultado = await pagarCartao(dados);
       if (resultado.autorizado && sessao) {
-        const sessaoAtualizada = { ...sessao, status: 'aprovado' as StatusPagamento };
+        const sessaoAtualizada: CheckoutSession = { ...sessao, status: 'aprovado' };
         setModalSucesso(sessaoAtualizada);
         aoSucesso?.(sessaoAtualizada);
       }
@@ -102,6 +103,10 @@ export function Checkout({
       // Erro tratado no hook
     }
   }, [pagarCartao, sessao, aoSucesso]);
+
+  const handleGerarBoleto = useCallback(async () => {
+    await gerarBoleto();
+  }, [gerarBoleto]);
 
   const handleFecharSucesso = useCallback(() => {
     setModalSucesso(null);
@@ -127,7 +132,7 @@ export function Checkout({
         metodoSelecionado={metodoSelecionado}
         carregando={carregando}
         aoSelecionarMetodo={trocarMetodo}
-        aoPagar={() => { /* handled by forms */ }}
+        aoPagar={async () => { /* handled by forms */ }}
       />
 
       <div className="checkout-container">
@@ -148,9 +153,9 @@ export function Checkout({
 
           {/* Formulário baseado no método selecionado */}
           <div className="checkout-formulario" role="region" aria-label={`Pagamento com ${metodoSelecionado}`}>
-            {metodoSelecionado === 'pix' && (
+            {metodoSelecionado === 'pix' && pixDados && (
               <PixQrCode
-                dados={pixDados!}
+                dados={pixDados}
                 aoCopiar={copiarPixCopiaCola}
                 aoExpirar={() => setPixGerado(false)}
                 tempoRestante={pixTempoRestante}
@@ -162,15 +167,14 @@ export function Checkout({
                 valor={resumo.total}
                 aoPagar={handlePagarCartao}
                 carregando={carregando}
-                erro={erro}
               />
             )}
 
-            {metodoSelecionado === 'boleto' && (
+            {metodoSelecionado === 'boleto' && boletoDados && (
               <BoletoView
                 dados={boletoDados}
                 carregando={carregando}
-                aoGerar={gerarBoleto}
+                aoGerar={handleGerarBoleto}
               />
             )}
 

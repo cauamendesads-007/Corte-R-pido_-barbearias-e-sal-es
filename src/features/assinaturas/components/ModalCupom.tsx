@@ -174,7 +174,7 @@ export function ModalCupom({ aberto, aoAplicar, aoFechar }: ModalCupomProps) {
               {validacao.valido ? (
                 <>
                   <span className="feedback-icone" aria-hidden="true">✓</span>
-                  <span>Cupom válido! Desconto de <strong>{validacao.valorDesconto > 0 ? `R$ ${(validacao.valorDesconto / 100).toFixed(2).replace('.', ',')}` : 'valor especial'}</strong></span>
+                  <span>Cupom válido! Desconto de <strong>{validacao.valorDesconto && validacao.valorDesconto > 0 ? `R$ ${(validacao.valorDesconto / 100).toFixed(2).replace('.', ',')}` : 'valor especial'}</strong></span>
                 </>
               ) : (
                 <>

@@ -1,0 +1,274 @@
+/**
+ * Estilos do PerfilAtividades - Histórico de atividades.
+ * Design system escuro, 6 estados, responsivo, reduced-motion, high-contrast.
+ */
+
+.perfil-atividades {
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-xl);
+}
+
+.perfil-atividades__filtros-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-1);
+  padding: var(--espaco-1) var(--espaco-3);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-md);
+  background: var(--cor-superficie);
+  color: var(--cor-texto);
+  font-size: var(--fonte-tamanho-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color var(--transicao-rapida), background-color var(--transicao-rapida);
+}
+
+.perfil-atividades__filtros-btn:hover {
+  border-color: var(--cor-borda-hover);
+  background: var(--cor-superficie-hover);
+}
+
+.perfil-atividades__filtros-btn:focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .perfil-atividades__filtros-btn {
+    transition: none;
+  }
+}
+
+/* Painel de filtros */
+.perfil-atividades__filtros {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--espaco-3);
+  padding: var(--espaco-4);
+  background: var(--cor-fundo);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-lg);
+  margin-bottom: var(--espaco-4);
+  animation: perfil-atividades__slide-down 0.2s ease-out;
+}
+
+@keyframes perfil-atividades__slide-down {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .perfil-atividades__filtros {
+    animation: none;
+  }
+}
+
+.perfil-atividades__filtros-data {
+  display: flex;
+  gap: var(--espaco-3);
+}
+
+.perfil-atividades__limpar-filtros {
+  padding: var(--espaco-2) var(--espaco-3);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-md);
+  background: transparent;
+  color: var(--cor-texto-secundario);
+  font-size: var(--fonte-tamanho-sm);
+  cursor: pointer;
+  transition: color var(--transicao-rapida), border-color var(--transicao-rapida);
+  align-self: end;
+}
+
+.perfil-atividades__limpar-filtros:hover {
+  color: var(--cor-perigo);
+  border-color: var(--cor-perigo);
+}
+
+/* Lista */
+.perfil-atividades__lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+}
+
+.perfil-atividades__item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espaco-3);
+  padding: var(--espaco-3);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-lg);
+  transition: border-color var(--transicao-rapida), box-shadow var(--transicao-rapida);
+}
+
+.perfil-atividades__item:hover {
+  border-color: var(--cor-borda-hover);
+  box-shadow: var(--sombra-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .perfil-atividades__item {
+    transition: none;
+  }
+}
+
+.perfil-atividades__item-icone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--raio-md);
+  background: var(--cor-atividade-fraca, var(--cor-primaria-fraca));
+  color: var(--cor-atividade, var(--cor-primaria));
+  flex-shrink: 0;
+}
+
+.perfil-atividades__item-conteudo {
+  flex: 1;
+  min-width: 0;
+}
+
+.perfil-atividades__item-descricao {
+  margin: 0 0 var(--espaco-1);
+  font-size: var(--fonte-tamanho-sm);
+  color: var(--cor-texto);
+  line-height: 1.4;
+}
+
+.perfil-atividades__item-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  font-size: var(--fonte-tamanho-xs);
+  color: var(--cor-texto-terciario);
+}
+
+.perfil-atividades__item-tempo {
+  white-space: nowrap;
+}
+
+.perfil-atividades__item-separador {
+  color: var(--cor-borda);
+}
+
+.perfil-atividades__item-ip {
+  font-family: var(--fonte-mono);
+  font-size: var(--fonte-tamanho-xs);
+}
+
+.perfil-atividades__item-menu {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: var(--raio-md);
+  background: transparent;
+  color: var(--cor-texto-terciario);
+  cursor: pointer;
+  transition: background-color var(--transicao-rapida), color var(--transicao-rapida);
+  flex-shrink: 0;
+}
+
+.perfil-atividades__item-menu:hover {
+  background: var(--cor-fundo);
+  color: var(--cor-texto);
+}
+
+/* Sentinel */
+.perfil-atividades__sentinel {
+  height: 20px;
+}
+
+.perfil-atividades__carregando-mais {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--espaco-2);
+  padding: var(--espaco-4);
+  color: var(--cor-texto-terciario);
+  font-size: var(--fonte-tamanho-sm);
+}
+
+.perfil-atividades__spinner {
+  animation: perfil-atividades__spin 1s linear infinite;
+}
+
+@keyframes perfil-atividades__spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .perfil-atividades__spinner {
+    animation: none;
+  }
+}
+
+/* Empty */
+.perfil-atividades__empty {
+  padding: var(--espaco-8);
+}
+
+/* Skeleton */
+.perfil-atividades__skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+}
+
+/* Responsivo */
+@media (max-width: 480px) {
+  .perfil-atividades__filtros {
+    grid-template-columns: 1fr;
+  }
+
+  .perfil-atividades__filtros-data {
+    flex-direction: column;
+  }
+
+  .perfil-atividades__limpar-filtros {
+    width: 100%;
+  }
+}
+
+/* High Contrast */
+@media (prefers-contrast: high) {
+  .perfil-atividades__item {
+    border-width: 2px;
+  }
+
+  .perfil-atividades__filtros {
+    border-width: 2px;
+  }
+}
+
+/* Print */
+@media print {
+  .perfil-atividades__filtros-btn,
+  .perfil-atividades__filtros,
+  .perfil-atividades__item-menu,
+  .perfil-atividades__carregando-mais {
+    display: none !important;
+  }
+
+  .perfil-atividades {
+    border: 1px solid #000 !important;
+    break-inside: avoid;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .perfil-atividades__item {
+    break-inside: avoid;
+    border: 1px solid #000 !important;
+    background: white !important;
+  }
+}

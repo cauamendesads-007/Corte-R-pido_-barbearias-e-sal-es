@@ -1,0 +1,195 @@
+/**
+ * Estilos do Onboarding - Componente principal.
+ * Design system escuro, 6 estados, responsivo, reduced-motion, high-contrast.
+ */
+
+.onboarding {
+  max-width: 600px;
+  margin: 0 auto;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-xl);
+  overflow: hidden;
+}
+
+/* Progresso */
+.onboarding__progresso {
+  padding: var(--espaco-4) var(--espaco-6);
+  background: var(--cor-fundo);
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.onboarding__barra-progresso {
+  margin-bottom: var(--espaco-3);
+}
+
+.onboarding__progresso-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--fonte-tamanho-xs);
+  color: var(--cor-texto-terciario);
+}
+
+.onboarding__etapa-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 0 var(--espaco-1);
+  transition: color var(--transicao-rapida);
+}
+
+.onboarding__etapa-label.ativa {
+  color: var(--cor-primaria);
+  font-weight: 600;
+}
+
+.onboarding__etapa-label.atual::after {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--cor-primaria);
+  margin-top: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .onboarding__etapa-label {
+    transition: none;
+  }
+}
+
+/* Erro e rascunho */
+.onboarding__erro,
+.onboarding__rascunho {
+  margin: var(--espaco-4) var(--espaco-6);
+  border-radius: var(--raio-lg);
+}
+
+.onboarding__rascunho {
+  background: var(--cor-aviso-fraca);
+  border-color: var(--cor-aviso);
+  color: var(--cor-aviso);
+}
+
+/* Etapa container */
+.onboarding__etapa-container {
+  padding: var(--espaco-6);
+  min-height: 400px;
+}
+
+.onboarding__etapa-wrapper {
+  animation: onboarding__fade-in 0.3s ease-out;
+}
+
+@keyframes onboarding__fade-in {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .onboarding__etapa-wrapper {
+    animation: none;
+  }
+}
+
+/* Navegação mobile */
+.onboarding__navegacao-mobile {
+  display: none;
+  padding: var(--espaco-4) var(--espaco-6);
+  background: var(--cor-fundo);
+  border-top: 1px solid var(--cor-borda);
+}
+
+.onboarding__botoes-mobile {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--espaco-3);
+}
+
+.onboarding__btn-mobile {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+  .onboarding {
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    margin: calc(var(--espaco-4) * -1) calc(var(--espaco-4) * -1);
+    min-height: 100vh;
+  }
+
+  .onboarding__progresso {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .onboarding__etapa-container {
+    padding: var(--espaco-4);
+    min-height: calc(100vh - 160px);
+  }
+
+  .onboarding__navegacao-mobile {
+    display: block;
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+  }
+}
+
+@media (max-width: 480px) {
+  .onboarding__progresso-labels span {
+    font-size: 10px;
+    padding: 0 2px;
+  }
+
+  .onboarding__btn-mobile {
+    padding: var(--espaco-2) var(--espaco-3);
+    font-size: var(--fonte-tamanho-sm);
+  }
+}
+
+/* High Contrast */
+@media (prefers-contrast: high) {
+  .onboarding {
+    border-width: 2px;
+  }
+
+  .onboarding__progresso {
+    border-bottom-width: 2px;
+  }
+
+  .onboarding__navegacao-mobile {
+    border-top-width: 2px;
+  }
+
+  .onboarding__etapa-label.atual::after {
+    border: 2px solid currentColor;
+    background: transparent;
+  }
+}
+
+/* Print */
+@media print {
+  .onboarding__navegacao-mobile,
+  .onboarding__erro,
+  .onboarding__rascunho {
+    display: none !important;
+  }
+
+  .onboarding {
+    border: 1px solid #000 !important;
+    break-inside: avoid;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .onboarding__progresso {
+    border-bottom: 1px solid #000 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

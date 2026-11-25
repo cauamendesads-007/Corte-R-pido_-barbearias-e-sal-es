@@ -409,7 +409,7 @@ const Perfil = () => {
               <div className="perfil__grid-inspiracoes" role="list" data-testid="perfil-inspiracoes-grid">
                 {inspiracaoSalvas.map((inspiracao) => (
                   <article key={inspiracao.id} className="perfil__inspiracao-item" data-testid={`perfil-inspiracao-${inspiracao.id}`}>
-                    {inspiracao.src && <img src={inspiracao.src} alt={inspiracao.legenda} />}
+                    {inspiracao.midias?.[0]?.src && <img src={inspiracao.midias[0].src} alt={inspiracao.legenda} />}
                     <p>{inspiracao.legenda}</p>
                   </article>
                 ))}

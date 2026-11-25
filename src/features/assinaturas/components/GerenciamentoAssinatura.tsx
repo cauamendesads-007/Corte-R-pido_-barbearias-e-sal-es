@@ -10,7 +10,8 @@ import type {
   CicloFaturamento,
   GerenciamentoAssinaturaProps,
 } from '../types';
-import { formatarMoeda, formatarDataRelativa, formatarStatusAssinatura, formatarStatusFatura, obterPlanoPorId } from '../types';
+import { formatarMoeda, formatarDataRelativa, obterPlanoPorId } from '../types';
+import { formatarStatusAssinatura, formatarStatusFatura } from '../rules';
 import { useGerenciamentoAssinatura } from '../hooks/useAssinaturas';
 import { ModalConfirmacao } from './ModalConfirmacao';
 import { ModalCupom } from './ModalCupom';
@@ -636,8 +637,8 @@ export function GerenciamentoAssinatura(props: GerenciamentoAssinaturaProps) {
       {modalCupom && (
         <ModalCupom
           aberto={modalCupom.aberto}
-          planoId={modalCupom.planoId}
-          ciclo={modalCupom.ciclo}
+          _planoId={modalCupom.planoId}
+          _ciclo={modalCupom.ciclo}
           aoAplicar={async (codigo) => {
             await aoAplicarCupom(codigo);
             setModalCupom(null);

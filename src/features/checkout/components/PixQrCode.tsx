@@ -3,7 +3,7 @@
  * Acessível, 6 estados, WCAG 2.2 AA, prefers-reduced-motion.
  */
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { PixQrCodeProps } from '../types';
 import { formatarMoeda } from '../types';
 import './PixQrCode.css';

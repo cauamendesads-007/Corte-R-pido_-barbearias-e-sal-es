@@ -74,10 +74,10 @@ const Feed = () => {
       const primeiraMidia = midias[0];
       const resposta = await api.feed.criar({
         estabelecimentoId: usuario?.estabelecimentoId || '',
-        tipo: primeiraMidia?.tipo || 'texto',
-        src: primeiraMidia?.src,
+        tipo: 'outro',
         legenda: legenda.trim(),
         tagServico,
+        midias: primeiraMidia ? [{ tipo: primeiraMidia.tipo, src: primeiraMidia.src }] : [],
       });
 
       if (resposta.sucesso && resposta.dados) {
@@ -142,18 +142,24 @@ const Feed = () => {
         <main className="feed__main" role="main">
           <section className="feed__lista" aria-label="Publicações">
             {publicacoes
-              .filter((p) => p.tipo !== 'texto') // CartaoPublicacao só suporta imagem/video
               .map((publicacao) => (
                 <article key={publicacao.id} className="feed__publicacao-item">
                   <CartaoPublicacao
                     publicacao={{
-                      ...publicacao,
-                      tipo: publicacao.tipo as 'imagem' | 'video',
+                      id: publicacao.id,
+                      legenda: publicacao.legenda,
+                      tagServico: publicacao.tagServico,
+                      src: publicacao.midias?.[0]?.src,
+                      tipo: (publicacao.midias?.[0]?.tipo || 'imagem') as 'imagem' | 'video',
+                      curtidas: publicacao.curtidas,
+                      salvos: publicacao.salvos,
+                      comentarios: publicacao.comentarios,
+                      dataCriacao: publicacao.dataCriacao,
                       usuarioCurtiu: publicacao.usuarioCurtiu ?? false,
                       usuarioSalvou: publicacao.usuarioSalvou ?? false,
                       estabelecimento: {
                         id: publicacao.estabelecimentoId,
-                        nome: '',
+                        nome: publicacao.autorNome,
                         cidade: '',
                         tema: { cor: '' },
                         avaliacao: 0,

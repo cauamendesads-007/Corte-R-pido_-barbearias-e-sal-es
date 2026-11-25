@@ -3,7 +3,7 @@
  * Acessível, focus trap, WCAG 2.2 AA.
  */
 
-import React, { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import type { CheckoutSession } from '../types';
 import { formatarMoeda, formatarDataRelativa } from '../types';
 import './ModalSucesso.css';

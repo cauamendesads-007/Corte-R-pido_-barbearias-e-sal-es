@@ -1,0 +1,261 @@
+/**
+ * Estilos do AgendamentosBarbeiro
+ * Preserva 100% visual escuro atual, WCAG 2.2 AA
+ */
+
+.agendamentos-barbeiro {
+  --cor-fundo: var(--cor-superficie, #1a1a2e);
+  --cor-borda: var(--cor-borda, #2d2d44);
+  --cor-texto: var(--cor-texto, #eaeaea);
+  --cor-texto-secundario: var(--cor-texto-secundario, #a0a0b0);
+  --cor-primaria: var(--cor-primaria, #d4a843);
+  --raio: var(--raio-md, 12px);
+  --transicao: var(--transicao-media, 250ms cubic-bezier(0.4, 0, 0.2, 1));
+}
+
+.agendamentos-barbeiro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-lg, 24px);
+}
+
+/* Toolbar */
+.agendamentos-barbeiro__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--espaco-md, 16px);
+  padding: var(--espaco-md, 16px);
+  background: var(--cor-fundo);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+}
+
+.agendamentos-barbeiro__busca {
+  flex: 1;
+  min-width: 250px;
+}
+
+.agendamentos-barbeiro__filtros {
+  display: flex;
+  gap: var(--espaco-sm, 12px);
+}
+
+/* Lista */
+.agendamentos-barbeiro__lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-md, 16px);
+}
+
+.agendamentos-barbeiro__item {
+  background: var(--cor-fundo);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  overflow: hidden;
+  transition: border-color var(--transicao-rapida), box-shadow var(--transicao-rapida);
+}
+
+.agendamentos-barbeiro__item:hover {
+  border-color: rgba(212, 168, 67, 0.3);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+
+.agendamentos-barbeiro__item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--espaco-md, 16px);
+  border-bottom: 1px solid var(--cor-borda);
+  background: rgba(255,255,255,0.02);
+}
+
+.agendamentos-barbeiro__item-data {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.agendamentos-barbeiro__horario {
+  font-size: var(--tamanho-lg, 18px);
+  font-weight: 600;
+  color: var(--cor-texto);
+  font-variant-numeric: tabular-nums;
+}
+
+.agendamentos-barbeiro__tempo {
+  font-size: var(--tamanho-xs, 12px);
+  color: var(--cor-texto-secundario);
+}
+
+.agendamentos-barbeiro__menu-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: none;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  color: var(--cor-texto-secundario);
+  cursor: pointer;
+  transition: all var(--transicao-rapida);
+}
+
+.agendamentos-barbeiro__menu-btn:hover {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(212, 168, 67, 0.3);
+  color: var(--cor-primaria);
+}
+
+.agendamentos-barbeiro__item-conteudo {
+  padding: var(--espaco-md, 16px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-md, 16px);
+}
+
+.agendamentos-barbeiro__item-cliente {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-md, 16px);
+}
+
+.agendamentos-barbeiro__cliente-nome {
+  display: block;
+  font-size: var(--tamanho-base, 16px);
+  font-weight: 600;
+  color: var(--cor-texto);
+}
+
+.agendamentos-barbeiro__servico {
+  display: block;
+  font-size: var(--tamanho-sm, 14px);
+  color: var(--cor-texto-secundario);
+}
+
+.agendamentos-barbeiro__servico-meta {
+  display: block;
+  font-size: var(--tamanho-xs, 12px);
+  color: var(--cor-texto-secundario);
+  margin-top: 2px;
+}
+
+.agendamentos-barbeiro__observacoes {
+  margin: 0;
+  padding: var(--espaco-sm, 12px);
+  background: rgba(255,255,255,0.02);
+  border-radius: var(--raio);
+  font-size: var(--tamanho-sm, 14px);
+  color: var(--cor-texto-secundario);
+  font-style: italic;
+  border-left: 3px solid var(--cor-primaria);
+}
+
+.agendamentos-barbeiro__item-status {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Carregando mais */
+.agendamentos-barbeiro__carregando-mais {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espaco-sm, 12px);
+  padding: var(--espaco-lg, 24px);
+  color: var(--cor-texto-secundario);
+  font-size: var(--tamanho-sm, 14px);
+}
+
+.agendamentos-barbeiro__spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.agendamentos-barbeiro__fim {
+  text-align: center;
+  padding: var(--espaco-lg, 24px);
+  color: var(--cor-texto-secundario);
+  font-size: var(--tamanho-sm, 14px);
+}
+
+/* Empty/Error */
+.agendamentos-barbeiro__empty {
+  padding: var(--espaco-xl, 32px);
+}
+
+/* Skeleton */
+.agendamentos-barbeiro__skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-md, 16px);
+}
+
+.agendamentos-barbeiro__toolbar-skeleton {
+  display: flex;
+  gap: var(--espaco-md, 16px);
+  padding: var(--espaco-md, 16px);
+}
+
+.agendamentos-barbeiro__item-skeleton {
+  padding: var(--espaco-md, 16px);
+}
+
+/* Modal */
+.agendamentos-barbeiro__modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-md, 16px);
+}
+
+.agendamentos-barbeiro__modal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--espaco-md, 16px);
+}
+
+.agendamentos-barbeiro__modal-acoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--espaco-sm, 12px);
+  margin-top: var(--espaco-sm, 12px);
+  padding-top: var(--espaco-md, 16px);
+  border-top: 1px solid var(--cor-borda);
+}
+
+/* Redução de movimento */
+@media (prefers-reduced-motion: reduce) {
+  .agendamentos-barbeiro__item,
+  .agendamentos-barbeiro__menu-btn,
+  .agendamentos-barbeiro__spinner {
+    transition: none;
+    animation: none;
+  }
+}
+
+/* Alto contraste */
+@media (prefers-contrast: high) {
+  .agendamentos-barbeiro__item {
+    border-width: 2px;
+  }
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+  .agendamentos-barbeiro__toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .agendamentos-barbeiro__busca {
+    min-width: 0;
+  }
+  .agendamentos-barbeiro__modal-grid {
+    grid-template-columns: 1fr;
+  }
+}

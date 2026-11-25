@@ -235,3 +235,16 @@ export function formatarMoeda(centavos: number, locale = 'pt-BR'): string {
     minimumFractionDigits: 2,
   }).format(centavos / 100);
 }
+
+export function formatarDataRelativa(dataISO: string): string {
+  const data = new Date(dataISO);
+  const agora = new Date();
+  const diffMs = data.getTime() - agora.getTime();
+  const diffDias = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDias < 0) return `${Math.abs(diffDias)} dia${Math.abs(diffDias) !== 1 ? 's' : ''} atrás`;
+  if (diffDias === 0) return 'Hoje';
+  if (diffDias === 1) return 'Amanhã';
+  if (diffDias <= 7) return `Em ${diffDias} dia${diffDias !== 1 ? 's' : ''}`;
+  return data.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}

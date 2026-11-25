@@ -1,0 +1,133 @@
+/**
+ * Estilos da Aba Privacidade.
+ * Design system escuro, 6 estados, responsivo, reduced-motion, high-contrast.
+ */
+
+.aba-privacidade {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-6);
+}
+
+.aba-privacidade__cartao {
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-lg);
+}
+
+.aba-privacidade__switches {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+}
+
+.aba-privacidade__radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+}
+
+/* Radio customizado no contexto da aba */
+.aba-privacidade .radio {
+  padding: var(--espaco-2) 0;
+}
+
+.aba-privacidade .radio:disabled {
+  opacity: 0.5;
+}
+
+.aba-privacidade .radio__label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+  flex: 1;
+  cursor: pointer;
+}
+
+.aba-privacidade .radio:disabled .radio__label {
+  cursor: not-allowed;
+}
+
+.aba-privacidade .radio__rotulo {
+  font-size: var(--fonte-tamanho-base);
+  font-weight: 500;
+  color: var(--cor-texto);
+}
+
+.aba-privacidade .radio:disabled .radio__rotulo {
+  color: var(--cor-texto-terciario);
+}
+
+.aba-privacidade .radio__descricao {
+  font-size: var(--fonte-tamanho-sm);
+  color: var(--cor-texto-secundario);
+}
+
+/* Ações */
+.aba-privacidade__acoes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+}
+
+.aba-privacidade__acao-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--espaco-4);
+  padding: var(--espaco-3) 0;
+}
+
+.aba-privacidade__acao-item:not(:last-child) {
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.aba-privacidade__acao-info h4 {
+  margin: 0 0 var(--espaco-1);
+  font-size: var(--fonte-tamanho-base);
+  font-weight: 600;
+  color: var(--cor-texto);
+}
+
+.aba-privacidade__acao-info p {
+  margin: 0;
+  font-size: var(--fonte-tamanho-sm);
+  color: var(--cor-texto-secundario);
+}
+
+/* Responsivo */
+@media (max-width: 480px) {
+  .aba-privacidade__acao-item {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--espaco-3);
+  }
+
+  .aba-privacidade__acao-item .botao {
+    width: 100%;
+  }
+}
+
+/* High Contrast */
+@media (prefers-contrast: high) {
+  .aba-privacidade__cartao {
+    border-width: 2px;
+  }
+
+  .aba-privacidade .radio__input:focus-visible + .radio__indicador {
+    outline-width: 3px;
+  }
+
+  .aba-privacidade .switch__input:focus-visible + .switch__slider {
+    outline-width: 3px;
+  }
+}
+
+/* Print */
+@media print {
+  .aba-privacidade__cartao {
+    border: 1px solid #000 !important;
+    break-inside: avoid;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

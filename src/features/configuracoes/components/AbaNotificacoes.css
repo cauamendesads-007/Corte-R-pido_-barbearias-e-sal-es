@@ -1,0 +1,91 @@
+/**
+ * Estilos da Aba Notificações.
+ * Design system escuro, 6 estados, responsivo, reduced-motion, high-contrast.
+ */
+
+.aba-notificacoes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-6);
+}
+
+.aba-notificacoes__cartao {
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-lg);
+}
+
+.aba-notificacoes__switches {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+}
+
+.aba-notificacoes__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--espaco-4);
+}
+
+/* Switch customizado no contexto da aba */
+.aba-notificacoes .switch {
+  padding: var(--espaco-2) 0;
+}
+
+.aba-notificacoes .switch:disabled {
+  opacity: 0.5;
+}
+
+.aba-notificacoes .switch__label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+  flex: 1;
+  cursor: pointer;
+}
+
+.aba-notificacoes .switch:disabled .switch__label {
+  cursor: not-allowed;
+}
+
+.aba-notificacoes .switch__rotulo {
+  font-size: var(--fonte-tamanho-base);
+  font-weight: 500;
+  color: var(--cor-texto);
+}
+
+.aba-notificacoes .switch:disabled .switch__rotulo {
+  color: var(--cor-texto-terciario);
+}
+
+.aba-notificacoes .switch__descricao {
+  font-size: var(--fonte-tamanho-sm);
+  color: var(--cor-texto-secundario);
+}
+
+/* Responsivo */
+@media (max-width: 480px) {
+  .aba-notificacoes__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* High Contrast */
+@media (prefers-contrast: high) {
+  .aba-notificacoes__cartao {
+    border-width: 2px;
+  }
+
+  .aba-notificacoes .switch__input:focus-visible + .switch__slider {
+    outline-width: 3px;
+  }
+}
+
+/* Print */
+@media print {
+  .aba-notificacoes__cartao {
+    border: 1px solid #000 !important;
+    break-inside: avoid;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

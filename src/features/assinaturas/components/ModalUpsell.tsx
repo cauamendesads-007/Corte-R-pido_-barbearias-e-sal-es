@@ -3,7 +3,7 @@
  * Não bloqueia fluxo principal, dismissível, WCAG 2.2 AA.
  */
 
-import React, { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import type { VerificacaoLimite, PlanoId } from '../types';
 import { obterPlanoPorId, formatarMoeda } from '../types';
 import './ModalUpsell.css';
@@ -20,7 +20,6 @@ export function ModalUpsell({ aberto, verificacao, aoFechar, aoUpgrade }: ModalU
   const previousActiveElement = useRef<HTMLElement | null>(null);
 
   const planoSugerido = verificacao?.planoSugerido ? obterPlanoPorId(verificacao.planoSugerido) : null;
-  const planoAtual = verificacao ? obterPlanoPorId(verificacao.recurso as string) : null;
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (!aberto) return;
@@ -143,26 +142,26 @@ export function ModalUpsell({ aberto, verificacao, aoFechar, aoUpgrade }: ModalU
             </div>
           </div>
 
-          <ul className="upsell-beneficios" aria-label="Benefícios adicionais">
-            {planoSugerido.limites.relatoriosFinanceiros && !planoAtual?.limites.relatoriosFinanceiros && (
+          <ul className="upsell-beneficios" aria-label="Benefícios do plano">
+            {planoSugerido.limites.relatoriosFinanceiros && (
               <li>✓ Relatórios financeiros completos</li>
             )}
-            {planoSugerido.limites.apiAcesso && !planoAtual?.limites.apiAcesso && (
+            {planoSugerido.limites.apiAcesso && (
               <li>✓ Acesso à API para integrações</li>
             )}
-            {planoSugerido.limites.suportePrioritario && !planoAtual?.limites.suportePrioritario && (
+            {planoSugerido.limites.suportePrioritario && (
               <li>✓ Suporte prioritário</li>
             )}
-            {planoSugerido.limites.marcaBranca && !planoAtual?.limites.marcaBranca && (
+            {planoSugerido.limites.marcaBranca && (
               <li>✓ Marca branca (white label)</li>
             )}
-            {planoSugerido.limites.barbeiros === -1 && planoAtual?.limites.barbeiros !== -1 && (
+            {planoSugerido.limites.barbeiros === -1 && (
               <li>✓ Barbeiros ilimitados</li>
             )}
-            {planoSugerido.limites.cadeiras === -1 && planoAtual?.limites.cadeiras !== -1 && (
+            {planoSugerido.limites.cadeiras === -1 && (
               <li>✓ Cadeiras ilimitadas</li>
             )}
-            {planoSugerido.limites.agendamentosMes === -1 && planoAtual?.limites.agendamentosMes !== -1 && (
+            {planoSugerido.limites.agendamentosMes === -1 && (
               <li>✓ Agendamentos ilimitados por mês</li>
             )}
           </ul>

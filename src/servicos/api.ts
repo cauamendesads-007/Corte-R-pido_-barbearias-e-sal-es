@@ -310,8 +310,11 @@ export async function excluirConta(): Promise<ResultadoServico<void>> {
     estadoGlobal.agendamentos[estId] = estadoGlobal.agendamentos[estId].filter((a) => a.usuarioId !== sessao.email);
   });
   estadoGlobal.publicacoes.forEach((p) => {
-    p.curtidas = p.curtidas.filter((id) => id !== sessao.email);
-    p.salvos = p.salvos.filter((id) => id !== sessao.email);
+    // curtidas and salvos are now numbers (counters), not arrays
+    // In a real app, we'd track which users liked/saved separately
+    // For mock, we just decrement if they had liked/saved
+    if (p.usuarioCurtiu) p.curtidas = Math.max(0, p.curtidas - 1);
+    if (p.usuarioSalvou) p.salvos = Math.max(0, p.salvos - 1);
   });
 
   estadoGlobal.sessao = null;
@@ -1372,7 +1375,7 @@ export async function listarFeed(filtro: string, usuarioEmail?: string): Promise
   }
 
   if (filtro === 'salvos' && usuarioEmail) {
-    pubs = pubs.filter((p) => p.salvos.includes(usuarioEmail));
+    pubs = pubs.filter((p) => p.usuarioSalvou);
   }
 
   // Algoritmo simples de recomendação
@@ -1407,19 +1410,28 @@ export async function obterPublicacao(id: string): Promise<ResultadoServico<Publ
 }
 
 /** Criar publicação */
-export async function criarPublicacao(dados: Omit<Publicacao, 'id' | 'curtidas' | 'salvos' | 'visualizacoes' | 'compartilhamentos' | 'comentarios' | 'dataCriacao'>): Promise<ResultadoServico<Publicacao>> {
+export async function criarPublicacao(dados: Omit<Publicacao, 'id' | 'curtidas' | 'salvos' | 'visualizacoes' | 'compartilhamentos' | 'comentarios' | 'dataCriacao' | 'criadoEm' | 'autorId' | 'autorNome' | 'conteudo' | 'usuarioCurtiu' | 'estaCurtido' | 'usuarioSalvou' | 'estaSalvo'>): Promise<ResultadoServico<Publicacao>> {
   await simularLatencia();
   simularErroAleatorio();
 
+  const agora = Date.now();
   const nova: Publicacao = {
     ...dados,
     id: `post-${gerarId()}`,
-    curtidas: [],
-    salvos: [],
+    autorId: '',
+    autorNome: '',
+    conteudo: dados.legenda,
+    curtidas: 0,
+    salvos: 0,
     visualizacoes: 0,
     compartilhamentos: 0,
-    comentarios: [],
-    dataCriacao: Date.now(),
+    comentarios: 0,
+    dataCriacao: agora,
+    criadoEm: agora,
+    usuarioCurtiu: false,
+    estaCurtido: false,
+    usuarioSalvou: false,
+    estaSalvo: false,
   };
 
   estadoGlobal.publicacoes.unshift(nova);
@@ -1446,25 +1458,31 @@ export async function criarPublicacao(dados: Omit<Publicacao, 'id' | 'curtidas' 
 }
 
 /** Curtir/descurtir publicação */
-export async function alternarCurtida(publicacaoId: string, usuarioEmail: string): Promise<ResultadoServico<{ curtido: boolean; total: number }>> {
+export async function alternarCurtida(publicacaoId: string, _usuarioEmail: string): Promise<ResultadoServico<{ curtido: boolean; total: number }>> {
   await simularLatencia();
   simularErroAleatorio();
 
   const pub = estadoGlobal.publicacoes.find((p) => p.id === publicacaoId);
   if (!pub) return falha('Publicação não encontrada.');
 
-  const idx = pub.curtidas.indexOf(usuarioEmail);
+  // In mock, we use the usuarioCurtiu flag to track state
+  // Real implementation would check a separate curtidas table
+  const jaCurtiu = pub.usuarioCurtiu;
   let curtido: boolean;
-  if (idx >= 0) {
-    pub.curtidas.splice(idx, 1);
+  if (jaCurtiu) {
+    pub.curtidas = Math.max(0, pub.curtidas - 1);
+    pub.usuarioCurtiu = false;
+    pub.estaCurtido = false;
     curtido = false;
   } else {
-    pub.curtidas.push(usuarioEmail);
+    pub.curtidas += 1;
+    pub.usuarioCurtiu = true;
+    pub.estaCurtido = true;
     curtido = true;
   }
 
   persistirEstado();
-  return sucesso({ curtido, total: pub.curtidas.length });
+  return sucesso({ curtido, total: pub.curtidas });
 }
 
 /** Salvar/remover inspiração */
@@ -1519,14 +1537,20 @@ export async function adicionarComentario(publicacaoId: string, autorNome: strin
   const pub = estadoGlobal.publicacoes.find((p) => p.id === publicacaoId);
   if (!pub) return falha('Publicação não encontrada.');
 
+  const agora = Date.now();
   const comentario: Comentario = {
     id: `cmt-${gerarId()}`,
+    publicacaoId,
+    autorId: '',
+    autorNome,
+    autorAvatar: '',
     nomeAutor: autorNome,
     texto,
-    dataCriacao: Date.now(),
+    dataCriacao: agora,
+    criadoEm: agora,
   };
 
-  pub.comentarios.push(comentario);
+  pub.comentarios += 1;
   persistirEstado();
 
   return sucesso(comentario);
@@ -1565,22 +1589,31 @@ export async function obterPublicacaoWrapper(publicacaoId: string): Promise<Resu
 }
 
 /** Criar publicação (core) */
-export async function criarPublicacaoFeed(dados: Omit<Publicacao, 'id' | 'curtidas' | 'salvos' | 'comentarios' | 'dataCriacao' | 'visualizacoes' | 'compartilhamentos'>): Promise<ResultadoServico<Publicacao>> {
+export async function criarPublicacaoFeed(dados: Omit<Publicacao, 'id' | 'curtidas' | 'salvos' | 'comentarios' | 'dataCriacao' | 'criadoEm' | 'visualizacoes' | 'compartilhamentos' | 'autorId' | 'autorNome' | 'conteudo' | 'usuarioCurtiu' | 'estaCurtido' | 'usuarioSalvou' | 'estaSalvo'>): Promise<ResultadoServico<Publicacao>> {
   await simularLatencia();
   simularErroAleatorio();
 
   const est = estadoGlobal.estabelecimentos.find((e) => e.id === dados.estabelecimentoId);
   if (!est) return falha('Estabelecimento não encontrado.');
 
+  const agora = Date.now();
   const nova: Publicacao = {
     ...dados,
     id: `pub-${gerarId()}`,
-    curtidas: [],
-    salvos: [],
-    comentarios: [],
+    autorId: '',
+    autorNome: '',
+    conteudo: dados.legenda,
+    curtidas: 0,
+    salvos: 0,
+    comentarios: 0,
     visualizacoes: 0,
     compartilhamentos: 0,
-    dataCriacao: Date.now(),
+    dataCriacao: agora,
+    criadoEm: agora,
+    usuarioCurtiu: false,
+    estaCurtido: false,
+    usuarioSalvou: false,
+    estaSalvo: false,
   };
 
   estadoGlobal.publicacoes.unshift(nova);

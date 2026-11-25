@@ -1,0 +1,567 @@
+/**
+ * Estilos do PainelAdmin - Dashboard administrativo.
+ * Design system escuro, 6 estados, responsivo, reduced-motion, high-contrast.
+ */
+
+.painel-admin {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-6);
+  min-height: 100%;
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+.painel-admin__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--espaco-4);
+  flex-wrap: wrap;
+  padding-bottom: var(--espaco-4);
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.painel-admin__header-esquerda {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+}
+
+.painel-admin__titulo {
+  font-size: var(--fonte-tamanho-2xl);
+  font-weight: 700;
+  color: var(--cor-texto);
+  margin: 0;
+}
+
+.painel-admin__alertas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+}
+
+/* ============================================
+   MÉTRICAS
+   ============================================ */
+.painel-admin__metricas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--espaco-4);
+}
+
+.painel-admin__cartao-metrica {
+  height: 100%;
+}
+
+.painel-admin__metrica {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-4);
+}
+
+.painel-admin__metrica-icone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--raio-lg);
+  flex-shrink: 0;
+}
+
+.painel-admin__metrica-icone.primario {
+  background: var(--cor-primaria-fraca);
+  color: var(--cor-primaria);
+}
+
+.painel-admin__metrica-icone.sucesso {
+  background: var(--cor-sucesso-fraca);
+  color: var(--cor-sucesso);
+}
+
+.painel-admin__metrica-icone.aviso {
+  background: var(--cor-aviso-fraca);
+  color: var(--cor-aviso);
+}
+
+.painel-admin__metrica-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.painel-admin__metrica-valor {
+  font-size: var(--fonte-tamanho-2xl);
+  font-weight: 700;
+  color: var(--cor-texto);
+  line-height: 1.2;
+}
+
+.painel-admin__metrica-label {
+  font-size: var(--fonte-tamanho-sm);
+  font-weight: 500;
+  color: var(--cor-texto-secundario);
+}
+
+.painel-admin__metrica-subtitulo {
+  font-size: var(--fonte-tamanho-xs);
+  color: var(--cor-texto-terciario);
+}
+
+/* ============================================
+   ABAS
+   ============================================ */
+.painel-admin__abas {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+}
+
+/* ============================================
+   TABELA WRAPPER
+   ============================================ */
+.painel-admin__tabela-wrapper {
+  overflow-x: auto;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-lg);
+  background: var(--cor-superficie);
+}
+
+/* ============================================
+   AÇÕES CELL
+   ============================================ */
+.painel-admin__acoes-cell {
+  display: flex;
+  gap: var(--espaco-1);
+}
+
+.painel-admin__btn-acao {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: var(--raio-md);
+  cursor: pointer;
+  transition: background-color var(--transicao-rapida), transform var(--transicao-rapida);
+}
+
+.painel-admin__btn-acao:hover {
+  transform: scale(1.05);
+}
+
+.painel-admin__btn-acao:active {
+  transform: scale(0.95);
+}
+
+.painel-admin__btn-acao:focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+.painel-admin__btn-acao.sucesso {
+  background: var(--cor-sucesso-fraca);
+  color: var(--cor-sucesso);
+}
+
+.painel-admin__btn-acao.sucesso:hover {
+  background: var(--cor-sucesso);
+  color: white;
+}
+
+.painel-admin__btn-acao.perigo {
+  background: var(--cor-perigo-fraca);
+  color: var(--cor-perigo);
+}
+
+.painel-admin__btn-acao.perigo:hover {
+  background: var(--cor-perigo);
+  color: white;
+}
+
+.painel-admin__btn-acao.aviso {
+  background: var(--cor-aviso-fraca);
+  color: var(--cor-aviso);
+}
+
+.painel-admin__btn-acao.aviso:hover {
+  background: var(--cor-aviso);
+  color: white;
+}
+
+.painel-admin__btn-acao.primario {
+  background: var(--cor-primaria-fraca);
+  color: var(--cor-primaria);
+}
+
+.painel-admin__btn-acao.primario:hover {
+  background: var(--cor-primaria);
+  color: white;
+}
+
+.painel-admin__btn-acao:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ============================================
+   SLUG
+   ============================================ */
+.painel-admin__slug {
+  display: block;
+  font-size: var(--fonte-tamanho-xs);
+  color: var(--cor-texto-terciario);
+  margin-top: 2px;
+}
+
+/* ============================================
+   EMPTY STATE
+   ============================================ */
+.painel-admin__empty {
+  padding: var(--espaco-12) var(--espaco-6);
+}
+
+/* ============================================
+   MODAL OVERLAY
+   ============================================ */
+.painel-admin__modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: var(--espaco-4);
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity var(--transicao-normal);
+}
+
+.painel-admin__modal-overlay.aberto {
+  display: flex;
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .painel-admin__modal-overlay {
+    transition: none;
+  }
+}
+
+.painel-admin__modal {
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-xl);
+  padding: var(--espaco-6);
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--sombra-xl);
+  transform: scale(0.95);
+  transition: transform var(--transicao-normal);
+}
+
+.painel-admin__modal-overlay.aberto .painel-admin__modal {
+  transform: scale(1);
+}
+
+.painel-admin__modal h3 {
+  margin: 0 0 var(--espaco-3);
+  font-size: var(--fonte-tamanho-lg);
+  font-weight: 600;
+  color: var(--cor-texto);
+}
+
+.painel-admin__modal p {
+  margin: 0 0 var(--espaco-2);
+  color: var(--cor-texto-secundario);
+  font-size: var(--fonte-tamanho-sm);
+}
+
+.painel-admin__modal p strong {
+  color: var(--cor-texto);
+}
+
+.painel-admin__modal-grid {
+  display: grid;
+  gap: var(--espaco-3);
+  margin-bottom: var(--espaco-3);
+}
+
+.painel-admin__modal label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+}
+
+.painel-admin__modal label span {
+  font-size: var(--fonte-tamanho-sm);
+  font-weight: 500;
+  color: var(--cor-texto-secundario);
+}
+
+.painel-admin__modal-textarea {
+  width: 100%;
+  padding: var(--espaco-3);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-md);
+  background: var(--cor-fundo);
+  color: var(--cor-texto);
+  font-family: inherit;
+  font-size: var(--fonte-tamanho-sm);
+  resize: vertical;
+  min-height: 100px;
+  transition: border-color var(--transicao-rapida), box-shadow var(--transicao-rapida);
+}
+
+.painel-admin__modal-textarea:focus {
+  outline: none;
+  border-color: var(--cor-primaria);
+  box-shadow: 0 0 0 3px var(--cor-primaria-fraca);
+}
+
+.painel-admin__modal-select {
+  padding: var(--espaco-2) var(--espaco-3);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-md);
+  background: var(--cor-fundo);
+  color: var(--cor-texto);
+  font-family: inherit;
+  font-size: var(--fonte-tamanho-sm);
+  cursor: pointer;
+}
+
+.painel-admin__modal-acoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--espaco-3);
+  margin-top: var(--espaco-4);
+  padding-top: var(--espaco-4);
+  border-top: 1px solid var(--cor-borda);
+}
+
+.painel-admin__btn-primario {
+  padding: var(--espaco-2) var(--espaco-4);
+  border: none;
+  border-radius: var(--raio-md);
+  background: var(--cor-primaria);
+  color: white;
+  font-weight: 500;
+  font-size: var(--fonte-tamanho-sm);
+  cursor: pointer;
+  transition: background-color var(--transicao-rapida), opacity var(--transicao-rapida);
+}
+
+.painel-admin__btn-primario:hover:not(:disabled) {
+  background: var(--cor-primaria-hover);
+}
+
+.painel-admin__btn-primario:active:not(:disabled) {
+  background: var(--cor-primaria-active);
+}
+
+.painel-admin__btn-primario:focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+.painel-admin__btn-primario:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.painel-admin__btn-primario.perigo {
+  background: var(--cor-perigo);
+}
+
+.painel-admin__btn-primario.perigo:hover:not(:disabled) {
+  background: var(--cor-perigo-hover);
+}
+
+.painel-admin__btn-secundario {
+  padding: var(--espaco-2) var(--espaco-4);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-md);
+  background: transparent;
+  color: var(--cor-texto);
+  font-weight: 500;
+  font-size: var(--fonte-tamanho-sm);
+  cursor: pointer;
+  transition: background-color var(--transicao-rapida), border-color var(--transicao-rapida);
+}
+
+.painel-admin__btn-secundario:hover {
+  background: var(--cor-superficie-hover);
+  border-color: var(--cor-borda-hover);
+}
+
+.painel-admin__btn-secundario:focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+/* ============================================
+   SKELETON
+   ============================================ */
+.painel-admin__skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-6);
+}
+
+.painel-admin__header-skeleton {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--espaco-4);
+}
+
+.painel-admin__metricas-skeleton {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--espaco-4);
+}
+
+.painel-admin__metrica-skeleton {
+  padding: var(--espaco-4);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-lg);
+}
+
+/* ============================================
+   BADGE
+   ============================================ */
+.painel-admin__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-1);
+  font-size: var(--fonte-tamanho-xs);
+}
+
+/* ============================================
+   RESPONSIVO
+   ============================================ */
+@media (max-width: 768px) {
+  .painel-admin {
+    gap: var(--espaco-4);
+  }
+
+  .painel-admin__header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .painel-admin__header-esquerda {
+    width: 100%;
+  }
+
+  .painel-admin__metricas {
+    grid-template-columns: 1fr;
+  }
+
+  .painel-admin__metrica {
+    gap: var(--espaco-3);
+  }
+
+  .painel-admin__metrica-icone {
+    width: 40px;
+    height: 40px;
+  }
+
+  .painel-admin__metrica-valor {
+    font-size: var(--fonte-tamanho-xl);
+  }
+
+  .painel-admin__tabela-wrapper {
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    margin: calc(var(--espaco-4) * -1) calc(var(--espaco-4) * -1);
+  }
+
+  .painel-admin__modal {
+    margin: var(--espaco-4);
+    max-height: calc(100vh - 2 * var(--espaco-4));
+    padding: var(--espaco-4);
+  }
+}
+
+@media (max-width: 480px) {
+  .painel-admin__titulo {
+    font-size: var(--fonte-tamanho-xl);
+  }
+
+  .painel-admin__modal-acoes {
+    flex-direction: column-reverse;
+  }
+
+  .painel-admin__btn-primario,
+  .painel-admin__btn-secundario {
+    width: 100%;
+  }
+}
+
+/* ============================================
+   HIGH CONTRAST
+   ============================================ */
+@media (prefers-contrast: high) {
+  .painel-admin__btn-acao {
+    border: 2px solid currentColor;
+  }
+
+  .painel-admin__metrica-icone {
+    border: 2px solid currentColor;
+  }
+
+  .painel-admin__modal {
+    border-width: 2px;
+  }
+
+  .painel-admin__modal-textarea,
+  .painel-admin__modal-select {
+    border-width: 2px;
+  }
+
+  .painel-admin__btn-primario {
+    border: 2px solid white;
+  }
+
+  .painel-admin__btn-secundario {
+    border-width: 2px;
+  }
+}
+
+/* ============================================
+   PRINT
+   ============================================ */
+@media print {
+  .painel-admin__btn-acao,
+  .painel-admin__modal-overlay,
+  .painel-admin__modal-acoes {
+    display: none !important;
+  }
+
+  .painel-admin__tabela-wrapper {
+    overflow: visible;
+  }
+
+  .painel-admin__metricas {
+    display: flex;
+    flex-wrap: wrap;
+    page-break-inside: avoid;
+  }
+
+  .painel-admin__cartao-metrica {
+    break-inside: avoid;
+    border: 1px solid #000 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

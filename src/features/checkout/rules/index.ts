@@ -244,8 +244,9 @@ export function validarCartaoCompleto(dados: Partial<DadosPagamentoCartao>): Val
 function calcularDigitoCPF(cpf: string, posicao: number): number {
   let soma = 0;
   const peso = posicao === 1 ? 10 : 11;
+  const limite = posicao === 1 ? 9 : 10;
 
-  for (let i = 0; i < posicao === 1 ? 9 : 10; i++) {
+  for (let i = 0; i < limite; i++) {
     soma += parseInt(cpf[i], 10) * (peso - i);
   }
 

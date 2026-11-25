@@ -3,8 +3,7 @@
  * 6 estados, WCAG 2.2 AA, prefers-reduced-motion.
  */
 
-import React from 'react';
-import type { StickySummaryProps } from '../types';
+import type { StickySummaryProps, MetodoPagamento } from '../types';
 import { formatarMoeda } from '../types';
 import { useStickySummary } from '../hooks/useCheckout';
 import './StickySummary.css';

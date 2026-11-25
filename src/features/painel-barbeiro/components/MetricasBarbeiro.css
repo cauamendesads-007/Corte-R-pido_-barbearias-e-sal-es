@@ -1,0 +1,367 @@
+/**
+ * Estilos do MetricasBarbeiro
+ * Preserva 100% visual escuro atual, WCAG 2.2 AA
+ */
+
+.metricas-barbeiro {
+  --cor-fundo: var(--cor-superficie, #1a1a2e);
+  --cor-borda: var(--cor-borda, #2d2d44);
+  --cor-texto: var(--cor-texto, #eaeaea);
+  --cor-texto-secundario: var(--cor-texto-secundario, #a0a0b0);
+  --cor-primaria: var(--cor-primaria, #d4a843);
+  --cor-sucesso: var(--cor-sucesso, #4ade80);
+  --cor-aviso: var(--cor-aviso, #fbbf24);
+  --cor-perigo: var(--cor-perigo, #ef4444);
+  --raio: var(--raio-lg, 16px);
+  --raio-md: var(--raio-md, 12px);
+  --transicao: var(--transicao-media, 250ms cubic-bezier(0.4, 0, 0.2, 1));
+}
+
+.metricas-barbeiro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-lg, 24px);
+}
+
+/* Header */
+.metricas-barbeiro__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--espaco-md, 16px);
+  padding: var(--espaco-md, 16px);
+  background: var(--cor-fundo);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+}
+
+.metricas-barbeiro__header-esquerda {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-lg, 24px);
+  flex-wrap: wrap;
+}
+
+.metricas-barbeiro__titulo {
+  margin: 0;
+  font-size: var(--tamanho-xl, 24px);
+  font-weight: 700;
+  color: var(--cor-texto);
+}
+
+/* Período */
+.metricas-barbeiro__periodo {
+  display: flex;
+  gap: var(--espaco-xs, 4px);
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-md);
+  padding: var(--espaco-xs, 4px);
+}
+
+.metricas-barbeiro__periodo-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-xs, 4px);
+  padding: var(--espaco-sm, 12px) var(--espaco-md, 16px);
+  background: none;
+  border: none;
+  border-radius: var(--raio-sm);
+  color: var(--cor-texto-secundario);
+  font-size: var(--tamanho-sm, 14px);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transicao-rapida);
+}
+
+.metricas-barbeiro__periodo-btn:hover {
+  background: rgba(255,255,255,0.05);
+  color: var(--cor-texto);
+}
+
+.metricas-barbeiro__periodo-btn.ativo {
+  background: var(--cor-primaria);
+  color: #0f0f1a;
+}
+
+.metricas-barbeiro__periodo-btn:focus-visible {
+  outline: 2px solid var(--cor-primaria);
+  outline-offset: 2px;
+}
+
+/* Exportar */
+.metricas-barbeiro__exportar-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: var(--espaco-xs, 4px);
+  background: var(--cor-fundo);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-md);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+  min-width: 160px;
+  z-index: 100;
+  animation: menu-entrada 0.15s ease-out;
+}
+
+@keyframes menu-entrada {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.metricas-barbeiro__exportar-menu button {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-sm, 12px);
+  width: 100%;
+  padding: var(--espaco-sm, 12px) var(--espaco-md, 16px);
+  background: none;
+  border: none;
+  color: var(--cor-texto);
+  font-size: var(--tamanho-sm, 14px);
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--transicao-rapida);
+}
+
+.metricas-barbeiro__exportar-menu button:hover {
+  background: rgba(255,255,255,0.05);
+}
+
+.metricas-barbeiro__exportar-menu button:focus-visible {
+  outline: 2px solid var(--cor-primaria);
+  outline-offset: -2px;
+}
+
+/* Cards */
+.metricas-barbeiro__cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--espaco-md, 16px);
+}
+
+.metricas-barbeiro__cartao {
+  border: 1px solid var(--cor-borda);
+}
+
+.metricas-barbeiro__metrica {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espaco-md, 16px);
+}
+
+.metricas-barbeiro__metrica-icone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--raio-md);
+  flex-shrink: 0;
+}
+
+.metricas-barbeiro__metrica-icone.primario {
+  background: rgba(212, 168, 67, 0.15);
+  color: var(--cor-primaria);
+}
+
+.metricas-barbeiro__metrica-icone.sucesso {
+  background: rgba(74, 222, 128, 0.15);
+  color: var(--cor-sucesso);
+}
+
+.metricas-barbeiro__metrica-icone.aviso {
+  background: rgba(251, 191, 36, 0.15);
+  color: var(--cor-aviso);
+}
+
+.metricas-barbeiro__metrica-icone.perigo {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--cor-perigo);
+}
+
+.metricas-barbeiro__metrica-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.metricas-barbeiro__metrica-valor {
+  font-size: var(--tamanho-xl, 24px);
+  font-weight: 700;
+  color: var(--cor-texto);
+  line-height: 1;
+}
+
+.metricas-barbeiro__metrica-titulo {
+  font-size: var(--tamanho-sm, 14px);
+  color: var(--cor-texto-secundario);
+}
+
+.metricas-barbeiro__metrica-subtitulo {
+  font-size: var(--tamanho-xs, 12px);
+  color: var(--cor-texto-secundario);
+  opacity: 0.8;
+}
+
+/* Seções */
+.metricas-barbeiro__secao {
+  margin-top: var(--espaco-sm, 12px);
+}
+
+.metricas-barbeiro__cartao-tabela {
+  border: 1px solid var(--cor-borda);
+}
+
+.metricas-barbeiro__secao-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--espaco-md, 16px);
+}
+
+.metricas-barbeiro__secao-titulo {
+  margin: 0;
+  font-size: var(--tamanho-lg, 18px);
+  font-weight: 600;
+  color: var(--cor-texto);
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-sm, 12px);
+}
+
+/* Tabela */
+.metricas-barbeiro__tabela-wrapper {
+  overflow-x: auto;
+}
+
+.metricas-barbeiro__tabela-wrapper .tabela {
+  width: 100%;
+}
+
+/* Horários de pico */
+.metricas-barbeiro__horarios-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-md, 16px);
+}
+
+.metricas-barbeiro__horario-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-xs, 4px);
+}
+
+.metricas-barbeiro__horario-label {
+  font-size: var(--tamanho-base, 16px);
+  font-weight: 600;
+  color: var(--cor-texto);
+  font-variant-numeric: tabular-nums;
+}
+
+.metricas-barbeiro__horario-barra {
+  height: 8px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.metricas-barbeiro__horario-preenchimento {
+  height: 100%;
+  background: var(--cor-primaria);
+  border-radius: 4px;
+  transition: width 0.5s ease-out;
+}
+
+.metricas-barbeiro__horario-valor {
+  font-size: var(--tamanho-sm, 14px);
+  color: var(--cor-texto-secundario);
+  text-align: right;
+}
+
+/* Empty */
+.metricas-barbeiro__empty {
+  padding: var(--espaco-xl, 32px);
+}
+
+/* Skeleton */
+.metricas-barbeiro__skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-lg, 24px);
+}
+
+.metricas-barbeiro__header-skeleton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--espaco-md, 16px);
+}
+
+.metricas-barbeiro__cards-skeleton {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--espaco-md, 16px);
+}
+
+.metricas-barbeiro__card-skeleton {
+  padding: var(--espaco-md, 16px);
+}
+
+/* Redução de movimento */
+@media (prefers-reduced-motion: reduce) {
+  .metricas-barbeiro__horario-preenchimento {
+    transition: none;
+  }
+  .metricas-barbeiro__exportar-menu {
+    animation: none;
+  }
+}
+
+/* Alto contraste */
+@media (prefers-contrast: high) {
+  .metricas-barbeiro__periodo-btn {
+    border: 1px solid currentColor;
+  }
+  .metricas-barbeiro__horario-barra {
+    border: 1px solid currentColor;
+  }
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+  .metricas-barbeiro__header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .metricas-barbeiro__header-esquerda {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--espaco-md, 16px);
+  }
+  .metricas-barbeiro__periodo {
+    width: 100%;
+    justify-content: center;
+  }
+  .metricas-barbeiro__cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .metricas-barbeiro__cards {
+    grid-template-columns: 1fr;
+  }
+  .metricas-barbeiro__periodo {
+    flex-wrap: wrap;
+  }
+}

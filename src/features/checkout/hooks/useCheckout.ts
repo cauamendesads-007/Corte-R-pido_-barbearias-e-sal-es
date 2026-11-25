@@ -547,6 +547,3 @@ export function useCartaoForm() {
     dadosCartao,
   };
 }
-
-// Import identificarBandeira para uso no hook
-import { identificarBandeira } from '../rules';

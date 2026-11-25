@@ -1,7 +1,7 @@
 /**
  * UI Components - Exportações centralizadas
  * Botao, CampoTexto, Modal, Cartao, Chip, Avatar, Toast, Skeleton,
- * Textarea, Select, Checkbox, Radio, Icone
+ * Textarea, Select, Checkbox, Radio, Icone, EmptyState, ErrorState
  */
 
 export { Icone, IconeGrupo, type NomeIcone, type IconeProps } from './Icone';
@@ -22,6 +22,9 @@ export { Textarea } from './Textarea';
 export { Select } from './Select';
 export { Checkbox, CheckboxGrupo, CheckboxToggle } from './Checkbox';
 export { Radio, RadioGrupo, RadioCard, RadioCardGrupo } from './Radio';
+export { EmptyState, type EmptyStateProps } from './EmptyState';
+export { ErrorState, type ErrorStateProps } from './ErrorState';
+export { ChipStatus } from './Chip';
 
 export type {
   PropsBotao,

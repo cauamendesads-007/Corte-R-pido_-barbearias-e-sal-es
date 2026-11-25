@@ -1,0 +1,207 @@
+/**
+ * Estilos da Etapa Tipo de Usuário.
+ * Design system escuro, 6 estados, responsivo, reduced-motion, high-contrast.
+ */
+
+.onboarding-etapa--tipo-usuario {
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.onboarding-etapa__header {
+  text-align: center;
+  margin-bottom: var(--espaco-4);
+}
+
+.onboarding-etapa__titulo {
+  margin: 0 0 var(--espaco-2);
+  font-size: var(--fonte-tamanho-2xl);
+  font-weight: 700;
+  color: var(--cor-texto);
+  line-height: 1.3;
+}
+
+.onboarding-etapa__subtitulo {
+  margin: 0;
+  font-size: var(--fonte-tamanho-base);
+  color: var(--cor-texto-secundario);
+  line-height: 1.6;
+}
+
+.onboarding-etapa__opcoes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+  margin-bottom: var(--espaco-6);
+}
+
+.onboarding-etapa__opcao {
+  display: flex;
+  gap: var(--espaco-4);
+  padding: var(--espaco-4);
+  border: 2px solid var(--cor-borda);
+  border-radius: var(--raio-xl);
+  background: var(--cor-superficie);
+  cursor: pointer;
+  transition: border-color var(--transicao-rapida), background-color var(--transicao-rapida), box-shadow var(--transicao-rapida);
+}
+
+.onboarding-etapa__opcao:hover {
+  border-color: var(--cor-borda-hover);
+  background: var(--cor-superficie-hover);
+  box-shadow: var(--sombra-sm);
+}
+
+.onboarding-etapa__opcao:focus-within {
+  border-color: var(--cor-foco);
+  box-shadow: 0 0 0 3px var(--cor-primaria-fraca);
+}
+
+.onboarding-etapa__opcao.selecionada {
+  border-color: var(--cor-primaria);
+  background: var(--cor-primaria-fraca);
+  box-shadow: 0 0 0 3px var(--cor-primaria-fraca);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .onboarding-etapa__opcao {
+    transition: none;
+  }
+}
+
+.onboarding-etapa__radio {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.onboarding-etapa__opcao-conteudo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+  flex: 1;
+  min-width: 0;
+}
+
+.onboarding-etapa__opcao-icone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--raio-lg);
+  background: var(--cor-primaria-fraca);
+  color: var(--cor-primaria);
+  flex-shrink: 0;
+}
+
+.onboarding-etapa__opcao.selecionada .onboarding-etapa__opcao-icone {
+  background: var(--cor-primaria);
+  color: white;
+}
+
+.onboarding-etapa__opcao-titulo {
+  margin: 0;
+  font-size: var(--fonte-tamanho-lg);
+  font-weight: 600;
+  color: var(--cor-texto);
+}
+
+.onboarding-etapa__opcao-descricao {
+  margin: 0;
+  font-size: var(--fonte-tamanho-sm);
+  color: var(--cor-texto-secundario);
+  line-height: 1.5;
+}
+
+.onboarding-etapa__opcao-features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+  margin: var(--espaco-2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.onboarding-etapa__opcao-features li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-1);
+  padding: var(--espaco-1) var(--espaco-2);
+  font-size: var(--fonte-tamanho-xs);
+  color: var(--cor-texto-terciario);
+  background: var(--cor-fundo);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-full);
+}
+
+.onboarding-etapa__opcao.selecionada .onboarding-etapa__opcao-features li {
+  background: var(--cor-primaria-fraca);
+  border-color: var(--cor-primaria);
+  color: var(--cor-primaria);
+}
+
+/* Ações */
+.onboarding-etapa__acoes {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--espaco-3);
+  padding-top: var(--espaco-4);
+  border-top: 1px solid var(--cor-borda);
+}
+
+.onboarding-etapa__acoes .botao {
+  min-width: 140px;
+}
+
+/* Responsivo */
+@media (max-width: 480px) {
+  .onboarding-etapa__opcao {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: var(--espaco-4) var(--espaco-3);
+  }
+
+  .onboarding-etapa__opcao-icone {
+    width: 48px;
+    height: 48px;
+  }
+
+  .onboarding-etapa__acoes {
+    flex-direction: column-reverse;
+  }
+
+  .onboarding-etapa__acoes .botao {
+    width: 100%;
+  }
+}
+
+/* High Contrast */
+@media (prefers-contrast: high) {
+  .onboarding-etapa__opcao {
+    border-width: 3px;
+  }
+
+  .onboarding-etapa__opcao.selecionada {
+    border-width: 4px;
+  }
+
+  .onboarding-etapa__opcao-features li {
+    border-width: 2px;
+  }
+}
+
+/* Print */
+@media print {
+  .onboarding-etapa__acoes {
+    display: none !important;
+  }
+
+  .onboarding-etapa--tipo-usuario {
+    border: 1px solid #000 !important;
+    break-inside: avoid;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

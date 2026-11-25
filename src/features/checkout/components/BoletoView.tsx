@@ -3,7 +3,7 @@
  * Acessível, 6 estados, WCAG 2.2 AA.
  */
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import type { DadosPagamentoBoleto } from '../types';
 import { formatarMoeda, formatarDataRelativa } from '../types';
 import './BoletoView.css';

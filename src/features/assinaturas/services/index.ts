@@ -384,7 +384,7 @@ class AssinaturasService implements IAssinaturasService {
 
     // Nova fatura
     this.faturaSequencial++;
-    const plano = PLANOS_DEFINICAO.find(p => p.id === this.assinaturaAtual.planoId)!;
+    const plano = PLANOS_DEFINICAO.find(p => p.id === this.assinaturaAtual!.planoId)!;
     const novaFatura: Fatura = {
       id: `fat_${this.faturaSequencial}`,
       assinaturaId: this.assinaturaAtual.id,

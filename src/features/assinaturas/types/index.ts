@@ -103,6 +103,7 @@ export interface ValidacaoCupom {
   cupom?: CupomDesconto;
   erro?: string;
   valorDesconto: number;       // em centavos
+  codigo?: string;             // código de erro para debugging
 }
 
 export interface VerificacaoLimite {
@@ -127,6 +128,7 @@ export interface GerenciamentoAssinaturaProps {
   historico: HistoricoPlano[];
   planos: PlanoAssinatura[];
   carregando: boolean;
+  erro?: string | null;
   aoTrocarPlano: (_planoId: PlanoId, _ciclo: CicloFaturamento) => Promise<void>;
   aoPausar: () => Promise<void>;
   aoCancelar: (_motivo: string) => Promise<void>;
@@ -232,4 +234,26 @@ export function calcularEconomiaAnual(plano: PlanoAssinatura): number {
 
 export function precoEfetivo(plano: PlanoAssinatura, ciclo: CicloFaturamento): number {
   return ciclo === 'anual' ? plano.precoAnual : plano.precoMensal;
+}
+
+export function formatarStatusAssinatura(status: StatusAssinatura): { label: string; cor: string } {
+  const map: Record<StatusAssinatura, { label: string; cor: string }> = {
+    ativa: { label: 'Ativa', cor: '#10b981' },
+    pausada: { label: 'Pausada', cor: '#f59e0b' },
+    cancelada: { label: 'Cancelada', cor: '#ef4444' },
+    expirada: { label: 'Expirada', cor: '#6b7280' },
+    pendente: { label: 'Pendente', cor: '#8b5cf6' },
+  };
+  return map[status] ?? { label: status, cor: '#6b7280' };
+}
+
+export function formatarStatusFatura(status: StatusFatura): { label: string; cor: string } {
+  const map: Record<StatusFatura, { label: string; cor: string }> = {
+    paga: { label: 'Paga', cor: '#10b981' },
+    pendente: { label: 'Pendente', cor: '#f59e0b' },
+    vencida: { label: 'Vencida', cor: '#ef4444' },
+    cancelada: { label: 'Cancelada', cor: '#6b7280' },
+    estornada: { label: 'Estornada', cor: '#8b5cf6' },
+  };
+  return map[status] ?? { label: status, cor: '#6b7280' };
 }

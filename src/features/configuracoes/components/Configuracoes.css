@@ -1,0 +1,57 @@
+/**
+ * Estilos do Configuracoes - Painel principal.
+ * Design system escuro, 6 estados, responsivo, reduced-motion, high-contrast.
+ */
+
+.configuracoes {
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-xl);
+}
+
+.configuracoes__erro {
+  margin-bottom: var(--espaco-4);
+}
+
+.configuracoes__abas {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+}
+
+.configuracoes__skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+  padding: var(--espaco-4);
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+  .configuracoes {
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    margin: calc(var(--espaco-4) * -1) calc(var(--espaco-4) * -1);
+  }
+}
+
+/* High Contrast */
+@media (prefers-contrast: high) {
+  .configuracoes {
+    border-width: 2px;
+  }
+}
+
+/* Print */
+@media print {
+  .configuracoes__abas {
+    display: none !important;
+  }
+
+  .configuracoes {
+    border: 1px solid #000 !important;
+    break-inside: avoid;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

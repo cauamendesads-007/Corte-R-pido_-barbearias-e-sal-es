@@ -56,14 +56,6 @@ export {
   validarIdempotencyKey,
   criarSessaoCheckout,
   ERRO_CODIGOS,
-  // Re-export utilitários
-  identificarBandeira,
-  formatarCartao,
-  formatarValidade,
-  formatarCPF_CNPJ,
-  calcularParcelas,
-  gerarIdempotencyKey,
-  formatarMoeda,
 } from './rules';
 
 // Services (DIP interface + implementation)

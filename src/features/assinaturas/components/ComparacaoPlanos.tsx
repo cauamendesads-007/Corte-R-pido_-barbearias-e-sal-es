@@ -135,8 +135,10 @@ export function ComparacaoPlanos(props: ComparacaoPlanosProps) {
   const planosOrdenados = useMemo(() => {
     if (!ordenacao) return planos;
     return [...planos].sort((a, b) => {
-      const va = (a as Record<string, unknown>)[ordenacao.campo];
-      const vb = (b as Record<string, unknown>)[ordenacao.campo];
+      const campo = ordenacao.campo as keyof PlanoAssinatura;
+      const va = a[campo];
+      const vb = b[campo];
+      if (va === undefined || vb === undefined) return 0;
       if (va < vb) return ordenacao.direcao === 'asc' ? -1 : 1;
       if (va > vb) return ordenacao.direcao === 'asc' ? 1 : -1;
       return 0;
@@ -195,7 +197,7 @@ export function ComparacaoPlanos(props: ComparacaoPlanosProps) {
               {planosOrdenados.map(plano => (
                 <ColunaOrdenavel
                   key={plano.id}
-                  campo="ordem"
+                  _campo="ordem"
                   ordenacao={ordenacao}
                   aoOrdenar={aoOrdenar}
                 >

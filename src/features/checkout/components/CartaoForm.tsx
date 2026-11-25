@@ -3,9 +3,9 @@
  * 6 estados, WCAG 2.2 AA, LGPD-ready (não armazena CVV).
  */
 
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import type { DadosPagamentoCartao, BandeiraCartao, CartaoFormProps } from '../types';
-import { identificarBandeira, calcularParcelas, BANDEIRA_LABELS, formatarMoeda } from '../types';
+import { calcularParcelas, BANDEIRA_LABELS, formatarMoeda } from '../types';
 import { validarCartaoCompleto } from '../rules';
 import { useCartaoForm } from '../hooks/useCheckout';
 import './CartaoForm.css';
@@ -39,20 +39,12 @@ export function CartaoForm({ valor, carregando, parcelasMaximas = 12 }: CartaoFo
     handleBlur,
     pagarCartao,
     dadosCartao,
-  } = useCartaoForm(valor);
+  } = useCartaoForm();
 
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   const parcelasDisponiveis = useMemo(() => calcularParcelas(valor, parcelasMaximas), [valor, parcelasMaximas]);
   const parcelaSelecionada = parcelasDisponiveis.find(p => p.numero === parcelas) || parcelasDisponiveis[0];
-
-  // Detectar bandeira em tempo real
-  useEffect(() => {
-    if (numero) {
-      identificarBandeira(numero);
-      // Bandeira é atualizada via hook
-    }
-  }, [numero]);
 
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,10 +70,10 @@ export function CartaoForm({ valor, carregando, parcelasMaximas = 12 }: CartaoFo
 
   return (
     <form className="cartao-form" onSubmit={handleSubmit} noValidate>
-      {erro && (
+      {erros._global && (
         <div className="form-erro-global" role="alert">
           <span aria-hidden="true">⚠</span>
-          <span>{erro}</span>
+          <span>{erros._global}</span>
         </div>
       )}
 

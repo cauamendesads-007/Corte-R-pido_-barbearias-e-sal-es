@@ -3,7 +3,7 @@
  * 6 estados visuais, WCAG 2.2 AA, prefers-reduced-motion.
  */
 
-import React, { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import './ModalConfirmacao.css';
 
 interface ModalConfirmacaoProps {
