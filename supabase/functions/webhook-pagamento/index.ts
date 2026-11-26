@@ -306,7 +306,7 @@ async function processBancoCentral(payload: WebhookPayload): Promise<ProcessResu
 // AÇÕES PÓS-PAGAMENTO
 // ============================================================================
 
-async function confirmarPagamentoAgendamento(agendamentoId: string, status: ProcessResult["status"], _transacaoId: string) {
+async function confirmarPagamentoAgendamento(agendamentoId: string, status: ProcessResult["status"]) {
   const novoStatusPagamento = status === "pago" ? "pago" : status === "estornado" ? "estornado" : "falhou";
   const novoStatusAgendamento = status === "pago" ? "confirmado" : "agendado";
 
@@ -478,7 +478,7 @@ serve(async (req) => {
 
     // 3. Identifica provedor e valida HMAC
     let provedor = "desconhecido";
-    let processFn: (payload: WebhookPayload) => Promise<ProcessResult>;
+    let processFn: (_payload: WebhookPayload) => Promise<ProcessResult>;
 
     // Mercado Pago: x-signature = sha256=...
     if (signature.startsWith("sha256=") && env.MERCADO_PAGO_WEBHOOK_SECRET) {

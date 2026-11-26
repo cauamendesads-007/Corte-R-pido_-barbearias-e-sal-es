@@ -310,7 +310,7 @@ serve(async (req) => {
   }
 
   // Idempotency-Key header (opcional mas recomendado)
-  const _idempotencyKey = req.headers.get("idempotency-key");
+  req.headers.get("idempotency-key");
 
   try {
     // 1. Autenticação
