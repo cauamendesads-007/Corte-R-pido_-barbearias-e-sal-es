@@ -86,10 +86,15 @@ export const SupabaseBarbeiroService = {
       const semanaStr = umaSemana.toISOString().split('T')[0];
 
       // Busca agendamentos do estabelecimento
-      const { data: agendamentos } = await supabase
+      const { data: agendamentos, error: agendamentosError } = await supabase
         .from('v_agendamentos_detalhados')
         .select('*')
         .eq('estabelecimento_id', estId);
+
+      if (agendamentosError) {
+        console.error('[SupabaseBarbeiroService.obterDashboardBarbeiro] Erro ao buscar agendamentos:', agendamentosError);
+        return { sucesso: false, erro: 'Erro ao buscar dashboard.' };
+      }
 
       const ags = (agendamentos || []).map(mapAgendamentoRowToTipo);
 
@@ -173,10 +178,15 @@ export const SupabaseBarbeiroService = {
       const estId = perfil.estabelecimento_id;
 
       // Busca agendamentos
-      const { data: agendamentos } = await supabase
+      const { data: agendamentos, error: agendamentosError } = await supabase
         .from('v_agendamentos_detalhados')
         .select('*')
         .eq('estabelecimento_id', estId);
+
+      if (agendamentosError) {
+        console.error('[SupabaseBarbeiroService.obterEstatisticasBarbeiro] Erro ao buscar agendamentos:', agendamentosError);
+        return { sucesso: false, erro: 'Erro ao buscar estatísticas.' };
+      }
 
       const ags = (agendamentos || []).map(mapAgendamentoRowToTipo);
 
