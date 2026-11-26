@@ -221,7 +221,9 @@ export const SupabaseNotificacoesService = {
         estabelecimento_id: estabelecimentoId,
       }));
 
-      await supabase.from('notificacoes').insert(notificacoes);
+      const { error: insertError } = await supabase.from('notificacoes').insert(notificacoes);
+
+      if (insertError) return { sucesso: false, erro: insertError.message };
 
       return { sucesso: true, dados: notificacoes.length };
     } catch (error) {
@@ -268,7 +270,9 @@ export const SupabaseNotificacoesService = {
         lida: false,
       }));
 
-      await supabase.from('notificacoes').insert(notificacoes);
+      const { error: insertError } = await supabase.from('notificacoes').insert(notificacoes);
+
+      if (insertError) return { sucesso: false, erro: insertError.message };
 
       return { sucesso: true, dados: notificacoes.length };
     } catch (error) {
