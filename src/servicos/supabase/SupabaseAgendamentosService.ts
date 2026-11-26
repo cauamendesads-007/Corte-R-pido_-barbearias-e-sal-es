@@ -196,11 +196,16 @@ export const SupabaseAgendamentosService = {
       const supabase = getSupabase();
 
       // Busca profissionais ativos do estabelecimento
-      const { data: profissionais } = await supabase
+      const { data: profissionais, error: profError } = await supabase
         .from('profissionais')
         .select('id')
         .eq('estabelecimento_id', estabelecimentoId)
         .eq('ativo', true);
+
+      if (profError) {
+        console.error('[SupabaseAgendamentosService.obterHorariosDisponiveis] Erro ao buscar profissionais:', profError);
+        return { sucesso: false, erro: 'Erro ao buscar horários disponíveis.' };
+      }
 
       if (!profissionais || profissionais.length === 0) {
         return { sucesso: true, dados: [] };
@@ -331,13 +336,13 @@ export const SupabaseAgendamentosService = {
       const supabase = getSupabase();
 
       // Busca agendamento original
-      const { data: original } = await supabase
+      const { data: original, error: originalError } = await supabase
         .from('agendamentos')
         .select('*')
         .eq('id', agendamentoId)
         .single();
 
-      if (!original) return { sucesso: false, erro: 'Agendamento não encontrado.' };
+      if (originalError || !original) return { sucesso: false, erro: 'Agendamento não encontrado.' };
 
       // Cancela o antigo
       await supabase
@@ -432,35 +437,53 @@ export const SupabaseAgendamentosService = {
       if (error) return { sucesso: false, erro: error.message };
 
       // Adiciona avaliação ao estabelecimento
-      const { data: ag } = await supabase
+      const { data: ag, error: agError } = await supabase
         .from('agendamentos')
         .select('estabelecimento_id, nome_cliente')
         .eq('id', agendamentoId)
         .single();
 
-      if (ag) {
-        await supabase.from('avaliacoes').insert({
-          estabelecimento_id: ag.estabelecimento_id,
-          agendamento_id: agendamentoId,
-          usuario_id: null,
-          nome_cliente: ag.nome_cliente,
-          estrelas,
-          comentario,
-        });
+      if (agError || !ag) {
+        console.error('[SupabaseAgendamentosService.avaliarAgendamento] Erro ao buscar agendamento:', agError);
+        return { sucesso: false, erro: 'Erro ao avaliar.' };
+      }
 
-        // Recalcula média
-        const { data: avals } = await supabase
-          .from('avaliacoes')
-          .select('estrelas')
-          .eq('estabelecimento_id', ag.estabelecimento_id);
+      const { error: avalError } = await supabase.from('avaliacoes').insert({
+        estabelecimento_id: ag.estabelecimento_id,
+        agendamento_id: agendamentoId,
+        usuario_id: null,
+        nome_cliente: ag.nome_cliente,
+        estrelas,
+        comentario,
+      });
 
-        if (avals && avals.length > 0) {
-          const soma = avals.reduce((acc, a) => acc + a.estrelas, 0);
-          const media = Number((soma / avals.length).toFixed(1));
-          await supabase
-            .from('estabelecimentos')
-            .update({ avaliacao: media })
-            .eq('id', ag.estabelecimento_id);
+      if (avalError) {
+        console.error('[SupabaseAgendamentosService.avaliarAgendamento] Erro ao inserir avaliação:', avalError);
+        return { sucesso: false, erro: 'Erro ao avaliar.' };
+      }
+
+      // Recalcula média
+      const { data: avals, error: avalsError } = await supabase
+        .from('avaliacoes')
+        .select('estrelas')
+        .eq('estabelecimento_id', ag.estabelecimento_id);
+
+      if (avalsError) {
+        console.error('[SupabaseAgendamentosService.avaliarAgendamento] Erro ao buscar avaliações:', avalsError);
+        return { sucesso: false, erro: 'Erro ao avaliar.' };
+      }
+
+      if (avals && avals.length > 0) {
+        const soma = avals.reduce((acc, a) => acc + a.estrelas, 0);
+        const media = Number((soma / avals.length).toFixed(1));
+        const { error: updateError } = await supabase
+          .from('estabelecimentos')
+          .update({ avaliacao: media })
+          .eq('id', ag.estabelecimento_id);
+
+        if (updateError) {
+          console.error('[SupabaseAgendamentosService.avaliarAgendamento] Erro ao atualizar média:', updateError);
+          return { sucesso: false, erro: 'Erro ao avaliar.' };
         }
       }
 
