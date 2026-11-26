@@ -329,18 +329,27 @@ export const SupabaseFeedService = {
           thumbnail: m.thumbnail || null,
           ordem: i,
         }));
-        await supabase.from('publicacao_midias').insert(midiasInsert);
+        const { error: midiasError } = await supabase.from('publicacao_midias').insert(midiasInsert);
+        if (midiasError) {
+          console.error('[SupabaseFeedService.criarPublicacao] Erro ao inserir mídias:', midiasError);
+          return { sucesso: false, erro: 'Erro ao adicionar mídias.' };
+        }
       }
 
       // Notifica seguidores (assíncrono)
       this.notificarSeguidores(dados.estabelecimentoId, pub.id, perfil.nome || '', dados.legenda);
 
       // Recarrega com mídias
-      const { data: pubCompleta } = await supabase
+      const { data: pubCompleta, error: pubCompletaError } = await supabase
         .from('publicacoes')
         .select('*, publicacao_midias(*)')
         .eq('id', pub.id)
         .single();
+
+      if (pubCompletaError) {
+        console.error('[SupabaseFeedService.criarPublicacao] Erro ao recarregar publicação:', pubCompletaError);
+        return { sucesso: false, erro: 'Erro ao recarregar publicação.' };
+      }
 
       return { sucesso: true, dados: mapPublicacaoRowToTipo(pubCompleta as any) };
     } catch (error) {
@@ -358,34 +367,51 @@ export const SupabaseFeedService = {
     try {
       const supabase = getSupabase();
 
-      const { data: seguidores } = await supabase
+      const { data: seguidores, error: seguidoresError } = await supabase
         .from('seguidores')
         .select('usuario_id')
         .eq('estabelecimento_id', estabelecimentoId);
 
+      if (seguidoresError) {
+        console.error('[SupabaseFeedService.notificarSeguidores] Erro ao buscar seguidores:', seguidoresError);
+        return;
+      }
       if (!seguidores || seguidores.length === 0) return;
 
-      const { data: usuarios } = await supabase
+      const { data: usuarios, error: usuariosError } = await supabase
         .from('usuarios')
         .select('id, email')
         .in('id', seguidores.map(s => s.usuario_id));
 
-      const est = await supabase
+      if (usuariosError) {
+        console.error('[SupabaseFeedService.notificarSeguidores] Erro ao buscar usuários:', usuariosError);
+        return;
+      }
+
+      const { data: est, error: estError } = await supabase
         .from('estabelecimentos')
         .select('nome')
         .eq('id', estabelecimentoId)
         .single();
 
+      if (estError) {
+        console.error('[SupabaseFeedService.notificarSeguidores] Erro ao buscar estabelecimento:', estError);
+        return;
+      }
+
       const notificacoes = (usuarios || []).map(u => ({
         destinatario_id: u.email,
         tipo: 'mensagem' as const,
-        titulo: `Nova publicação de ${est.data?.nome || 'estabelecimento'}`,
+        titulo: `Nova publicação de ${est?.nome || 'estabelecimento'}`,
         texto: legenda.slice(0, 100),
         lida: false,
         estabelecimento_id: estabelecimentoId,
       }));
 
-      await supabase.from('notificacoes').insert(notificacoes);
+      const { error: notifError } = await supabase.from('notificacoes').insert(notificacoes);
+      if (notifError) {
+        console.error('[SupabaseFeedService.notificarSeguidores] Erro ao inserir notificações:', notifError);
+      }
     } catch {
       // Silencioso
     }
@@ -403,60 +429,99 @@ export const SupabaseFeedService = {
     try {
       const supabase = getSupabase();
 
-      const { data: usuario } = await supabase
+      const { data: usuario, error: usuarioError } = await supabase
         .from('usuarios')
         .select('id')
         .eq('email', usuarioEmail)
         .single();
 
+      if (usuarioError) {
+        console.error('[SupabaseFeedService.alternarCurtida] Erro ao buscar usuário:', usuarioError);
+        return { sucesso: false, erro: 'Erro ao buscar usuário.' };
+      }
       if (!usuario) return { sucesso: false, erro: 'Usuário não encontrado.' };
 
       // Verifica se já curtiu
-      const { data: curtidaExistente } = await supabase
+      const { data: curtidaExistente, error: curtidaExistenteError } = await supabase
         .from('curtidas')
         .select('id')
         .eq('publicacao_id', publicacaoId)
         .eq('usuario_id', usuario.id)
         .maybeSingle();
 
+      if (curtidaExistenteError) {
+        console.error('[SupabaseFeedService.alternarCurtida] Erro ao verificar curtida:', curtidaExistenteError);
+        return { sucesso: false, erro: 'Erro ao verificar curtida.' };
+      }
+
       if (curtidaExistente) {
         // Descurtir
-        await supabase
+        const { error: deleteError } = await supabase
           .from('curtidas')
           .delete()
           .eq('id', curtidaExistente.id);
 
-        await supabase.rpc('decrementar_contador', {
+        if (deleteError) {
+          console.error('[SupabaseFeedService.alternarCurtida] Erro ao remover curtida:', deleteError);
+          return { sucesso: false, erro: 'Erro ao remover curtida.' };
+        }
+
+        const { error: rpcDecError } = await supabase.rpc('decrementar_contador', {
           tabela: 'publicacoes',
           campo: 'curtidas',
           id_registro: publicacaoId,
         });
 
-        const { data: pub } = await supabase
+        if (rpcDecError) {
+          console.error('[SupabaseFeedService.alternarCurtida] Erro ao decrementar contador:', rpcDecError);
+          return { sucesso: false, erro: 'Erro ao atualizar contador.' };
+        }
+
+        const { data: pub, error: pubError } = await supabase
           .from('publicacoes')
           .select('curtidas')
           .eq('id', publicacaoId)
           .single();
+
+        if (pubError) {
+          console.error('[SupabaseFeedService.alternarCurtida] Erro ao buscar publicação:', pubError);
+          return { sucesso: false, erro: 'Erro ao buscar publicação.' };
+        }
 
         return { sucesso: true, dados: { curtido: false, total: pub?.curtidas || 0 } };
       } else {
         // Curtir
-        await supabase.from('curtidas').insert({
+        const { error: insertError } = await supabase.from('curtidas').insert({
           publicacao_id: publicacaoId,
           usuario_id: usuario.id,
         });
 
-        await supabase.rpc('incrementar_contador', {
+        if (insertError) {
+          console.error('[SupabaseFeedService.alternarCurtida] Erro ao inserir curtida:', insertError);
+          return { sucesso: false, erro: 'Erro ao curtir.' };
+        }
+
+        const { error: rpcIncError } = await supabase.rpc('incrementar_contador', {
           tabela: 'publicacoes',
           campo: 'curtidas',
           id_registro: publicacaoId,
         });
 
-        const { data: pub } = await supabase
+        if (rpcIncError) {
+          console.error('[SupabaseFeedService.alternarCurtida] Erro ao incrementar contador:', rpcIncError);
+          return { sucesso: false, erro: 'Erro ao atualizar contador.' };
+        }
+
+        const { data: pub, error: pubError } = await supabase
           .from('publicacoes')
           .select('curtidas')
           .eq('id', publicacaoId)
           .single();
+
+        if (pubError) {
+          console.error('[SupabaseFeedService.alternarCurtida] Erro ao buscar publicação:', pubError);
+          return { sucesso: false, erro: 'Erro ao buscar publicação.' };
+        }
 
         return { sucesso: true, dados: { curtido: true, total: pub?.curtidas || 0 } };
       }
@@ -478,29 +543,46 @@ export const SupabaseFeedService = {
     try {
       const supabase = getSupabase();
 
-      const { data: usuario } = await supabase
+      const { data: usuario, error: usuarioError } = await supabase
         .from('usuarios')
         .select('id')
         .eq('email', usuarioEmail)
         .single();
 
+      if (usuarioError) {
+        console.error('[SupabaseFeedService.alternarInspiracao] Erro ao buscar usuário:', usuarioError);
+        return { sucesso: false, erro: 'Erro ao buscar usuário.' };
+      }
       if (!usuario) return { sucesso: false, erro: 'Usuário não encontrado.' };
 
-      const { data: salvoExistente } = await supabase
+      const { data: salvoExistente, error: salvoExistenteError } = await supabase
         .from('salvos')
         .select('id')
         .eq('publicacao_id', publicacaoId)
         .eq('usuario_id', usuario.id)
         .maybeSingle();
 
+      if (salvoExistenteError) {
+        console.error('[SupabaseFeedService.alternarInspiracao] Erro ao verificar salvo:', salvoExistenteError);
+        return { sucesso: false, erro: 'Erro ao verificar salvo.' };
+      }
+
       if (salvoExistente) {
-        await supabase.from('salvos').delete().eq('id', salvoExistente.id);
+        const { error: deleteError } = await supabase.from('salvos').delete().eq('id', salvoExistente.id);
+        if (deleteError) {
+          console.error('[SupabaseFeedService.alternarInspiracao] Erro ao remover salvo:', deleteError);
+          return { sucesso: false, erro: 'Erro ao remover salvo.' };
+        }
         return { sucesso: true, dados: { salvo: false } };
       } else {
-        await supabase.from('salvos').insert({
+        const { error: insertError } = await supabase.from('salvos').insert({
           publicacao_id: publicacaoId,
           usuario_id: usuario.id,
         });
+        if (insertError) {
+          console.error('[SupabaseFeedService.alternarInspiracao] Erro ao inserir salvo:', insertError);
+          return { sucesso: false, erro: 'Erro ao salvar.' };
+        }
         return { sucesso: true, dados: { salvo: true } };
       }
     } catch (error) {
