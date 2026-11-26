@@ -205,11 +205,15 @@ export const SupabaseAuthService = {
       let slug = baseSlug;
       let contador = 1;
       while (true) {
-        const { data: existente } = await supabase
+        const { data: existente, error: slugError } = await supabase
           .from('estabelecimentos')
           .select('id')
           .eq('slug', slug)
           .maybeSingle();
+        if (slugError) {
+          console.error('[SupabaseAuthService.cadastrarProfissional] Erro:', slugError);
+          return { sucesso: false, erro: 'Erro ao verificar slug.' };
+        }
         if (!existente) break;
         slug = `${baseSlug}-${contador++}`;
       }
@@ -324,13 +328,13 @@ export const SupabaseAuthService = {
         return { sucesso: true, dados: null };
       }
 
-      const { data: perfil } = await supabase
+      const { data: perfil, error: perfilError } = await supabase
         .from('usuarios')
         .select('*')
         .eq('id', session.user.id)
         .single();
 
-      if (!perfil) {
+      if (perfilError || !perfil) {
         return { sucesso: true, dados: null };
       }
 
@@ -467,13 +471,13 @@ export const SupabaseAuthService = {
 
       if (!user) return { sucesso: true, dados: null };
 
-      const { data: perfil } = await supabase
+      const { data: perfil, error: perfilError } = await supabase
         .from('usuarios')
         .select('*')
         .eq('id', user.id)
         .single();
 
-      if (!perfil) return { sucesso: true, dados: null };
+      if (perfilError || !perfil) return { sucesso: true, dados: null };
 
       const sessao = mapSessaoFromUser(perfil);
       return { sucesso: true, dados: sessao };
