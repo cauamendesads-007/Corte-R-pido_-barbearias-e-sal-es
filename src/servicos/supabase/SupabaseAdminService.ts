@@ -807,9 +807,8 @@ export const SupabaseAdminService = {
     return this.listarUsuariosAdmin();
   },
 
-  async obterUsuario: Promise<ResultadoServico<Usuario | null>> {
-    // This should be implemented
-    return { sucesso: false, erro: 'Não implementado' };
+  async obterUsuario(id: string): Promise<ResultadoServico<Usuario | null>> {
+    return this.obterUsuarioAdmin(id);
   },
 
   async listarPagamentos(): Promise<ResultadoServico<Array<{ estabelecimento: string; data: string; valor: number; status: string }>>> {
