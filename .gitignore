@@ -9,6 +9,17 @@ build/
 .env
 .env.local
 .env.*.local
+!.env.example
+
+# Secrets & Certificates
+*.pem
+*.key
+*.cert
+secrets.*
+credentials.*
+
+# Supabase temp
+supabase/.temp
 
 # IDE
 .vscode/
