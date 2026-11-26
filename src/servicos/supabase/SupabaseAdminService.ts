@@ -465,11 +465,16 @@ export const SupabaseAdminService = {
       const supabase = getSupabase();
 
       // Obtém próxima ordem
-      const { data: maxOrdem } = await supabase
+      const { data: maxOrdem, error: maxOrdemError } = await supabase
         .from('planos_assinatura')
         .select('ordem_exibicao')
         .order('ordem_exibicao', { ascending: false })
         .limit(1);
+
+      if (maxOrdemError) {
+        console.error('[SupabaseAdminService.criarPlanoAdmin] Erro ao buscar ordem:', maxOrdemError);
+        return { sucesso: false, erro: 'Erro ao criar plano.' };
+      }
 
       const proximaOrdem = (maxOrdem?.[0]?.ordem_exibicao || 0) + 1;
 
