@@ -751,15 +751,17 @@ export const SupabaseAdminService = {
     try {
       const supabase = getSupabase();
 
-      const { data: barbeiro } = await supabase
+      const { data: barbeiro, error: barbeiroError } = await supabase
         .from('usuarios')
         .select('email')
         .eq('estabelecimento_id', estabelecimentoId)
         .eq('papel', 'barbeiro')
         .single();
 
-      if (barbeiro) {
-        await supabase.from('notificacoes').insert({
+      if (barbeiroError) {
+        console.error('[SupabaseAdminService.ajustarVencimento] Erro ao buscar barbeiro:', barbeiroError);
+      } else if (barbeiro) {
+        const { error: notifError } = await supabase.from('notificacoes').insert({
           destinatario_id: barbeiro.email,
           tipo: 'pagamento',
           titulo: 'Vencimento alterado',
@@ -767,6 +769,9 @@ export const SupabaseAdminService = {
           lida: false,
           estabelecimento_id: estabelecimentoId,
         });
+        if (notifError) {
+          console.error('[SupabaseAdminService.ajustarVencimento] Erro ao inserir notificação:', notifError);
+        }
       }
 
       // TODO: Atualizar vencimento na tabela assinaturas

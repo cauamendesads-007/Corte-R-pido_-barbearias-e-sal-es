@@ -130,11 +130,15 @@ export const SupabaseFeedService = {
       let inspiracaoSalvas: string[] = [];
 
       if (usuarioEmail) {
-        const { data: user } = await supabase
+        const { data: user, error: userError } = await supabase
           .from('usuarios')
           .select('id, seguindo, inspiracao_salvas')
           .eq('email', usuarioEmail)
           .single();
+        if (userError) {
+          console.error('[SupabaseFeedService.listarFeed] Erro ao buscar usuário:', userError);
+          return { sucesso: false, erro: 'Erro ao buscar usuário.' };
+        }
         if (user) {
           usuarioId = user.id;
           seguindo = user.seguindo || [];
@@ -160,10 +164,14 @@ export const SupabaseFeedService = {
 
       // Filtro salvos
       if (filtro === 'salvos' && usuarioId) {
-        const { data: salvos } = await supabase
+        const { data: salvos, error: salvosError } = await supabase
           .from('salvos')
           .select('publicacao_id')
           .eq('usuario_id', usuarioId);
+        if (salvosError) {
+          console.error('[SupabaseFeedService.listarFeed] Erro ao buscar salvos:', salvosError);
+          return { sucesso: false, erro: 'Erro ao buscar itens salvos.' };
+        }
         const ids = salvos?.map(s => s.publicacao_id) || [];
         if (ids.length > 0) {
           query = query.in('id', ids);
@@ -197,13 +205,22 @@ export const SupabaseFeedService = {
       // Adiciona flags de curtiu/salvou se usuário logado
       if (usuarioId && pubs.length > 0) {
         const pubIds = pubs.map(p => p.id);
-        const [curtidas, salvos] = await Promise.all([
+        const [curtidasResult, salvosResult] = await Promise.all([
           supabase.from('curtidas').select('publicacao_id').eq('usuario_id', usuarioId).in('publicacao_id', pubIds),
           supabase.from('salvos').select('publicacao_id').eq('usuario_id', usuarioId).in('publicacao_id', pubIds),
         ]);
 
-        const curtidasSet = new Set(curtidas.data?.map(c => c.publicacao_id) || []);
-        const salvosSet = new Set(salvos.data?.map(s => s.publicacao_id) || []);
+        if (curtidasResult.error) {
+          console.error('[SupabaseFeedService.listarFeed] Erro ao buscar curtidas:', curtidasResult.error);
+          return { sucesso: false, erro: 'Erro ao buscar curtidas.' };
+        }
+        if (salvosResult.error) {
+          console.error('[SupabaseFeedService.listarFeed] Erro ao buscar salvos:', salvosResult.error);
+          return { sucesso: false, erro: 'Erro ao buscar salvos.' };
+        }
+
+        const curtidasSet = new Set(curtidasResult.data?.map(c => c.publicacao_id) || []);
+        const salvosSet = new Set(salvosResult.data?.map(s => s.publicacao_id) || []);
 
         pubs = pubs.map(p => ({
           ...p,
@@ -265,12 +282,16 @@ export const SupabaseFeedService = {
       if (!user) return { sucesso: false, erro: 'Não autenticado.' };
 
       // Busca perfil para nome/avatar
-      const { data: perfil } = await supabase
+      const { data: perfil, error: perfilError } = await supabase
         .from('usuarios')
-        .select('nome, avatar, estabelecimento_id')
+        .select('nome, avatar, estabelecimento_id, papel')
         .eq('id', user.id)
         .single();
 
+      if (perfilError) {
+        console.error('[SupabaseFeedService.criarPublicacao] Erro ao buscar perfil:', perfilError);
+        return { sucesso: false, erro: 'Erro ao buscar perfil.' };
+      }
       if (!perfil) return { sucesso: false, erro: 'Perfil não encontrado.' };
 
       // Verifica se é barbeiro do estabelecimento ou admin
