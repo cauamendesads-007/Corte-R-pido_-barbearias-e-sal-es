@@ -771,6 +771,137 @@ pnpm test:a11y
 
 ---
 
+## Guia de Migração SQL (Supabase)
+
+### Visão Geral
+O banco de dados está definido em `supabase/migrations/001_schema_definitivo.sql` (3000+ linhas) com:
+- 22 tabelas com UUID, TIMESTAMPTZ, valores monetários em centavos (INTEGER)
+- 11 ENUMs tipados
+- Extensão `btree_gist` para constraints `EXCLUDE` (anti-overbooking)
+- RLS (Row Level Security) em 100% das tabelas
+- 15+ RPC functions para operações atômicas
+- 2 Views materializadas para consultas complexas
+- Triggers de auditoria automática
+- Seed data em `supabase/seed.sql`
+
+### Como Aplicar no Supabase Dashboard
+
+#### Opção 1: SQL Editor (Recomendado para primeira vez)
+
+1. Acesse [Supabase Dashboard](https://supabase.com/dashboard) → Project → SQL Editor
+2. Clique em **"New Query"**
+3. Copie **todo o conteúdo** de `supabase/migrations/001_schema_definitivo.sql`
+4. Cole no editor e clique em **"Run"** (Ctrl+Enter)
+5. Aguarde conclusão (pode levar 30-60s)
+6. Repita para `supabase/seed.sql` (dados demo)
+
+#### Opção 2: CLI (Desenvolvimento contínuo)
+
+```bash
+# Instala Supabase CLI
+npm install -g supabase
+
+# Login
+supabase login
+
+# Link project
+supabase link --project-ref SEU_PROJECT_REF
+
+# Push migrações
+supabase db push
+
+# Ou aplicar seed
+supabase db seed
+```
+
+### Checklist Pós-Migração
+
+- [ ] Verificar se extensão `btree_gist` foi criada: `SELECT * FROM pg_extension WHERE extname = 'btree_gist';`
+- [ ] Verificar RLS ativo: `SELECT * FROM pg_policies WHERE schemaname = 'public';`
+- [ ] Testar RPCs principais:
+  ```sql
+  -- Slots disponíveis
+  SELECT * FROM rpc_slots_disponiveis('profissional-uuid', '2024-01-15', 30);
+  
+  -- Criar agendamento (retorna id ou erro)
+  SELECT * FROM rpc_criar_agendamento(...);
+  
+  -- Anonimizar usuário (LGPD)
+  SELECT rpc_anonimizar_usuario('usuario-uuid');
+  ```
+- [ ] Verificar seeds: `SELECT * FROM planos_assinatura;`
+- [ ] Configurar Edge Functions no Dashboard (4 functions):
+  - `criar-agendamento`
+  - `gerar-cobranca-pix`
+  - `webhook-pagamento`
+  - `lgpd-excluir-conta`
+
+### Variáveis de Ambiente Necessárias (Edge Functions)
+
+```env
+# Supabase
+SUPABASE_URL=https://SEU_PROJECT.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=eyJ...
+
+# Pix Provider (escolha um)
+PIX_PROVIDER=mercado_pago  # ou "inter", "bb", "mock"
+MERCADO_PAGO_ACCESS_TOKEN=APP_USR-...
+# INTER_CLIENT_ID=...
+# INTER_CLIENT_SECRET=...
+
+# Frontend (Vite)
+VITE_SUPABASE_URL=https://SEU_PROJECT.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJ...
+```
+
+### Estrutura das Tabelas Principais
+
+| Tabela | Propósito | RLS Policy |
+|--------|-----------|------------|
+| `usuarios` | Perfis (cliente/barbeiro/admin) | Próprio usuário + admin |
+| `estabelecimentos` | Barbearias/salões | Público (aprovados) + dono + admin |
+| `profissionais` | Barbeiros do estabelecimento | Dono + admin |
+| `servicos` | Serviços oferecidos | Público (ativos) + dono + admin |
+| `agendamentos` | Horários marcados | Dono + cliente + admin |
+| `pagamentos` | Transações Pix/assinatura | Dono + admin |
+| `publicacoes` | Feed social | Público (aprovados) + autor + admin |
+| `assinaturas` | Planos dos estabelecimentos | Dono + admin |
+| `notificacoes` | Alertas usuários | Próprio destinatário |
+
+### RPCs Disponíveis
+
+| Função | Parâmetros | Retorno | Uso |
+|--------|------------|---------|-----|
+| `rpc_slots_disponiveis` | profissional_id, dia, duracao_min | `horario, disponivel, profissional_nome` | Buscar vagas |
+| `rpc_criar_agendamento` | estabelecimento_id, profissional_id, usuario_id, dia, horario, duracao_min, nome_cliente, telefone, servico_ids[], valor_total, status_pagamento, observacoes | `agendamento_id, erro` | Criar agendamento atômico |
+| `rpc_anonimizar_usuario` | usuario_id | `void` | LGPD Art. 18 |
+
+### Triggers de Auditoria
+
+Toda operação `INSERT/UPDATE/DELETE` em tabelas sensíveis gera log em `audit_logs`:
+- `usuarios`, `estabelecimentos`, `agendamentos`, `pagamentos`, `assinaturas`
+
+### Rollback
+
+```sql
+-- Se necessário, dropar tudo (CUIDADO: apaga dados!)
+DROP SCHEMA public CASCADE;
+CREATE SCHEMA public;
+GRANT ALL ON SCHEMA public TO postgres, anon, authenticated, service_role;
+-- Re-aplicar migração
+```
+
+### Troubleshooting
+
+| Erro | Causa | Solução |
+|------|-------|---------|
+| `23P01 exclusion_violation` | Conflito de horário (anti-overbooking) | Frontend trata como 409 "Horário ocupado" |
+| `42501 permission denied` | RLS bloqueando | Verificar policy ou usar `service_role` |
+| `P0001 trigger error` | Trigger RPC falhou | Verificar logs em `audit_logs` |
+| `23505 unique_violation` | Idempotency key duplicada | Frontend reusa resposta existente |
+
+---
+
 ## Referências
 
 - [React 18 Docs](https://react.dev)
