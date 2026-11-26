@@ -189,12 +189,17 @@ export const SupabaseEstabelecimentosService = {
       if (filtros.tipoServico) {
         const estIds = resultado.map(e => e.id);
         if (estIds.length > 0) {
-          const { data: servicos } = await supabase
+          const { data: servicos, error: servicosError } = await supabase
             .from('servicos')
             .select('estabelecimento_id')
             .eq('tag', filtros.tipoServico)
             .eq('ativo', true)
             .in('estabelecimento_id', estIds);
+
+          if (servicosError) {
+            console.error('[SupabaseEstabelecimentosService.listarEstabelecimentos] Erro ao buscar serviços:', servicosError);
+            return { sucesso: false, erro: 'Erro ao filtrar por tipo de serviço.' };
+          }
 
           const estComServico = new Set(servicos?.map(s => s.estabelecimento_id) || []);
           resultado = resultado.filter(e => estComServico.has(e.id));
@@ -227,12 +232,17 @@ export const SupabaseEstabelecimentosService = {
         const hoje = new Date().toISOString().split('T')[0];
         const estIds = resultado.map(e => e.id);
         if (estIds.length > 0) {
-          const { data: agendamentos } = await supabase
+          const { data: agendamentos, error: agendamentosError } = await supabase
             .from('agendamentos')
             .select('estabelecimento_id')
             .eq('dia', hoje)
             .in('status', ['agendado', 'confirmado'])
             .in('estabelecimento_id', estIds);
+
+          if (agendamentosError) {
+            console.error('[SupabaseEstabelecimentosService.listarEstabelecimentos] Erro ao buscar agendamentos:', agendamentosError);
+            return { sucesso: false, erro: 'Erro ao filtrar por vagas hoje.' };
+          }
 
           const estComVagas = new Set<string>();
           // Lógica simplificada: se tem menos de X agendamentos, tem vaga
@@ -277,26 +287,41 @@ export const SupabaseEstabelecimentosService = {
       if (!data) return { sucesso: true, dados: null };
 
       // Busca serviços separadamente
-      const { data: servicos } = await supabase
+      const { data: servicos, error: servicosError } = await supabase
         .from('servicos')
         .select('*, servico_midias(*)')
         .eq('estabelecimento_id', data.id)
         .eq('ativo', true)
         .order('ordem_exibicao');
 
+      if (servicosError) {
+        console.error('[SupabaseEstabelecimentosService.buscarEstabelecimentoPorSlug] Erro ao buscar serviços:', servicosError);
+        return { sucesso: false, erro: 'Erro ao buscar serviços do estabelecimento.' };
+      }
+
       // Busca galeria
-      const { data: galeria } = await supabase
+      const { data: galeria, error: galeriaError } = await supabase
         .from('galeria')
         .select('*')
         .eq('estabelecimento_id', data.id)
         .order('ordem');
 
+      if (galeriaError) {
+        console.error('[SupabaseEstabelecimentosService.buscarEstabelecimentoPorSlug] Erro ao buscar galeria:', galeriaError);
+        return { sucesso: false, erro: 'Erro ao buscar galeria do estabelecimento.' };
+      }
+
       // Busca avaliações
-      const { data: avaliacoes } = await supabase
+      const { data: avaliacoes, error: avaliacoesError } = await supabase
         .from('avaliacoes')
         .select('*')
         .eq('estabelecimento_id', data.id)
         .order('data_criacao', { ascending: false });
+
+      if (avaliacoesError) {
+        console.error('[SupabaseEstabelecimentosService.buscarEstabelecimentoPorSlug] Erro ao buscar avaliações:', avaliacoesError);
+        return { sucesso: false, erro: 'Erro ao buscar avaliações do estabelecimento.' };
+      }
 
       const est = mapEstabelecimentoRowToTipo(data);
       est.servicos = (servicos || []).map(mapServicoRowToTipo);
@@ -528,12 +553,17 @@ export const SupabaseEstabelecimentosService = {
       const supabase = getSupabase();
 
       // Obtém próxima ordem
-      const { data: maxOrdem } = await supabase
+      const { data: maxOrdem, error: maxOrdemError } = await supabase
         .from('servicos')
         .select('ordem_exibicao')
         .eq('estabelecimento_id', estabelecimentoId)
         .order('ordem_exibicao', { ascending: false })
         .limit(1);
+
+      if (maxOrdemError) {
+        console.error('[SupabaseEstabelecimentosService.adicionarServico] Erro ao buscar ordem:', maxOrdemError);
+        return { sucesso: false, erro: 'Erro ao criar serviço.' };
+      }
 
       const proximaOrdem = (maxOrdem?.[0]?.ordem_exibicao || 0) + 1;
 
@@ -564,17 +594,26 @@ export const SupabaseEstabelecimentosService = {
           thumbnail: null,
           ordem: i,
         }));
-        await supabase.from('servico_midias').insert(midiasInsert);
+        const { error: midiasError } = await supabase.from('servico_midias').insert(midiasInsert);
+        if (midiasError) {
+          console.error('[SupabaseEstabelecimentosService.adicionarServico] Erro ao adicionar mídias:', midiasError);
+          return { sucesso: false, erro: 'Erro ao adicionar mídias ao serviço.' };
+        }
       }
 
       // Recarrega com mídias
-      const { data: servicoCompleto } = await supabase
+      const { data: servicoCompleto, error: reloadError } = await supabase
         .from('servicos')
         .select('*, servico_midias(*)')
         .eq('id', data.id)
         .single();
 
-      return { sucesso: true, dados: mapServicoRowToTipo(servicoCompleto!) };
+      if (reloadError || !servicoCompleto) {
+        console.error('[SupabaseEstabelecimentosService.adicionarServico] Erro ao recarregar serviço:', reloadError);
+        return { sucesso: false, erro: 'Erro ao recarregar serviço.' };
+      }
+
+      return { sucesso: true, dados: mapServicoRowToTipo(servicoCompleto) };
     } catch (error) {
       console.error('[SupabaseEstabelecimentosService.adicionarServico] Erro:', error);
       return { sucesso: false, erro: 'Erro ao criar serviço.' };
@@ -666,15 +705,26 @@ export const SupabaseEstabelecimentosService = {
           .eq('estabelecimento_id', estabelecimentoId)
       );
 
-      await Promise.all(updates);
+      const results = await Promise.all(updates);
+      for (const result of results) {
+        if (result.error) {
+          console.error('[SupabaseEstabelecimentosService.reordenarServicos] Erro ao reordenar:', result.error);
+          return { sucesso: false, erro: 'Erro ao reordenar serviços.' };
+        }
+      }
 
       // Recarrega lista
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('servicos')
         .select('*, servico_midias(*)')
         .eq('estabelecimento_id', estabelecimentoId)
         .eq('ativo', true)
         .order('ordem_exibicao');
+
+      if (error) {
+        console.error('[SupabaseEstabelecimentosService.reordenarServicos] Erro ao buscar serviços:', error);
+        return { sucesso: false, erro: 'Erro ao reordenar serviços.' };
+      }
 
       return { sucesso: true, dados: (data || []).map(mapServicoRowToTipo) };
     } catch (error) {
@@ -696,12 +746,17 @@ export const SupabaseEstabelecimentosService = {
       const supabase = getSupabase();
 
       // Obtém próxima ordem
-      const { data: maxOrdem } = await supabase
+      const { data: maxOrdem, error: maxOrdemError } = await supabase
         .from('servico_midias')
         .select('ordem')
         .eq('servico_id', servicoId)
         .order('ordem', { ascending: false })
         .limit(1);
+
+      if (maxOrdemError) {
+        console.error('[SupabaseEstabelecimentosService.adicionarMidiaServico] Erro ao buscar ordem:', maxOrdemError);
+        return { sucesso: false, erro: 'Erro ao adicionar mídia.' };
+      }
 
       const proximaOrdem = (maxOrdem?.[0]?.ordem || 0) + 1;
 
@@ -739,11 +794,16 @@ export const SupabaseEstabelecimentosService = {
       const supabase = getSupabase();
 
       // Busca mídia pelo índice (ordem)
-      const { data: midias } = await supabase
+      const { data: midias, error: midiasError } = await supabase
         .from('servico_midias')
         .select('id')
         .eq('servico_id', servicoId)
         .order('ordem');
+
+      if (midiasError) {
+        console.error('[SupabaseEstabelecimentosService.removerMidiaServico] Erro ao buscar mídias:', midiasError);
+        return { sucesso: false, erro: 'Erro ao remover mídia.' };
+      }
 
       if (!midias || midiaIndex >= midias.length) {
         return { sucesso: false, erro: 'Mídia não encontrada.' };
@@ -780,12 +840,17 @@ export const SupabaseEstabelecimentosService = {
     try {
       const supabase = getSupabase();
 
-      const { data: maxOrdem } = await supabase
+      const { data: maxOrdem, error: maxOrdemError } = await supabase
         .from('galeria')
         .select('ordem')
         .eq('estabelecimento_id', estabelecimentoId)
         .order('ordem', { ascending: false })
         .limit(1);
+
+      if (maxOrdemError) {
+        console.error('[SupabaseEstabelecimentosService.adicionarGaleria] Erro ao buscar ordem:', maxOrdemError);
+        return { sucesso: false, erro: 'Erro ao adicionar à galeria.' };
+      }
 
       const proximaOrdem = (maxOrdem?.[0]?.ordem || 0) + 1;
 
@@ -856,13 +921,24 @@ export const SupabaseEstabelecimentosService = {
           .eq('estabelecimento_id', estabelecimentoId)
       );
 
-      await Promise.all(updates);
+      const results = await Promise.all(updates);
+      for (const result of results) {
+        if (result.error) {
+          console.error('[SupabaseEstabelecimentosService.reordenarGaleria] Erro ao reordenar:', result.error);
+          return { sucesso: false, erro: 'Erro ao reordenar galeria.' };
+        }
+      }
 
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('galeria')
         .select('*')
         .eq('estabelecimento_id', estabelecimentoId)
         .order('ordem');
+
+      if (error) {
+        console.error('[SupabaseEstabelecimentosService.reordenarGaleria] Erro ao buscar galeria:', error);
+        return { sucesso: false, erro: 'Erro ao reordenar galeria.' };
+      }
 
       return { sucesso: true, dados: (data || []).map(mapGaleriaRowToTipo) };
     } catch (error) {
@@ -976,11 +1052,16 @@ export const SupabaseEstabelecimentosService = {
     try {
       const supabase = getSupabase();
 
-      const { data: est } = await supabase
+      const { data: est, error: estError } = await supabase
         .from('estabelecimentos')
         .select('tempo_medio_atendimento')
         .eq('id', estabelecimentoId)
         .single();
+
+      if (estError) {
+        console.error('[SupabaseEstabelecimentosService.entrarNaFila] Erro ao buscar estabelecimento:', estError);
+        return { sucesso: false, erro: 'Erro ao entrar na fila.' };
+      }
 
       // Simula entrada na fila (em produção usaria tabela fila_espera com Realtime)
       const posicao = 1; // TODO: implementar fila real
@@ -1135,11 +1216,17 @@ export const SupabaseEstabelecimentosService = {
       let slug = baseSlug;
       let contador = 1;
       while (true) {
-        const { data: existente } = await supabase
+        const { data: existente, error: existenteError } = await supabase
           .from('estabelecimentos')
           .select('id')
           .eq('slug', slug)
           .maybeSingle();
+
+        if (existenteError) {
+          console.error('[SupabaseEstabelecimentosService.criarEstabelecimento] Erro ao verificar slug:', existenteError);
+          return { sucesso: false, erro: 'Erro ao criar estabelecimento.' };
+        }
+
         if (!existente) break;
         slug = `${baseSlug}-${contador++}`;
       }
@@ -1308,18 +1395,28 @@ export const SupabaseEstabelecimentosService = {
       if (error) return { sucesso: false, erro: error.message };
 
       // Recalcula média
-      const { data: avals } = await supabase
+      const { data: avals, error: avalsError } = await supabase
         .from('avaliacoes')
         .select('estrelas')
         .eq('estabelecimento_id', estabelecimentoId);
 
+      if (avalsError) {
+        console.error('[SupabaseEstabelecimentosService.adicionarAvaliacao] Erro ao buscar avaliações:', avalsError);
+        return { sucesso: false, erro: 'Erro ao adicionar avaliação.' };
+      }
+
       if (avals && avals.length > 0) {
         const soma = avals.reduce((acc, a) => acc + a.estrelas, 0);
         const media = Number((soma / avals.length).toFixed(1));
-        await supabase
+        const { error: updateError } = await supabase
           .from('estabelecimentos')
           .update({ avaliacao: media })
           .eq('id', estabelecimentoId);
+
+        if (updateError) {
+          console.error('[SupabaseEstabelecimentosService.adicionarAvaliacao] Erro ao atualizar média:', updateError);
+          return { sucesso: false, erro: 'Erro ao adicionar avaliação.' };
+        }
       }
 
       return { sucesso: true, dados: mapAvaliacaoRowToTipo(data) };
