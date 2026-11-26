@@ -45,3 +45,11 @@ coverage/
 
 # Misc
 *.local
+
+# Project docs (not tracked)
+CLAUDE.md
+PROMPT_TEMP.md
+ARQUITETURA_BACKEND.md
+ARQUITETURA_BACKEND_BLOCO2.md
+AUDITORIA.md
+DOCUMENTACAO.md
