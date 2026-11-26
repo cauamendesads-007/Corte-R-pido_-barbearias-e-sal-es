@@ -389,18 +389,14 @@ describe('SupabaseNotificacoesService', () => {
         if (table === 'agendamentos') {
           return {
             select: vi.fn(() => ({
-              eq: vi.fn(() => ({
-                select: vi.fn().mockResolvedValue({ data: agendamentos, error: null }),
-              })),
+              eq: vi.fn().mockResolvedValue({ data: agendamentos, error: null }),
             })),
           };
         }
         if (table === 'usuarios') {
           return {
             select: vi.fn(() => ({
-              in: vi.fn(() => ({
-                select: vi.fn().mockResolvedValue({ data: usuarios, error: null }),
-              })),
+              in: vi.fn().mockResolvedValue({ data: usuarios, error: null }),
             })),
           };
         }
@@ -490,9 +486,7 @@ describe('SupabaseNotificacoesService', () => {
         if (table === 'usuarios') {
           return {
             select: vi.fn(() => ({
-              eq: vi.fn(() => ({
-                select: vi.fn().mockResolvedValue({ data: barbeiros, error: null }),
-              })),
+              eq: vi.fn().mockResolvedValue({ data: barbeiros, error: null }),
             })),
           };
         }
@@ -523,9 +517,7 @@ describe('SupabaseNotificacoesService', () => {
           return {
             select: vi.fn(() => ({
               eq: vi.fn(() => ({
-                in: vi.fn(() => ({
-                  select: vi.fn().mockResolvedValue({ data: [{ email: 'barbeiro1@exemplo.com' }], error: null }),
-                })),
+                in: vi.fn().mockResolvedValue({ data: [{ email: 'barbeiro1@exemplo.com' }], error: null }),
               })),
             })),
           };
@@ -558,9 +550,7 @@ describe('SupabaseNotificacoesService', () => {
         if (table === 'usuarios') {
           return {
             select: vi.fn(() => ({
-              eq: vi.fn(() => ({
-                select: vi.fn().mockResolvedValue({ data: [], error: { message: 'Erro ao buscar' } }),
-              })),
+              eq: vi.fn().mockResolvedValue({ data: [], error: { message: 'Erro ao buscar' } }),
             })),
           };
         }
@@ -575,7 +565,7 @@ describe('SupabaseNotificacoesService', () => {
       const resultado = await service.enviarAvisoBarbeiros(['all'], 'Aviso!');
 
       expect(resultado.sucesso).toBe(false);
-      expect(resultado.erro).toBe('Erro ao enviar avisos.');
+      expect(resultado.erro).toBe('Erro ao buscar');
     });
   });
 

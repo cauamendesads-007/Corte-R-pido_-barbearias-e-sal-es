@@ -342,15 +342,17 @@ export const SupabaseAdminService = {
       if (error) return { sucesso: false, erro: error.message };
 
       // Notifica barbeiro (insere notificação)
-      const { data: barbeiro } = await supabase
+      const { data: barbeiro, error: barbeiroError } = await supabase
         .from('usuarios')
         .select('email')
         .eq('estabelecimento_id', id)
         .eq('papel', 'barbeiro')
         .single();
 
-      if (barbeiro) {
-        await supabase.from('notificacoes').insert({
+      if (barbeiroError) {
+        console.error('[SupabaseAdminService.alterarStatusEstabelecimento] Erro ao buscar barbeiro:', barbeiroError);
+      } else if (barbeiro) {
+        const { error: notifError } = await supabase.from('notificacoes').insert({
           destinatario_id: barbeiro.email,
           tipo: 'administracao',
           titulo: status === 'aprovado' ? 'Cadastro aprovado!' : 'Cadastro reprovado',
@@ -360,6 +362,9 @@ export const SupabaseAdminService = {
           lida: false,
           estabelecimento_id: id,
         });
+        if (notifError) {
+          console.error('[SupabaseAdminService.alterarStatusEstabelecimento] Erro ao inserir notificação:', notifError);
+        }
       }
 
       return { sucesso: true, dados: undefined };
@@ -472,7 +477,7 @@ export const SupabaseAdminService = {
         .limit(1);
 
       if (maxOrdemError) {
-        console.error('[SupabaseAdminService.criarPlanoAdmin] Erro ao buscar ordem:', maxOrdemError);
+        console.error('[SupabaseAdminService.criarPlanoAdmin] Erro:', maxOrdemError);
         return { sucesso: false, erro: 'Erro ao criar plano.' };
       }
 
