@@ -521,7 +521,7 @@ serve(async (req) => {
     try {
       payload = JSON.parse(rawBody);
       WebhookPayloadSchema.parse(payload);
-    } catch (_e) {
+    } catch {
       throw new HttpError(400, "Payload inválido", "JSON malformado ou schema inválido", "INVALID_PAYLOAD");
     }
 
