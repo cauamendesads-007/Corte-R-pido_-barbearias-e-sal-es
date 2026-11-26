@@ -221,7 +221,12 @@ export const SupabaseAgendamentosService = {
           p_duracao_min: duracaoMinutos,
         });
 
-        if (!error && slots) {
+        if (error) {
+          console.error('[SupabaseAgendamentosService.obterHorariosDisponiveis] Erro ao buscar slots do profissional:', error);
+          continue;
+        }
+
+        if (slots) {
           slots.forEach((slot: RpcSlotsDisponiveisResult) => {
             // Evita duplicatas de horário
             if (!todosSlots.some(s => s.horario === slot.horario)) {
@@ -314,7 +319,10 @@ export const SupabaseAgendamentosService = {
         .update({ status: 'cancelado', data_atualizacao: new Date().toISOString() })
         .eq('id', agendamentoId);
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseAgendamentosService.cancelarAgendamento] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao cancelar agendamento.' };
+      }
 
       return { sucesso: true, dados: undefined };
     } catch (error) {
@@ -342,13 +350,23 @@ export const SupabaseAgendamentosService = {
         .eq('id', agendamentoId)
         .single();
 
-      if (originalError || !original) return { sucesso: false, erro: 'Agendamento não encontrado.' };
+      if (originalError || !original) {
+        if (originalError) {
+          console.error('[SupabaseAgendamentosService.reagendarAgendamento] Erro ao buscar agendamento:', originalError);
+        }
+        return { sucesso: false, erro: 'Agendamento não encontrado.' };
+      }
 
       // Cancela o antigo
-      await supabase
+      const { error: cancelError } = await supabase
         .from('agendamentos')
         .update({ status: 'cancelado', data_atualizacao: new Date().toISOString() })
         .eq('id', agendamentoId);
+
+      if (cancelError) {
+        console.error('[SupabaseAgendamentosService.reagendarAgendamento] Erro ao cancelar agendamento original:', cancelError);
+        return { sucesso: false, erro: 'Erro ao reagendar.' };
+      }
 
       // Cria novo via RPC
       const { data, error } = await supabase.rpc('rpc_criar_agendamento', {
@@ -402,7 +420,10 @@ export const SupabaseAgendamentosService = {
         .update({ status: 'confirmado', data_atualizacao: new Date().toISOString() })
         .eq('id', agendamentoId);
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseAgendamentosService.confirmarPresenca] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao confirmar presença.' };
+      }
 
       return { sucesso: true, dados: undefined };
     } catch (error) {
@@ -434,7 +455,10 @@ export const SupabaseAgendamentosService = {
         })
         .eq('id', agendamentoId);
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseAgendamentosService.avaliarAgendamento] Erro ao atualizar agendamento:', error);
+        return { sucesso: false, erro: 'Erro ao avaliar.' };
+      }
 
       // Adiciona avaliação ao estabelecimento
       const { data: ag, error: agError } = await supabase
@@ -527,7 +551,10 @@ export const SupabaseAgendamentosService = {
         .update({ status, data_atualizacao: new Date().toISOString() })
         .eq('id', agendamentoId);
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseAgendamentosService.atualizarStatus] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao atualizar status.' };
+      }
 
       return { sucesso: true, dados: undefined };
     } catch (error) {
@@ -553,7 +580,10 @@ export const SupabaseAgendamentosService = {
         .update({ horario: horarioReal, status: 'concluido', data_atualizacao: new Date().toISOString() })
         .eq('id', agendamentoId);
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseAgendamentosService.definirHorarioReal] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao definir horário real.' };
+      }
 
       return { sucesso: true, dados: undefined };
     } catch (error) {
@@ -579,7 +609,10 @@ export const SupabaseAgendamentosService = {
         .update({ status_pagamento: 'pago', data_atualizacao: new Date().toISOString() })
         .eq('id', agendamentoId);
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseAgendamentosService.confirmarPagamentoPix] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao confirmar pagamento.' };
+      }
 
       return { sucesso: true, dados: undefined };
     } catch (error) {

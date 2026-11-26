@@ -188,29 +188,33 @@ export const SupabaseNotificacoesService = {
     try {
       const supabase = getSupabase();
 
-      const { data: est } = await supabase
+      const { data: est, error: estError } = await supabase
         .from('estabelecimentos')
         .select('nome')
         .eq('id', estabelecimentoId)
         .single();
 
+      if (estError) return { sucesso: false, erro: estError.message };
+
       let emails: string[] = [];
 
       if (destinatarios.includes('all')) {
         // Todos os clientes que agendaram
-        const { data: ags } = await supabase
+        const { data: ags, error: agsError } = await supabase
           .from('agendamentos')
           .select('usuario_id')
           .eq('estabelecimento_id', estabelecimentoId);
+        if (agsError) return { sucesso: false, erro: agsError.message };
         emails = [...new Set(ags?.map(a => a.usuario_id).filter(Boolean) || [])];
       } else {
         emails = destinatarios;
       }
 
-      const { data: usuarios } = await supabase
+      const { data: usuarios, error: usuariosError } = await supabase
         .from('usuarios')
         .select('email')
         .in('email', emails);
+      if (usuariosError) return { sucesso: false, erro: usuariosError.message };
 
       const notificacoes = (usuarios || []).map(u => ({
         destinatario_id: u.email,
@@ -247,18 +251,20 @@ export const SupabaseNotificacoesService = {
       let emails: string[] = [];
 
       if (destinatarios.includes('all')) {
-        const { data: barbeiros } = await supabase
+        const { data: barbeiros, error: barbeirosError } = await supabase
           .from('usuarios')
           .select('email')
           .eq('papel', 'barbeiro');
+        if (barbeirosError) return { sucesso: false, erro: barbeirosError.message };
         emails = barbeiros?.map(b => b.email) || [];
       } else {
         // destinatarios são IDs de estabelecimentos
-        const { data: barbeiros } = await supabase
+        const { data: barbeiros, error: barbeirosError } = await supabase
           .from('usuarios')
           .select('email')
           .eq('papel', 'barbeiro')
           .in('estabelecimento_id', destinatarios);
+        if (barbeirosError) return { sucesso: false, erro: barbeirosError.message };
         emails = barbeiros?.map(b => b.email) || [];
       }
 
