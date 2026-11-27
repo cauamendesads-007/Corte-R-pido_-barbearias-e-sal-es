@@ -603,39 +603,64 @@ export const SupabaseFeedService = {
     try {
       const supabase = getSupabase();
 
-      const { data: usuario } = await supabase
+      const { data: usuario, error: usuarioError } = await supabase
         .from('usuarios')
         .select('id')
         .eq('email', usuarioEmail)
         .single();
 
+      if (usuarioError) {
+        console.error('[SupabaseFeedService.alternarSeguir] Erro ao buscar usuário:', usuarioError);
+        return { sucesso: false, erro: 'Erro ao buscar usuário.' };
+      }
       if (!usuario) return { sucesso: false, erro: 'Usuário não encontrado.' };
 
-      const { data: seguindo } = await supabase
+      const { data: seguindo, error: seguindoError } = await supabase
         .from('seguidores')
         .select('id')
         .eq('estabelecimento_id', estabelecimentoId)
         .eq('usuario_id', usuario.id)
         .maybeSingle();
 
+      if (seguindoError) {
+        console.error('[SupabaseFeedService.alternarSeguir] Erro ao verificar seguindo:', seguindoError);
+        return { sucesso: false, erro: 'Erro ao verificar seguimento.' };
+      }
+
       if (seguindo) {
-        await supabase.from('seguidores').delete().eq('id', seguindo.id);
-        await supabase.rpc('decrementar_contador', {
+        const { error: deleteError } = await supabase.from('seguidores').delete().eq('id', seguindo.id);
+        if (deleteError) {
+          console.error('[SupabaseFeedService.alternarSeguir] Erro ao remover seguidor:', deleteError);
+          return { sucesso: false, erro: 'Erro ao deixar de seguir.' };
+        }
+        const { error: rpcDecError } = await supabase.rpc('decrementar_contador', {
           tabela: 'estabelecimentos',
           campo: 'seguidores',
           id_registro: estabelecimentoId,
         });
+        if (rpcDecError) {
+          console.error('[SupabaseFeedService.alternarSeguir] Erro ao decrementar contador:', rpcDecError);
+          return { sucesso: false, erro: 'Erro ao atualizar contador.' };
+        }
         return { sucesso: true, dados: { seguindo: false } };
       } else {
-        await supabase.from('seguidores').insert({
+        const { error: insertError } = await supabase.from('seguidores').insert({
           estabelecimento_id: estabelecimentoId,
           usuario_id: usuario.id,
         });
-        await supabase.rpc('incrementar_contador', {
+        if (insertError) {
+          console.error('[SupabaseFeedService.alternarSeguir] Erro ao inserir seguidor:', insertError);
+          return { sucesso: false, erro: 'Erro ao seguir.' };
+        }
+        const { error: rpcIncError } = await supabase.rpc('incrementar_contador', {
           tabela: 'estabelecimentos',
           campo: 'seguidores',
           id_registro: estabelecimentoId,
         });
+        if (rpcIncError) {
+          console.error('[SupabaseFeedService.alternarSeguir] Erro ao incrementar contador:', rpcIncError);
+          return { sucesso: false, erro: 'Erro ao atualizar contador.' };
+        }
         return { sucesso: true, dados: { seguindo: true } };
       }
     } catch (error) {
@@ -658,11 +683,16 @@ export const SupabaseFeedService = {
 
       const { data: { user } } = await supabase.auth.getUser();
 
-      const { data: perfil } = await supabase
+      const { data: perfil, error: perfilError } = await supabase
         .from('usuarios')
         .select('nome, avatar')
         .eq('id', user?.id || '')
         .single();
+
+      if (perfilError) {
+        console.error('[SupabaseFeedService.adicionarComentario] Erro ao buscar perfil:', perfilError);
+        return { sucesso: false, erro: 'Erro ao buscar perfil.' };
+      }
 
       const { data, error } = await supabase
         .from('comentarios')
@@ -679,11 +709,16 @@ export const SupabaseFeedService = {
       if (error) return { sucesso: false, erro: error.message };
 
       // Incrementa contador de comentários
-      await supabase.rpc('incrementar_contador', {
+      const { error: rpcError } = await supabase.rpc('incrementar_contador', {
         tabela: 'publicacoes',
         campo: 'comentarios_count',
         id_registro: publicacaoId,
       });
+
+      if (rpcError) {
+        console.error('[SupabaseFeedService.adicionarComentario] Erro ao incrementar contador:', rpcError);
+        return { sucesso: false, erro: 'Erro ao atualizar contador de comentários.' };
+      }
 
       return { sucesso: true, dados: mapComentarioRowToTipo(data) };
     } catch (error) {
@@ -707,11 +742,16 @@ export const SupabaseFeedService = {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return { sucesso: false, erro: 'Não autenticado.' };
 
-      const { data: perfil } = await supabase
+      const { data: perfil, error: perfilError } = await supabase
         .from('usuarios')
         .select('papel, estabelecimento_id')
         .eq('id', user.id)
         .single();
+
+      if (perfilError) {
+        console.error('[SupabaseFeedService.excluirPublicacao] Erro ao buscar perfil:', perfilError);
+        return { sucesso: false, erro: 'Erro ao buscar perfil.' };
+      }
 
       const isAdmin = perfil?.papel === 'admin';
       const isBarbeiro = perfil?.papel === 'barbeiro' && perfil?.estabelecimento_id === estabelecimentoId;
@@ -775,11 +815,15 @@ export const SupabaseFeedService = {
 
     try {
       const supabase = getSupabase();
-      await supabase.rpc('incrementar_contador', {
+      const { error } = await supabase.rpc('incrementar_contador', {
         tabela: 'publicacoes',
         campo: 'compartilhamentos',
         id_registro: publicacaoId,
       });
+      if (error) {
+        console.error('[SupabaseFeedService.compartilharPublicacao] Erro ao incrementar contador:', error);
+        return { sucesso: false, erro: 'Erro ao compartilhar.' };
+      }
       return { sucesso: true, dados: undefined };
     } catch (error) {
       console.error('[SupabaseFeedService.compartilharPublicacao] Erro:', error);
@@ -842,11 +886,16 @@ export const SupabaseFeedService = {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return { sucesso: false, erro: 'Não autenticado.' };
 
-      const { data: perfil } = await supabase
+      const { data: perfil, error: perfilError } = await supabase
         .from('usuarios')
         .select('nome, avatar')
         .eq('id', user.id)
         .single();
+
+      if (perfilError) {
+        console.error('[SupabaseFeedService.criarInspiracao] Erro ao buscar perfil:', perfilError);
+        return { sucesso: false, erro: 'Erro ao buscar perfil.' };
+      }
 
       const { data, error } = await supabase
         .from('inspiracaoes')
@@ -871,14 +920,23 @@ export const SupabaseFeedService = {
           src: m.src,
           ordem: i,
         }));
-        await supabase.from('inspiracao_midias').insert(midiasInsert);
+        const { error: midiasError } = await supabase.from('inspiracao_midias').insert(midiasInsert);
+        if (midiasError) {
+          console.error('[SupabaseFeedService.criarInspiracao] Erro ao inserir mídias:', midiasError);
+          return { sucesso: false, erro: 'Erro ao adicionar mídias.' };
+        }
       }
 
-      const { data: completa } = await supabase
+      const { data: completa, error: completaError } = await supabase
         .from('inspiracaoes')
         .select('*, inspiracao_midias(*)')
         .eq('id', data.id)
         .single();
+
+      if (completaError) {
+        console.error('[SupabaseFeedService.criarInspiracao] Erro ao recarregar inspiração:', completaError);
+        return { sucesso: false, erro: 'Erro ao recarregar inspiração.' };
+      }
 
       return { sucesso: true, dados: mapInspiracaoRowToTipo(completa as any) };
     } catch (error) {
