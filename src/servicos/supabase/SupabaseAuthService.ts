@@ -257,7 +257,7 @@ export const SupabaseAuthService = {
           seguidores: 0,
           taxa_fidelidade: 0,
         })
-        .select()
+        .select('id')
         .single();
 
       if (estError || !estabelecimento) {

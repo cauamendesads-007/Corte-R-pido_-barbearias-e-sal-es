@@ -273,7 +273,7 @@ export const SupabaseAdminService = {
 
       const { data, error } = await supabase
         .from('estabelecimentos')
-        .select('*')
+        .select('id, slug, nome, responsavel, cidade, nicho, avaliacao, status, latitude, longitude, whatsapp, endereco, sobre, tema_cor, tema_layout, tema_titulo, tema_subtitulo, tempo_medio_atendimento, horario_funcionamento, permite_auto_edicao, configuracao_pix_modo, configuracao_pix_chave, configuracao_pix_percentual_sinal, seguidores, taxa_fidelidade, data_criacao, data_atualizacao')
         .order('data_criacao', { ascending: false });
 
       if (error) {
@@ -302,7 +302,7 @@ export const SupabaseAdminService = {
 
       const { data, error } = await supabase
         .from('estabelecimentos')
-        .select('*')
+        .select('id, slug, nome, responsavel, cidade, nicho, avaliacao, status, latitude, longitude, whatsapp, endereco, sobre, tema_cor, tema_layout, tema_titulo, tema_subtitulo, tempo_medio_atendimento, horario_funcionamento, permite_auto_edicao, configuracao_pix_modo, configuracao_pix_chave, configuracao_pix_percentual_sinal, seguidores, taxa_fidelidade, data_criacao, data_atualizacao')
         .eq('id', id)
         .single();
 
