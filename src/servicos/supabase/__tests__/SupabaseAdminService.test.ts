@@ -353,7 +353,7 @@ describe('SupabaseAdminService', () => {
         const resultado = await service.excluirUsuarioAdmin('inexistente');
 
         expect(resultado.sucesso).toBe(false);
-        expect(resultado.erro).toBe('User not found');
+        expect(resultado.erro).toBe('Erro ao excluir usuário.');
       });
     });
   });
@@ -642,7 +642,7 @@ describe('SupabaseAdminService', () => {
       const resultado = await service.listarUsuariosAdmin();
 
       expect(resultado.sucesso).toBe(false);
-      expect(resultado.erro).toContain('permission denied');
+      expect(resultado.erro).toBe('Erro ao listar usuários.');
     });
 
     it('deve retornar erro quando RLS bloqueia atualização de estabelecimento', async () => {
@@ -655,7 +655,7 @@ describe('SupabaseAdminService', () => {
       const resultado = await service.aprovarEstabelecimento('est-123');
 
       expect(resultado.sucesso).toBe(false);
-      expect(resultado.erro).toContain('permission denied');
+      expect(resultado.erro).toBe('Erro ao alterar status.');
     });
   });
 });

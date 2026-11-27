@@ -138,7 +138,10 @@ export const SupabaseAdminService = {
         .select('*')
         .order('data_cadastro', { ascending: false });
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseAdminService.listarUsuariosAdmin] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao listar usuários.' };
+      }
 
       return { sucesso: true, dados: (data || []).map(mapUsuarioRowToTipo) };
     } catch (error) {
@@ -165,7 +168,10 @@ export const SupabaseAdminService = {
         .eq('id', id)
         .single();
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseAdminService.obterUsuarioAdmin] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao buscar usuário.' };
+      }
       if (!data) return { sucesso: true, dados: null };
 
       return { sucesso: true, dados: mapUsuarioRowToTipo(data) };
@@ -211,7 +217,10 @@ export const SupabaseAdminService = {
         .select()
         .single();
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseAdminService.atualizarUsuarioAdmin] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao atualizar usuário.' };
+      }
 
       return { sucesso: true, dados: mapUsuarioRowToTipo(data) };
     } catch (error) {
@@ -234,7 +243,10 @@ export const SupabaseAdminService = {
 
       // Deleta do Auth (trigger faz anonimização no banco)
       const { error } = await supabase.auth.admin.deleteUser(id);
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseAdminService.excluirUsuarioAdmin] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao excluir usuário.' };
+      }
 
       return { sucesso: true, dados: undefined };
     } catch (error) {
@@ -264,7 +276,10 @@ export const SupabaseAdminService = {
         .select('*')
         .order('data_criacao', { ascending: false });
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseAdminService.listarEstabelecimentosAdmin] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao listar estabelecimentos.' };
+      }
 
       return { sucesso: true, dados: (data || []).map(mapEstabelecimentoRowToTipo) };
     } catch (error) {
@@ -291,7 +306,10 @@ export const SupabaseAdminService = {
         .eq('id', id)
         .single();
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseAdminService.obterEstabelecimentoAdmin] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao buscar estabelecimento.' };
+      }
       if (!data) return { sucesso: true, dados: null };
 
       return { sucesso: true, dados: mapEstabelecimentoRowToTipo(data) };
@@ -339,7 +357,10 @@ export const SupabaseAdminService = {
         .update({ status, data_atualizacao: new Date().toISOString() })
         .eq('id', id);
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseAdminService.alterarStatusEstabelecimento] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao alterar status.' };
+      }
 
       // Notifica barbeiro (insere notificação)
       const { data: barbeiro, error: barbeiroError } = await supabase
@@ -391,7 +412,10 @@ export const SupabaseAdminService = {
         .update({ permite_auto_edicao: permitido, data_atualizacao: new Date().toISOString() })
         .eq('id', estabelecimentoId);
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseAdminService.definirAutoEdicao] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao definir auto-edição.' };
+      }
 
       return { sucesso: true, dados: undefined };
     } catch (error) {
@@ -422,7 +446,10 @@ export const SupabaseAdminService = {
         .eq('ativo', true)
         .order('ordem_exibicao');
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseAdminService.listarPlanos] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao listar planos.' };
+      }
 
       return { sucesso: true, dados: (data || []).map(mapPlanoRowToTipo) };
     } catch (error) {
@@ -448,7 +475,10 @@ export const SupabaseAdminService = {
         .select('*')
         .order('ordem_exibicao');
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseAdminService.obterPlanosAdmin] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao buscar planos.' };
+      }
 
       return { sucesso: true, dados: (data || []).map(mapPlanoRowToTipo) };
     } catch (error) {
@@ -497,7 +527,10 @@ export const SupabaseAdminService = {
         .select()
         .single();
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseAdminService.criarPlanoAdmin] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao criar plano.' };
+      }
 
       return { sucesso: true, dados: mapPlanoRowToTipo(data) };
     } catch (error) {
@@ -534,7 +567,10 @@ export const SupabaseAdminService = {
         .select()
         .single();
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseAdminService.atualizarPlanoAdmin] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao atualizar plano.' };
+      }
 
       return { sucesso: true, dados: mapPlanoRowToTipo(data) };
     } catch (error) {
@@ -560,7 +596,10 @@ export const SupabaseAdminService = {
         .delete()
         .eq('id', planoId);
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseAdminService.excluirPlanoAdmin] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao excluir plano.' };
+      }
 
       return { sucesso: true, dados: undefined };
     } catch (error) {
@@ -590,7 +629,10 @@ export const SupabaseAdminService = {
         .select('*, planos_assinatura(nome, tipo, preco_centavos), estabelecimentos(nome)')
         .eq('status', 'ativa');
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseAdminService.listarAssinaturasAdmin] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao listar assinaturas.' };
+      }
 
       const assinaturas: Record<string, AssinaturaEstabelecimento> = {};
       (data || []).forEach(a => {
@@ -628,7 +670,10 @@ export const SupabaseAdminService = {
         .eq('status', 'ativa')
         .maybeSingle();
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseAdminService.obterAssinatura] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao buscar assinatura.' };
+      }
       if (!data) return { sucesso: true, dados: null };
 
       return {
@@ -804,7 +849,10 @@ export const SupabaseAdminService = {
         .select('*, estabelecimentos(nome)')
         .order('data_criacao', { ascending: false });
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseAdminService.listarPagamentosAdmin] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao listar pagamentos.' };
+      }
 
       const pagamentos = (data || []).map(p => ({
         estabelecimento: (p.estabelecimentos as any)?.nome || 'Desconhecido',
