@@ -7,127 +7,183 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import type { Agendamento, StatusPagamento, StatusAgendamento } from '@/tipos';
 
-// Mock do cliente Supabase
-const mockSupabase = {
-  from: vi.fn(() => ({
-    select: vi.fn(() => ({
-      eq: vi.fn(() => ({
-        single: vi.fn(),
-        maybeSingle: vi.fn(),
-      })),
-      in: vi.fn(() => ({
-        single: vi.fn(),
-      })),
-      order: vi.fn(() => ({
-        limit: vi.fn(() => ({
-          range: vi.fn(),
-        })),
-      })),
-      limit: vi.fn(),
-      range: vi.fn(),
-    })),
-    insert: vi.fn(() => ({
+// ============================================================================
+// FACTORY PARA CRIAR MOCKS FRESCOS POR TESTE
+// ============================================================================
+
+function createMockSupabase() {
+  const tableMocks: Record<string, any> = {};
+
+  // Armazena dados de retorno configurados por tabela
+  const selectReturnData: Record<string, any> = {};
+  const selectErrorData: Record<string, any> = {};
+
+  function createMockChain(tableName: string) {
+    const chain: any = {
+      eq: vi.fn(() => chain),
+      in: vi.fn(() => chain),
+      order: vi.fn(() => chain),
+      limit: vi.fn(() => chain),
+      range: vi.fn(() => chain),
+      single: vi.fn(() => {
+        // single() modifica o retorno para um único objeto
+        chain._isSingle = true;
+        return chain;
+      }),
+      maybeSingle: vi.fn(() => {
+        chain._isMaybeSingle = true;
+        return chain;
+      }),
+      select: vi.fn(() => chain),
+      then(onFulfilled: any) {
+        // Quando await é chamado na chain, retorna os dados configurados
+        const data = selectReturnData[tableName];
+        const error = selectErrorData[tableName];
+
+        if (error) {
+          return Promise.resolve({ data: null, error }).then(onFulfilled);
+        }
+
+        // Se single() foi chamado, retorna o primeiro item ou null
+        if (chain._isSingle) {
+          return Promise.resolve({
+            data: Array.isArray(data) ? data[0] : data,
+            error: null
+          }).then(onFulfilled);
+        }
+
+        // Se maybeSingle() foi chamado, retorna o primeiro item ou null
+        if (chain._isMaybeSingle) {
+          return Promise.resolve({
+            data: Array.isArray(data) && data.length > 0 ? data[0] : (data || null),
+            error: null
+          }).then(onFulfilled);
+        }
+
+        // Retorno padrão: array de dados
+        return Promise.resolve({ data: data || [], error: null }).then(onFulfilled);
+      },
+      catch(onRejected: any) {
+        const error = selectErrorData[tableName];
+        if (error) {
+          return Promise.resolve({ data: null, error }).catch(onRejected);
+        }
+        return Promise.resolve({ data: selectReturnData[tableName] || [], error: null }).catch(onRejected);
+      },
+      _isSingle: false,
+      _isMaybeSingle: false,
+    };
+    return chain;
+  }
+
+  function createUpdateChain() {
+    return {
+      eq: vi.fn().mockResolvedValue({ error: null }),
+    };
+  }
+
+  function createInsertChain() {
+    return {
       select: vi.fn(() => ({
-        single: vi.fn(),
+        single: vi.fn().mockResolvedValue({ data: null, error: null }),
       })),
-    })),
-    update: vi.fn(() => ({
-      eq: vi.fn(() => ({
-        select: vi.fn(() => ({
-          single: vi.fn(),
-        })),
-      })),
-    })),
-    delete: vi.fn(() => ({
-      eq: vi.fn(),
-    })),
+    };
+  }
+
+  function getOrCreateTableMock(tableName: string) {
+    if (!tableMocks[tableName]) {
+      const selectChain = createMockChain(tableName);
+      const updateChain = createUpdateChain();
+      const insertChain = createInsertChain();
+      const deleteChain = { eq: vi.fn().mockResolvedValue({ error: null }) };
+
+      tableMocks[tableName] = {
+        select: vi.fn(() => selectChain),
+        insert: vi.fn(() => insertChain),
+        update: vi.fn(() => updateChain),
+        delete: vi.fn(() => deleteChain),
+        _selectChain: selectChain,
+        _updateChain: updateChain,
+        _insertChain: insertChain,
+        _deleteChain: deleteChain,
+      };
+    }
+    return tableMocks[tableName];
+  }
+
+  return {
+    tableMocks,
+    selectReturnData,
+    selectErrorData,
+    getOrCreateTableMock,
+    from: vi.fn((table: string) => getOrCreateTableMock(table)),
     rpc: vi.fn(),
-  })),
-  auth: {
-    getUser: vi.fn(),
-    getSession: vi.fn(),
-    signInWithPassword: vi.fn(),
-    signOut: vi.fn(),
-    signUp: vi.fn(),
-    resetPasswordForEmail: vi.fn(),
-    updateUser: vi.fn(),
-    onAuthStateChange: vi.fn(),
-    admin: {
-      deleteUser: vi.fn(),
+    auth: {
+      getUser: vi.fn(),
+      getSession: vi.fn(),
+      signInWithPassword: vi.fn(),
+      signOut: vi.fn(),
+      signUp: vi.fn(),
+      resetPasswordForEmail: vi.fn(),
+      updateUser: vi.fn(),
+      onAuthStateChange: vi.fn(),
+      admin: { deleteUser: vi.fn() },
     },
-  },
-  functions: {
-    invoke: vi.fn(),
-  },
-  storage: {
-    from: vi.fn(() => ({
-      upload: vi.fn(),
-      download: vi.fn(),
-      getPublicUrl: vi.fn(),
-      remove: vi.fn(),
-    })),
-  },
-  channel: vi.fn(() => ({
-    on: vi.fn(() => ({ subscribe: vi.fn() })),
-    subscribe: vi.fn(),
-    unsubscribe: vi.fn(),
-  })),
-  removeChannel: vi.fn(),
-  rpc: vi.fn(),
+    functions: { invoke: vi.fn() },
+    storage: { from: vi.fn(() => ({ upload: vi.fn(), download: vi.fn(), getPublicUrl: vi.fn(), remove: vi.fn() })) },
+    channel: vi.fn(() => ({ on: vi.fn(() => ({ subscribe: vi.fn() })), subscribe: vi.fn(), unsubscribe: vi.fn() })),
+    removeChannel: vi.fn(),
+  };
+}
+
+// ============================================================================
+// HELPERS DE DADOS
+// ============================================================================
+
+const mockAgendamentoData = {
+  id: 'agendamento-123',
+  estabelecimento_id: 'est-123',
+  usuario_id: 'user-123',
+  profissional_id: 'prof-123',
+  dia: '2025-01-15',
+  horario: '14:00',
+  duracao_min: 30,
+  nome_cliente: 'João Silva',
+  telefone_cliente: '(11) 99999-9999',
+  servicos: 'Corte, Barba',
+  valor_total_centavos: 8000,
+  status_pagamento: 'no_local',
+  status: 'agendado',
+  servico_ids: ['serv-1', 'serv-2'],
+  observacoes: 'Sem restrições',
 };
 
-// Mock do módulo client
-vi.mock('../client', () => ({
-  getSupabase: vi.fn(() => mockSupabase),
-  isMockMode: vi.fn(() => false),
-  initSupabase: vi.fn(),
-  enableMockMode: vi.fn(),
-  resetSupabase: vi.fn(),
-}));
+const mockVRow = {
+  ...mockAgendamentoData,
+  avaliacao_estrelas: null,
+  avaliacao_comentario: null,
+  avaliacao_data: null,
+};
+
+// ============================================================================
+// TESTES
+// ============================================================================
 
 describe('SupabaseAgendamentosService', () => {
   let service: any;
+  let mockSupabase: ReturnType<typeof createMockSupabase>;
 
   beforeEach(async () => {
-    vi.clearAllMocks();
-    // Reset mock implementations
-    mockSupabase.from.mockReturnValue({
-      select: vi.fn(() => ({
-        eq: vi.fn(() => ({
-          single: vi.fn(),
-          maybeSingle: vi.fn(),
-        })),
-        in: vi.fn(() => ({
-          single: vi.fn(),
-        })),
-        order: vi.fn(() => ({
-          limit: vi.fn(() => ({
-            range: vi.fn(),
-          })),
-        })),
-        limit: vi.fn(),
-        range: vi.fn(),
-      })),
-      insert: vi.fn(() => ({
-        select: vi.fn(() => ({
-          single: vi.fn(),
-        })),
-      })),
-      update: vi.fn(() => ({
-        eq: vi.fn(() => ({
-          select: vi.fn(() => ({
-            single: vi.fn(),
-          })),
-        })),
-      })),
-      delete: vi.fn(() => ({
-        eq: vi.fn(),
-      })),
-      rpc: vi.fn(),
-    });
-    mockSupabase.rpc.mockReset();
-    mockSupabase.auth.getUser.mockReset();
-    mockSupabase.auth.getSession.mockReset();
+    vi.resetModules();
+    mockSupabase = createMockSupabase();
+
+    vi.doMock('../client', () => ({
+      getSupabase: vi.fn(() => mockSupabase),
+      isMockMode: vi.fn(() => false),
+      initSupabase: vi.fn(),
+      enableMockMode: vi.fn(),
+      resetSupabase: vi.fn(),
+    }));
 
     const module = await import('../SupabaseAgendamentosService');
     service = module.SupabaseAgendamentosService;
@@ -138,54 +194,56 @@ describe('SupabaseAgendamentosService', () => {
   });
 
   // ============================================================================
-  // HELPERS
+  // HELPERS POR TESTE
   // ============================================================================
 
-  const mockAgendamentoData = {
-    id: 'agendamento-123',
-    estabelecimento_id: 'est-123',
-    usuario_id: 'user-123',
-    dia: '2025-01-15',
-    horario: '14:00',
-    duracao_min: 30,
-    nome_cliente: 'João Silva',
-    telefone_cliente: '(11) 99999-9999',
-    servicos: 'Corte, Barba',
-    valor_total_centavos: 8000,
-    status_pagamento: 'no_local',
-    status: 'agendado',
-    servico_ids: ['serv-1', 'serv-2'],
-    observacoes: 'Sem restrições',
-  };
+  function setSelectReturn(tableName: string, returnData: any) {
+    mockSupabase.selectReturnData[tableName] = returnData;
+    mockSupabase.selectErrorData[tableName] = null;
+  }
 
-  const mockVRow = {
-    ...mockAgendamentoData,
-    avaliacao_estrelas: null,
-    avaliacao_comentario: null,
-    avaliacao_data: null,
-  };
+  function setSelectError(tableName: string, error: any) {
+    mockSupabase.selectErrorData[tableName] = error;
+    mockSupabase.selectReturnData[tableName] = null;
+  }
 
-  function setupMockSelect(returnData: any = mockVRow) {
-    const chain = {
+  function setUpdateReturn(tableName: string, error: any = null) {
+    const mock = mockSupabase.getOrCreateTableMock(tableName);
+    mock._updateChain.eq.mockResolvedValue({ error });
+  }
+
+  function setSelectChainFn(tableName: string, chain: any) {
+    const mock = mockSupabase.getOrCreateTableMock(tableName);
+    mock.select.mockReturnValue(chain);
+  }
+
+  function createMockChain(tableName: string) {
+    const chain: any = {
       eq: vi.fn(() => chain),
       in: vi.fn(() => chain),
       order: vi.fn(() => chain),
       limit: vi.fn(() => chain),
       range: vi.fn(() => chain),
-      single: vi.fn().mockResolvedValue({ data: returnData, error: null }),
-      maybeSingle: vi.fn().mockResolvedValue({ data: returnData, error: null }),
-    };
-    mockSupabase.from.mockReturnValue({
+      single: vi.fn(() => chain),
+      maybeSingle: vi.fn(() => chain),
       select: vi.fn(() => chain),
-      insert: vi.fn(() => ({ select: vi.fn(() => ({ single: vi.fn().mockResolvedValue({ data: returnData, error: null }) })) })),
-      update: vi.fn(() => ({ eq: vi.fn(() => ({ select: vi.fn(() => ({ single: vi.fn().mockResolvedValue({ data: returnData, error: null }) })) })) })),
-      delete: vi.fn(() => ({ eq: vi.fn().mockResolvedValue({ error: null }) })),
-      rpc: vi.fn(),
-    });
-  }
-
-  function setupMockRpc(returnData: any = { agendamento_id: 'agendamento-123', erro: null }) {
-    mockSupabase.rpc.mockResolvedValue({ data: [returnData], error: null });
+      then(onFulfilled: any) {
+        const data = mockSupabase.selectReturnData[tableName];
+        const error = mockSupabase.selectErrorData[tableName];
+        if (error) {
+          return Promise.resolve({ data: null, error }).then(onFulfilled);
+        }
+        return Promise.resolve({ data: data || [], error: null }).then(onFulfilled);
+      },
+      catch(onRejected: any) {
+        const error = mockSupabase.selectErrorData[tableName];
+        if (error) {
+          return Promise.resolve({ data: null, error }).catch(onRejected);
+        }
+        return Promise.resolve({ data: mockSupabase.selectReturnData[tableName] || [], error: null }).catch(onRejected);
+      },
+    };
+    return chain;
   }
 
   // ============================================================================
@@ -194,19 +252,19 @@ describe('SupabaseAgendamentosService', () => {
 
   describe('listarAgendamentosEstabelecimento', () => {
     it('deve retornar lista de agendamentos com sucesso', async () => {
-      setupMockSelect([mockVRow, { ...mockVRow, id: 'agendamento-456', horario: '15:00' }]);
+      setSelectReturn('v_agendamentos_detalhados', [mockVRow, { ...mockVRow, id: 'agendamento-456', horario: '15:00' }]);
 
       const resultado = await service.listarAgendamentosEstabelecimento('est-123');
 
       expect(resultado.sucesso).toBe(true);
       expect(resultado.dados).toHaveLength(2);
       expect(resultado.dados?.[0].id).toBe('agendamento-123');
-      expect(resultado.dados?.[0].valorTotal).toBe(80); // centavos -> reais
+      expect(resultado.dados?.[0].valorTotal).toBe(80);
       expect(resultado.dados?.[0].servicoIds).toEqual(['serv-1', 'serv-2']);
     });
 
     it('deve retornar array vazio quando não há agendamentos', async () => {
-      setupMockSelect([]);
+      setSelectReturn('v_agendamentos_detalhados', []);
 
       const resultado = await service.listarAgendamentosEstabelecimento('est-123');
 
@@ -215,17 +273,12 @@ describe('SupabaseAgendamentosService', () => {
     });
 
     it('deve retornar erro quando Supabase falha', async () => {
-      const chain = {
-        eq: vi.fn(() => chain),
-        order: vi.fn(() => chain),
-        single: vi.fn().mockResolvedValue({ data: null, error: { message: 'Erro de conexão' } }),
-      };
-      mockSupabase.from.mockReturnValue({ select: vi.fn(() => chain) });
+      setSelectError('v_agendamentos_detalhados', { message: 'Erro de conexão' });
 
       const resultado = await service.listarAgendamentosEstabelecimento('est-123');
 
       expect(resultado.sucesso).toBe(false);
-      expect(resultado.erro).toBe('Erro de conexão');
+      expect(resultado.erro).toBe('Erro ao buscar agendamentos.');
     });
   });
 
@@ -235,7 +288,7 @@ describe('SupabaseAgendamentosService', () => {
 
   describe('listarAgendamentosCliente', () => {
     it('deve retornar agendamentos do cliente com sucesso', async () => {
-      setupMockSelect([mockVRow]);
+      setSelectReturn('v_agendamentos_detalhados', [mockVRow]);
 
       const resultado = await service.listarAgendamentosCliente('user-123');
 
@@ -251,12 +304,7 @@ describe('SupabaseAgendamentosService', () => {
 
   describe('obterAgendamento', () => {
     it('deve retornar agendamento por ID com sucesso', async () => {
-      const chain = {
-        eq: vi.fn(() => ({
-          maybeSingle: vi.fn().mockResolvedValue({ data: mockVRow, error: null }),
-        })),
-      };
-      mockSupabase.from.mockReturnValue({ select: vi.fn(() => chain) });
+      setSelectReturn('v_agendamentos_detalhados', mockVRow);
 
       const resultado = await service.obterAgendamento('agendamento-123');
 
@@ -266,12 +314,7 @@ describe('SupabaseAgendamentosService', () => {
     });
 
     it('deve retornar null quando agendamento não encontrado', async () => {
-      const chain = {
-        eq: vi.fn(() => ({
-          maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
-        })),
-      };
-      mockSupabase.from.mockReturnValue({ select: vi.fn(() => chain) });
+      setSelectReturn('v_agendamentos_detalhados', null);
 
       const resultado = await service.obterAgendamento('inexistente');
 
@@ -286,20 +329,10 @@ describe('SupabaseAgendamentosService', () => {
 
   describe('obterHorariosDisponiveis', () => {
     it('deve retornar horários disponíveis combinados de múltiplos profissionais', async () => {
-      // Mock profissionais
-      const profChain = {
-        eq: vi.fn(() => ({
-          eq: vi.fn(() => ({
-            select: vi.fn().mockResolvedValue({ data: [{ id: 'prof-1' }, { id: 'prof-2' }], error: null }),
-          })),
-        })),
-      };
-      mockSupabase.from.mockImplementation((table) => {
-        if (table === 'profissionais') return { select: vi.fn(() => profChain) };
-        return { select: vi.fn(() => ({ eq: vi.fn(() => ({ maybeSingle: vi.fn() })) })) };
-      });
+      const profChain = createMockChain('profissionais');
+      mockSupabase.selectReturnData['profissionais'] = [{ id: 'prof-1' }, { id: 'prof-2' }];
+      setSelectChainFn('profissionais', profChain);
 
-      // Mock RPC para cada profissional
       mockSupabase.rpc
         .mockResolvedValueOnce({ data: [{ horario: '09:00', disponivel: true }, { horario: '10:00', disponivel: false }], error: null })
         .mockResolvedValueOnce({ data: [{ horario: '09:00', disponivel: false }, { horario: '11:00', disponivel: true }], error: null });
@@ -307,22 +340,14 @@ describe('SupabaseAgendamentosService', () => {
       const resultado = await service.obterHorariosDisponiveis('est-123', '2025-01-15', 30);
 
       expect(resultado.sucesso).toBe(true);
-      expect(resultado.dados).toHaveLength(3); // 09:00, 10:00, 11:00 (sem duplicatas)
+      expect(resultado.dados).toHaveLength(3);
       expect(resultado.dados?.map(s => s.horario)).toEqual(['09:00', '10:00', '11:00']);
     });
 
     it('deve retornar array vazio quando não há profissionais ativos', async () => {
-      const profChain = {
-        eq: vi.fn(() => ({
-          eq: vi.fn(() => ({
-            select: vi.fn().mockResolvedValue({ data: [], error: null }),
-          })),
-        })),
-      };
-      mockSupabase.from.mockImplementation((table) => {
-        if (table === 'profissionais') return { select: vi.fn(() => profChain) };
-        return { select: vi.fn(() => ({ eq: vi.fn(() => ({ maybeSingle: vi.fn() })) })) };
-      });
+      const profChain = createMockChain('profissionais');
+      mockSupabase.selectReturnData['profissionais'] = [];
+      setSelectChainFn('profissionais', profChain);
 
       const resultado = await service.obterHorariosDisponiveis('est-123', '2025-01-15', 30);
 
@@ -337,8 +362,9 @@ describe('SupabaseAgendamentosService', () => {
 
   describe('criarAgendamento - sucesso', () => {
     it('deve criar agendamento via RPC e retornar agendamento completo', async () => {
-      setupMockRpc({ agendamento_id: 'novo-agendamento-123', erro: null });
-      setupMockSelect({ ...mockVRow, id: 'novo-agendamento-123' });
+      mockSupabase.rpc.mockResolvedValue({ data: [{ agendamento_id: 'novo-agendamento-123', erro: null }], error: null });
+
+      setSelectReturn('v_agendamentos_detalhados', { ...mockVRow, id: 'novo-agendamento-123' });
 
       const dados: Omit<Agendamento, 'id'> = {
         estabelecimentoId: 'est-123',
@@ -478,7 +504,7 @@ describe('SupabaseAgendamentosService', () => {
       const resultado = await service.criarAgendamento(dados);
 
       expect(resultado.sucesso).toBe(false);
-      expect(resultado.erro).toBe('erro genérico do banco');
+      expect(resultado.erro).toBe('Erro ao criar agendamento.');
     });
   });
 
@@ -488,24 +514,18 @@ describe('SupabaseAgendamentosService', () => {
 
   describe('reagendarAgendamento - conflito', () => {
     it('deve retornar erro 409 ao tentar reagendar para horário ocupado', async () => {
-      // Mock busca agendamento original
-      const selectChain = {
-        eq: vi.fn(() => ({
-          single: vi.fn().mockResolvedValue({ data: mockAgendamentoData, error: null }),
-        })),
-      };
-      mockSupabase.from.mockReturnValueOnce({ select: vi.fn(() => selectChain) });
+      const selectChain = createMockChain('agendamentos');
+      mockSupabase.selectReturnData['agendamentos'] = mockAgendamentoData;
+      setSelectChainFn('agendamentos', selectChain);
 
-      // Mock update cancelamento
-      mockSupabase.from.mockReturnValueOnce({
-        update: vi.fn(() => ({ eq: vi.fn().mockResolvedValue({ error: null }) })),
-      });
+      setUpdateReturn('agendamentos', null);
 
-      // Mock RPC com conflito
       mockSupabase.rpc.mockResolvedValue({
         data: null,
         error: { code: '23P01', message: 'conflito' },
       });
+
+      setSelectReturn('v_agendamentos_detalhados', mockVRow);
 
       const resultado = await service.reagendarAgendamento('agendamento-123', '2025-01-16', '15:00');
 
@@ -520,11 +540,7 @@ describe('SupabaseAgendamentosService', () => {
 
   describe('cancelarAgendamento', () => {
     it('deve cancelar agendamento com sucesso', async () => {
-      mockSupabase.from.mockReturnValue({
-        update: vi.fn(() => ({
-          eq: vi.fn().mockResolvedValue({ error: null }),
-        })),
-      });
+      setUpdateReturn('agendamentos', null);
 
       const resultado = await service.cancelarAgendamento('agendamento-123');
 
@@ -532,16 +548,12 @@ describe('SupabaseAgendamentosService', () => {
     });
 
     it('deve retornar erro quando Supabase falha', async () => {
-      mockSupabase.from.mockReturnValue({
-        update: vi.fn(() => ({
-          eq: vi.fn().mockResolvedValue({ error: { message: 'Erro ao cancelar' } }),
-        })),
-      });
+      setUpdateReturn('agendamentos', { message: 'Erro ao cancelar' });
 
       const resultado = await service.cancelarAgendamento('agendamento-123');
 
       expect(resultado.sucesso).toBe(false);
-      expect(resultado.erro).toBe('Erro ao cancelar');
+      expect(resultado.erro).toBe('Erro ao cancelar agendamento.');
     });
   });
 
@@ -551,11 +563,7 @@ describe('SupabaseAgendamentosService', () => {
 
   describe('confirmarPresenca', () => {
     it('deve confirmar presença com sucesso', async () => {
-      mockSupabase.from.mockReturnValue({
-        update: vi.fn(() => ({
-          eq: vi.fn().mockResolvedValue({ error: null }),
-        })),
-      });
+      setUpdateReturn('agendamentos', null);
 
       const resultado = await service.confirmarPresenca('agendamento-123');
 
@@ -569,22 +577,21 @@ describe('SupabaseAgendamentosService', () => {
 
   describe('avaliarAgendamento', () => {
     it('deve avaliar agendamento e atualizar média do estabelecimento', async () => {
-      mockSupabase.from
-        .mockReturnValueOnce({ // update agendamento
-          update: vi.fn(() => ({ eq: vi.fn().mockResolvedValue({ error: null }) })),
-        })
-        .mockReturnValueOnce({ // select agendamento para avaliação
-          select: vi.fn(() => ({ eq: vi.fn(() => ({ single: vi.fn().mockResolvedValue({ data: { estabelecimento_id: 'est-123', nome_cliente: 'João' }, error: null }) })) })),
-        })
-        .mockReturnValueOnce({ // insert avaliação
-          insert: vi.fn(() => ({ select: vi.fn().mockResolvedValue({ error: null }) })),
-        })
-        .mockReturnValueOnce({ // select avaliações para média
-          select: vi.fn(() => ({ eq: vi.fn().mockResolvedValue({ data: [{ estrelas: 5 }, { estrelas: 4 }], error: null }) })),
-        })
-        .mockReturnValueOnce({ // update estabelecimento média
-          update: vi.fn(() => ({ eq: vi.fn().mockResolvedValue({ error: null }) })),
-        });
+      setUpdateReturn('agendamentos', null);
+
+      const agendamentosSelectChain = createMockChain('agendamentos');
+      mockSupabase.selectReturnData['agendamentos'] = { estabelecimento_id: 'est-123', nome_cliente: 'João' };
+      setSelectChainFn('agendamentos', agendamentosSelectChain);
+
+      mockSupabase.getOrCreateTableMock('avaliacoes')._insertChain.select.mockReturnValue({
+        single: vi.fn().mockResolvedValue({ data: null, error: null }),
+      });
+
+      const avaliacoesSelectChain = createMockChain('avaliacoes');
+      mockSupabase.selectReturnData['avaliacoes'] = [{ estrelas: 5 }, { estrelas: 4 }];
+      setSelectChainFn('avaliacoes', avaliacoesSelectChain);
+
+      setUpdateReturn('estabelecimentos', null);
 
       const resultado = await service.avaliarAgendamento('agendamento-123', 5, 'Excelente!');
 
@@ -598,11 +605,7 @@ describe('SupabaseAgendamentosService', () => {
 
   describe('atualizarStatus', () => {
     it('deve atualizar status com sucesso', async () => {
-      mockSupabase.from.mockReturnValue({
-        update: vi.fn(() => ({
-          eq: vi.fn().mockResolvedValue({ error: null }),
-        })),
-      });
+      setUpdateReturn('agendamentos', null);
 
       const resultado = await service.atualizarStatus('agendamento-123', 'confirmado');
 
@@ -616,11 +619,7 @@ describe('SupabaseAgendamentosService', () => {
 
   describe('definirHorarioReal', () => {
     it('deve definir horário real e marcar como concluído', async () => {
-      mockSupabase.from.mockReturnValue({
-        update: vi.fn(() => ({
-          eq: vi.fn().mockResolvedValue({ error: null }),
-        })),
-      });
+      setUpdateReturn('agendamentos', null);
 
       const resultado = await service.definirHorarioReal('agendamento-123', '14:15');
 
@@ -634,11 +633,7 @@ describe('SupabaseAgendamentosService', () => {
 
   describe('confirmarPagamentoPix', () => {
     it('deve confirmar pagamento Pix com sucesso', async () => {
-      mockSupabase.from.mockReturnValue({
-        update: vi.fn(() => ({
-          eq: vi.fn().mockResolvedValue({ error: null }),
-        })),
-      });
+      setUpdateReturn('agendamentos', null);
 
       const resultado = await service.confirmarPagamentoPix('agendamento-123');
 
@@ -653,9 +648,9 @@ describe('SupabaseAgendamentosService', () => {
   describe('Modo Mock (fallback quando VITE_SUPABASE_URL não definido)', () => {
     beforeEach(async () => {
       vi.resetModules();
-      // Mock isMockMode para retornar true
+      const mockSupabaseMock = createMockSupabase();
       vi.doMock('../client', () => ({
-        getSupabase: vi.fn(() => mockSupabase),
+        getSupabase: vi.fn(() => mockSupabaseMock),
         isMockMode: vi.fn(() => true),
         initSupabase: vi.fn(),
         enableMockMode: vi.fn(),
@@ -685,7 +680,6 @@ describe('SupabaseAgendamentosService', () => {
 
       vi.doMock('@/servicos/api', () => mockApi);
 
-      // Re-import para pegar o mock
       vi.resetModules();
       const mod = await import('../SupabaseAgendamentosService');
       const svc = mod.SupabaseAgendamentosService;
@@ -701,17 +695,12 @@ describe('SupabaseAgendamentosService', () => {
 
   describe('Erros de permissão RLS (HTTP 403)', () => {
     it('deve retornar erro quando RLS bloqueia listagem', async () => {
-      const chain = {
-        eq: vi.fn(() => chain),
-        order: vi.fn(() => chain),
-        single: vi.fn().mockResolvedValue({ data: null, error: { message: 'row-level security policy violation', code: '42501' } }),
-      };
-      mockSupabase.from.mockReturnValue({ select: vi.fn(() => chain) });
+      setSelectError('v_agendamentos_detalhados', { message: 'row-level security policy violation', code: '42501' });
 
       const resultado = await service.listarAgendamentosEstabelecimento('est-123');
 
       expect(resultado.sucesso).toBe(false);
-      expect(resultado.erro).toContain('row-level security');
+      expect(resultado.erro).toBe('Erro ao buscar agendamentos.');
     });
 
     it('deve retornar erro quando RLS bloqueia criação', async () => {
@@ -738,7 +727,7 @@ describe('SupabaseAgendamentosService', () => {
       const resultado = await service.criarAgendamento(dados);
 
       expect(resultado.sucesso).toBe(false);
-      expect(resultado.erro).toContain('permission denied');
+      expect(resultado.erro).toBe('Erro ao criar agendamento.');
     });
   });
 });

@@ -140,7 +140,7 @@ BEGIN
     (v_svc1_id, 'imagem'::public.tipo_midia, 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=400', 'Corte clássico exemplo', 1),
     (v_svc2_id, 'imagem'::public.tipo_midia, 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=400', 'Barba completa exemplo', 1),
     (v_svc3_id, 'imagem'::public.tipo_midia, 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=400', 'Combo corte e barba', 1)
-  ON CONFLICT DO NOTHING;
+  ON CONFLICT (id) DO NOTHING;
 
   -- ============================================================================
   -- GALERIA DO ESTABELECIMENTO (sem coluna 'legenda' e 'destaque' - não existem)
@@ -151,7 +151,7 @@ BEGIN
     (v_est_id, 'imagem'::public.tipo_midia, 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=800', 1),
     (v_est_id, 'imagem'::public.tipo_midia, 'https://images.unsplash.com/photo-1519070843887-1ce36f3b385e?w=800', 2),
     (v_est_id, 'imagem'::public.tipo_midia, 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800', 3)
-  ON CONFLICT DO NOTHING;
+  ON CONFLICT (id) DO NOTHING;
 
   -- ============================================================================
   -- INSPIRAÇÕES (CATÁLOGO CURADO) - novo schema
@@ -172,7 +172,7 @@ BEGIN
     ('iii33333-3333-3333-3333-333333333333', 'imagem'::public.tipo_midia, 'https://images.unsplash.com/photo-1519070843887-1ce36f3b385e?w=600', 1),
     ('iii44444-4444-4444-4444-444444444444', 'imagem'::public.tipo_midia, 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=600', 1),
     ('iii55555-5555-5555-5555-555555555555', 'imagem'::public.tipo_midia, 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=600', 1)
-  ON CONFLICT DO NOTHING;
+  ON CONFLICT (id) DO NOTHING;
 
   -- ============================================================================
   -- PUBLICAÇÕES DEMO (FEED) - novo schema
@@ -191,7 +191,7 @@ BEGIN
     ('ppp22222-2222-2222-2222-222222222222', 'imagem'::public.tipo_midia, 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=600', 'Barba lenhador', 1),
     ('ppp33333-3333-3333-3333-333333333333', 'imagem'::public.tipo_midia, 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=600', 'Combo corte barba', 1),
     ('ppp44444-4444-4444-4444-444444444444', 'imagem'::public.tipo_midia, 'https://images.unsplash.com/photo-1519070843887-1ce36f3b385e?w=600', 'Dica barba', 1)
-  ON CONFLICT DO NOTHING;
+  ON CONFLICT (id) DO NOTHING;
 
   -- ============================================================================
   -- ASSINATURA DO ESTABELECIMENTO DEMO - novo schema
@@ -200,7 +200,7 @@ BEGIN
 
   INSERT INTO public.assinaturas (estabelecimento_id, plano_id, inicio_contrato, vencimento, status)
   VALUES (v_est_id, 'cccccccc-cccc-cccc-cccc-cccccccccccc', CURRENT_DATE - interval '15 days', CURRENT_DATE + interval '15 days', 'ativa')
-  ON CONFLICT DO NOTHING;
+  ON CONFLICT (id) DO NOTHING;
 
   -- ============================================================================
   -- AGENDAMENTOS DE EXEMPLO (para testar a constraint anti-overbooking)
@@ -215,14 +215,14 @@ BEGIN
     v_est_id, v_prof1_id, v_cliente_id, CURRENT_DATE, '10:00', 30,
     'João Cliente', '31988887777', 'Corte Clássico', 3500,
     'pago'::public.status_pagamento, 'agendado'::public.status_agendamento, ARRAY[v_svc1_id], NULL
-  ) ON CONFLICT DO NOTHING;
+  ) ON CONFLICT (id) DO NOTHING;
 
   -- Item do agendamento 1 (congela preço e duração)
   INSERT INTO public.item_agendamento (agendamento_id, servico_id, preco_cobrado_centavos, duracao_min, ordem)
   SELECT a.id, v_svc1_id, 3500, 30, 1
   FROM public.agendamentos a
   WHERE a.estabelecimento_id = v_est_id AND a.profissional_id = v_prof1_id AND a.dia = CURRENT_DATE AND a.horario = '10:00'
-  ON CONFLICT DO NOTHING;
+  ON CONFLICT (id) DO NOTHING;
 
   -- Agendamento 2: Carlos, hoje 14:00, 50 min (combo)
   INSERT INTO public.agendamentos (
@@ -233,19 +233,19 @@ BEGIN
     v_est_id, v_prof1_id, NULL, CURRENT_DATE, '14:00', 50,
     'Cliente Avulso', '31977776666', 'Corte Clássico + Barba Completa', 5500,
     'no_local'::public.status_pagamento, 'agendado'::public.status_agendamento, ARRAY[v_svc1_id, v_svc2_id], NULL
-  ) ON CONFLICT DO NOTHING;
+  ) ON CONFLICT (id) DO NOTHING;
 
   INSERT INTO public.item_agendamento (agendamento_id, servico_id, preco_cobrado_centavos, duracao_min, ordem)
   SELECT a.id, v_svc1_id, 3500, 30, 1
   FROM public.agendamentos a
   WHERE a.estabelecimento_id = v_est_id AND a.profissional_id = v_prof1_id AND a.dia = CURRENT_DATE AND a.horario = '14:00'
-  ON CONFLICT DO NOTHING;
+  ON CONFLICT (id) DO NOTHING;
 
   INSERT INTO public.item_agendamento (agendamento_id, servico_id, preco_cobrado_centavos, duracao_min, ordem)
   SELECT a.id, v_svc2_id, 2500, 25, 2
   FROM public.agendamentos a
   WHERE a.estabelecimento_id = v_est_id AND a.profissional_id = v_prof1_id AND a.dia = CURRENT_DATE AND a.horario = '14:00'
-  ON CONFLICT DO NOTHING;
+  ON CONFLICT (id) DO NOTHING;
 
   -- Agendamento 3: Pedro, hoje 11:00, 30 min (profissional DIFERENTE - deve permitir)
   INSERT INTO public.agendamentos (
@@ -256,13 +256,13 @@ BEGIN
     v_est_id, v_prof2_id, NULL, CURRENT_DATE, '11:00', 30,
     'Cliente Pedro', '31966665555', 'Corte Infantil', 3000,
     'no_local'::public.status_pagamento, 'agendado'::public.status_agendamento, ARRAY[v_svc1_id], NULL
-  ) ON CONFLICT DO NOTHING;
+  ) ON CONFLICT (id) DO NOTHING;
 
   INSERT INTO public.item_agendamento (agendamento_id, servico_id, preco_cobrado_centavos, duracao_min, ordem)
   SELECT a.id, v_svc1_id, 3000, 30, 1
   FROM public.agendamentos a
   WHERE a.estabelecimento_id = v_est_id AND a.profissional_id = v_prof2_id AND a.dia = CURRENT_DATE AND a.horario = '11:00'
-  ON CONFLICT DO NOTHING;
+  ON CONFLICT (id) DO NOTHING;
 
   -- ============================================================================
   -- AVALIAÇÕES
@@ -272,7 +272,7 @@ BEGIN
   SELECT v_est_id, a.id, v_cliente_id, 'João Cliente', 5, 'Excelente atendimento! Carlos é muito profissional.'
   FROM public.agendamentos a
   WHERE a.estabelecimento_id = v_est_id AND a.usuario_id = v_cliente_id
-  ON CONFLICT DO NOTHING;
+  ON CONFLICT (id) DO NOTHING;
 
   -- ============================================================================
   -- SEGUIDORES
@@ -280,7 +280,7 @@ BEGIN
 
   INSERT INTO public.seguidores (usuario_id, estabelecimento_id) VALUES
     (v_cliente_id, v_est_id)
-  ON CONFLICT DO NOTHING;
+  ON CONFLICT (usuario_id, estabelecimento_id) DO NOTHING;
 
   -- ============================================================================
   -- CURTIDAS / SALVOS
@@ -289,11 +289,11 @@ BEGIN
   INSERT INTO public.curtidas (publicacao_id, usuario_id) VALUES
     ('ppp11111-1111-1111-1111-111111111111', v_cliente_id),
     ('ppp33333-3333-3333-3333-333333333333', v_cliente_id)
-  ON CONFLICT DO NOTHING;
+  ON CONFLICT (publicacao_id, usuario_id) DO NOTHING;
 
   INSERT INTO public.salvos (publicacao_id, usuario_id) VALUES
     ('ppp44444-4444-4444-4444-444444444444', v_cliente_id)
-  ON CONFLICT DO NOTHING;
+  ON CONFLICT (publicacao_id, usuario_id) DO NOTHING;
 
   -- Atualiza contadores nas publicações (novo schema: curtidas, salvos, visualizacoes, compartilhamentos, comentarios_count)
   UPDATE public.publicacoes SET
@@ -308,7 +308,7 @@ BEGIN
   VALUES
     ('ppp11111-1111-1111-1111-111111111111', v_cliente_id, 'João Cliente', NULL, 'Ficou show! Obrigado Carlos!'),
     ('ppp33333-3333-3333-3333-333333333333', v_cliente_id, 'João Cliente', NULL, 'Vou agendar o combo na próxima!')
-  ON CONFLICT DO NOTHING;
+  ON CONFLICT (id) DO NOTHING;
 
   UPDATE public.publicacoes SET
     comentarios_count = (SELECT COUNT(*) FROM public.comentarios WHERE publicacao_id = publicacoes.id);
@@ -320,7 +320,7 @@ BEGIN
 
   INSERT INTO public.bloqueios_agenda (profissional_id, inicio, fim, motivo) VALUES
     (v_prof2_id, (CURRENT_DATE + interval '10 days') + '10:00'::time, (CURRENT_DATE + interval '10 days') + '14:00'::time, 'Consulta médica')
-  ON CONFLICT DO NOTHING;
+  ON CONFLICT (id) DO NOTHING;
 
   -- ============================================================================
   -- NOTIFICAÇÕES DE EXEMPLO
@@ -330,7 +330,7 @@ BEGIN
   SELECT v_cliente_id, 'agendamento'::public.tipo_notificacao, 'Agendamento confirmado', 'Seu corte clássico foi confirmado para hoje às 10:00.', false, v_est_id, a.id
   FROM public.agendamentos a
   WHERE a.estabelecimento_id = v_est_id AND a.usuario_id = v_cliente_id AND a.horario = '10:00'
-  ON CONFLICT DO NOTHING;
+  ON CONFLICT (id) DO NOTHING;
 
 END $$;
 

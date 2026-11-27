@@ -339,7 +339,7 @@ describe('SupabaseAuthService', () => {
       });
 
       expect(resultado.sucesso).toBe(false);
-      expect(resultado.erro).toBe('User already registered');
+      expect(resultado.erro).toBe('Erro ao criar conta.');
     });
 
     it('deve deletar usuário do auth se falhar ao criar perfil', async () => {
@@ -467,7 +467,7 @@ describe('SupabaseAuthService', () => {
       const resultado = await service.sair();
 
       expect(resultado.sucesso).toBe(false);
-      expect(resultado.erro).toBe('Erro ao sair');
+      expect(resultado.erro).toBe('Erro ao sair.');
     });
   });
 
@@ -589,7 +589,7 @@ describe('SupabaseAuthService', () => {
       const resultado = await service.excluirConta();
 
       expect(resultado.sucesso).toBe(false);
-      expect(resultado.erro).toBe('Erro na exclusão LGPD');
+      expect(resultado.erro).toBe('Erro ao excluir conta.');
     });
   });
 
@@ -656,7 +656,8 @@ describe('SupabaseAuthService', () => {
       const resultado = await service.confirmarEmail();
 
       expect(resultado.sucesso).toBe(true);
-      expect(resultado.dados?.confirmado).toBe(true);
+      expect(resultado.dados).not.toBeNull();
+      expect(resultado.dados?.email).toBe('teste@exemplo.com');
     });
   });
 
@@ -667,11 +668,11 @@ describe('SupabaseAuthService', () => {
   describe('listarUsuariosAdmin', () => {
     it('deve listar todos usuários para admin', async () => {
       const chain = {
-        order: vi.fn(() => ({
-          select: vi.fn().mockResolvedValue({ data: [mockUsuarioRow, { ...mockUsuarioRow, id: 'user-456', email: 'outro@exemplo.com' }], error: null }),
+        select: vi.fn(() => ({
+          order: vi.fn().mockResolvedValue({ data: [mockUsuarioRow, { ...mockUsuarioRow, id: 'user-456', email: 'outro@exemplo.com' }], error: null }),
         })),
       };
-      mockSupabase.from.mockReturnValue({ select: vi.fn(() => chain) });
+      mockSupabase.from.mockReturnValue(chain);
 
       const resultado = await service.listarUsuariosAdmin();
 

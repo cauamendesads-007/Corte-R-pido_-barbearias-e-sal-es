@@ -3,6 +3,7 @@
  * Cobertura: 100% das funções exportadas
  */
 
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import {
   adicionarDias,
   formatarParaInput,
@@ -131,11 +132,17 @@ describe('gerarHorarios', () => {
 });
 
 describe('ehHoje', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2024-06-15T12:00:00'));
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it('retorna true para hoje', () => {
-    const hoje = new Date();
-    const hojeStr = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
-    expect(ehHoje(hojeStr)).toBe(true);
-    expect(ehHoje(new Date())).toBe(true);
+    expect(ehHoje('2024-06-15')).toBe(true);
+    expect(ehHoje(new Date('2024-06-15T12:00:00'))).toBe(true);
   });
 
   it('retorna false para outras datas', () => {
@@ -145,34 +152,42 @@ describe('ehHoje', () => {
 });
 
 describe('ehPassado', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2024-06-15T12:00:00'));
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it('retorna true para datas passadas', () => {
-    const ontem = new Date();
-    ontem.setDate(ontem.getDate() - 1);
-    expect(ehPassado(ontem)).toBe(true);
+    expect(ehPassado(new Date('2024-06-14T12:00:00'))).toBe(true);
     expect(ehPassado('2020-01-01')).toBe(true);
   });
 
   it('retorna false para hoje e futuro', () => {
-    expect(ehPassado(new Date())).toBe(false);
-    const amanha = new Date();
-    amanha.setDate(amanha.getDate() + 1);
-    expect(ehPassado(amanha)).toBe(false);
+    expect(ehPassado(new Date('2024-06-15T12:00:00'))).toBe(false);
+    expect(ehPassado(new Date('2024-06-16T12:00:00'))).toBe(false);
   });
 });
 
 describe('ehFuturo', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2024-06-15T12:00:00'));
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it('retorna true para datas futuras', () => {
-    const amanha = new Date();
-    amanha.setDate(amanha.getDate() + 1);
-    expect(ehFuturo(amanha)).toBe(true);
+    expect(ehFuturo(new Date('2024-06-16T12:00:00'))).toBe(true);
     expect(ehFuturo('2099-01-01')).toBe(true);
   });
 
   it('retorna false para hoje e passado', () => {
-    expect(ehFuturo(new Date())).toBe(false);
-    const ontem = new Date();
-    ontem.setDate(ontem.getDate() - 1);
-    expect(ehFuturo(ontem)).toBe(false);
+    expect(ehFuturo(new Date('2024-06-15T12:00:00'))).toBe(false);
+    expect(ehFuturo(new Date('2024-06-14T12:00:00'))).toBe(false);
   });
 });
 

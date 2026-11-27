@@ -1,6 +1,6 @@
 -- ============================================================================
 -- MIGRATION 001 — ESQUEMA DEFINITIVO CORTE RÁPIDO (ZERO ALERTAS SUPABASE ADVISOR)
--- PostgreSQL 15+ / Supabase
+-- PostgreSQL 15+ / Supabase — Performance Máxima
 -- Idempotente: pode ser executado múltiplas vezes sem erro
 -- ============================================================================
 
@@ -139,6 +139,8 @@ COMMENT ON TABLE public.estabelecimentos IS 'Tenants do sistema (barbearias/sal�
 CREATE INDEX IF NOT EXISTS idx_estabelecimentos_status_cidade ON public.estabelecimentos (status, cidade);
 CREATE INDEX IF NOT EXISTS idx_estabelecimentos_nicho_status ON public.estabelecimentos (nicho, status);
 CREATE INDEX IF NOT EXISTS idx_estabelecimentos_slug ON public.estabelecimentos (slug);
+-- Índices parciais de alta velocidade para consultas reais do app
+CREATE INDEX IF NOT EXISTS idx_estabelecimentos_aprovado_cidade_nicho ON public.estabelecimentos (cidade, nicho) WHERE status = 'aprovado';
 
 -- ============================================================================
 -- TABELA: profissionais (SEPARADA DE usuarios - REQUISITO OBRIGATÓRIO)
@@ -275,9 +277,15 @@ CREATE INDEX IF NOT EXISTS idx_agendamentos_profissional_dia ON public.agendamen
 CREATE INDEX IF NOT EXISTS idx_agendamentos_usuario ON public.agendamentos (usuario_id);
 CREATE INDEX IF NOT EXISTS idx_agendamentos_status ON public.agendamentos (status);
 CREATE INDEX IF NOT EXISTS idx_agendamentos_data_criacao ON public.agendamentos (data_criacao DESC);
+-- Índice parcial de alta velocidade para consultas reais do app (slots disponíveis)
+CREATE INDEX IF NOT EXISTS idx_agendamentos_profissional_dia_ativo ON public.agendamentos (profissional_id, dia) WHERE status NOT IN ('cancelado', 'nao_compareceu');
+
+-- search_path FIXO para a tabela (resolve "Function Search Path Mutable" no GiST constraint)
+ALTER TABLE public.agendamentos SET search_path = pg_catalog, public, extensions, auth;
 
 -- ============================================================================
 -- CONSTRAINT ANTI-OVERBOOKING POR PROFISSIONAL (REQUISITO OBRIGATÓRIO #3)
+-- GiST com search_path fixo (extensions schema via search_path)
 -- ============================================================================
 
 ALTER TABLE public.agendamentos DROP CONSTRAINT IF EXISTS agendamentos_sem_conflito_profissional;
@@ -881,208 +889,303 @@ BEFORE UPDATE ON public.estabelecimentos
 FOR EACH ROW EXECUTE FUNCTION public.proteger_status_estabelecimento();
 
 -- ============================================================================
--- POLÍTICAS RLS: usuarios (ZERO "Multiple Permissive Policies" — FOR ALL não usado junto com FOR SELECT)
+-- POLÍTICAS RLS — 1 POLÍTICA POR AÇÃO (SELECT, INSERT, UPDATE, DELETE) POR TABELA
+-- ZERO "Multiple Permissive Policies" — FOR ALL ELIMINADO
+-- ZERO "Auth RLS Initialization Plan" — usa (select auth.uid()) em todas as chamadas
 -- ============================================================================
 
-DROP POLICY IF EXISTS usuarios_select_own ON public.usuarios;
-CREATE POLICY usuarios_select_own ON public.usuarios
+-- ----------------------------------------------------------
+-- usuarios
+-- ----------------------------------------------------------
+DROP POLICY IF EXISTS usuarios_select ON public.usuarios;
+CREATE POLICY usuarios_select ON public.usuarios
   FOR SELECT USING (id = (select auth.uid()) OR public.is_admin());
 
-DROP POLICY IF EXISTS usuarios_update_own ON public.usuarios;
-CREATE POLICY usuarios_update_own ON public.usuarios
-  FOR UPDATE USING (id = (select auth.uid()))
-  WITH CHECK (id = (select auth.uid()));
+DROP POLICY IF EXISTS usuarios_insert ON public.usuarios;
+CREATE POLICY usuarios_insert ON public.usuarios
+  FOR INSERT WITH CHECK (id = (select auth.uid()) OR public.is_admin());
 
-DROP POLICY IF EXISTS usuarios_admin_all ON public.usuarios;
-CREATE POLICY usuarios_admin_all ON public.usuarios
-  FOR ALL USING (public.is_admin())
-  WITH CHECK (public.is_admin());
+DROP POLICY IF EXISTS usuarios_update ON public.usuarios;
+CREATE POLICY usuarios_update ON public.usuarios
+  FOR UPDATE USING (id = (select auth.uid()) OR public.is_admin())
+  WITH CHECK (id = (select auth.uid()) OR public.is_admin());
 
--- ============================================================================
--- POLÍTICAS RLS: estabelecimentos
--- ============================================================================
+DROP POLICY IF EXISTS usuarios_delete ON public.usuarios;
+CREATE POLICY usuarios_delete ON public.usuarios
+  FOR DELETE USING (public.is_admin());
 
-DROP POLICY IF EXISTS estabelecimentos_select_public ON public.estabelecimentos;
-CREATE POLICY estabelecimentos_select_public ON public.estabelecimentos
-  FOR SELECT USING (status = 'aprovado');
+-- ----------------------------------------------------------
+-- estabelecimentos
+-- ----------------------------------------------------------
+DROP POLICY IF EXISTS estabelecimentos_select ON public.estabelecimentos;
+CREATE POLICY estabelecimentos_select ON public.estabelecimentos
+  FOR SELECT USING (
+    status = 'aprovado'
+    OR public.is_estabelecimento_owner(id)
+    OR public.is_admin()
+  );
 
-DROP POLICY IF EXISTS estabelecimentos_select_owner ON public.estabelecimentos;
-CREATE POLICY estabelecimentos_select_owner ON public.estabelecimentos
-  FOR SELECT USING (public.is_estabelecimento_owner(id));
+DROP POLICY IF EXISTS estabelecimentos_insert ON public.estabelecimentos;
+CREATE POLICY estabelecimentos_insert ON public.estabelecimentos
+  FOR INSERT WITH CHECK (public.is_admin());
 
-DROP POLICY IF EXISTS estabelecimentos_admin_all ON public.estabelecimentos;
-CREATE POLICY estabelecimentos_admin_all ON public.estabelecimentos
-  FOR ALL USING (public.is_admin())
-  WITH CHECK (public.is_admin());
+DROP POLICY IF EXISTS estabelecimentos_update ON public.estabelecimentos;
+CREATE POLICY estabelecimentos_update ON public.estabelecimentos
+  FOR UPDATE USING (public.is_estabelecimento_owner(id) OR public.is_admin())
+  WITH CHECK (public.is_estabelecimento_owner(id) OR public.is_admin());
 
-DROP POLICY IF EXISTS estabelecimentos_update_owner ON public.estabelecimentos;
-CREATE POLICY estabelecimentos_update_owner ON public.estabelecimentos
-  FOR UPDATE USING (public.is_estabelecimento_owner(id))
-  WITH CHECK (public.is_estabelecimento_owner(id));
+DROP POLICY IF EXISTS estabelecimentos_delete ON public.estabelecimentos;
+CREATE POLICY estabelecimentos_delete ON public.estabelecimentos
+  FOR DELETE USING (public.is_admin());
 
--- ============================================================================
--- POLÍTICAS RLS: profissionais
--- ============================================================================
-
-DROP POLICY IF EXISTS profissionais_select_public ON public.profissionais;
-CREATE POLICY profissionais_select_public ON public.profissionais
+-- ----------------------------------------------------------
+-- profissionais
+-- ----------------------------------------------------------
+DROP POLICY IF EXISTS profissionais_select ON public.profissionais;
+CREATE POLICY profissionais_select ON public.profissionais
   FOR SELECT USING (
     ativo = true
     AND EXISTS (
       SELECT 1 FROM public.estabelecimentos e
       WHERE e.id = estabelecimento_id AND e.status = 'aprovado'
     )
+    OR EXISTS (
+      SELECT 1 FROM public.profissionais p
+      WHERE p.id = profissionais.id
+        AND p.usuario_id = (select auth.uid())
+    )
+    OR public.is_estabelecimento_owner(estabelecimento_id)
+    OR public.is_admin()
   );
 
-DROP POLICY IF EXISTS profissionais_manage_owner ON public.profissionais;
-CREATE POLICY profissionais_manage_owner ON public.profissionais
-  FOR ALL USING (
-    public.is_estabelecimento_owner(estabelecimento_id) OR public.is_admin()
-  )
-  WITH CHECK (
-    public.is_estabelecimento_owner(estabelecimento_id) OR public.is_admin()
-  );
+DROP POLICY IF EXISTS profissionais_insert ON public.profissionais;
+CREATE POLICY profissionais_insert ON public.profissionais
+  FOR INSERT WITH CHECK (public.is_estabelecimento_owner(estabelecimento_id) OR public.is_admin());
 
--- ============================================================================
--- POLÍTICAS RLS: horarios_funcionamento
--- ============================================================================
+DROP POLICY IF EXISTS profissionais_update ON public.profissionais;
+CREATE POLICY profissionais_update ON public.profissionais
+  FOR UPDATE USING (public.is_estabelecimento_owner(estabelecimento_id) OR public.is_admin())
+  WITH CHECK (public.is_estabelecimento_owner(estabelecimento_id) OR public.is_admin());
 
-DROP POLICY IF EXISTS horarios_select_public ON public.horarios_funcionamento;
-CREATE POLICY horarios_select_public ON public.horarios_funcionamento
+DROP POLICY IF EXISTS profissionais_delete ON public.profissionais;
+CREATE POLICY profissionais_delete ON public.profissionais
+  FOR DELETE USING (public.is_estabelecimento_owner(estabelecimento_id) OR public.is_admin());
+
+-- ----------------------------------------------------------
+-- horarios_funcionamento
+-- ----------------------------------------------------------
+DROP POLICY IF EXISTS horarios_select ON public.horarios_funcionamento;
+CREATE POLICY horarios_select ON public.horarios_funcionamento
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM public.profissionais p
       JOIN public.estabelecimentos e ON e.id = p.estabelecimento_id
       WHERE p.id = profissional_id
-      AND p.ativo = true
-      AND e.status = 'aprovado'
+        AND p.ativo = true
+        AND e.status = 'aprovado'
+    )
+    OR EXISTS (
+      SELECT 1 FROM public.profissionais p
+      WHERE p.id = profissional_id
+        AND (public.is_estabelecimento_owner(p.estabelecimento_id) OR public.is_admin())
     )
   );
 
-DROP POLICY IF EXISTS horarios_manage_owner ON public.horarios_funcionamento;
-CREATE POLICY horarios_manage_owner ON public.horarios_funcionamento
-  FOR ALL USING (
+DROP POLICY IF EXISTS horarios_insert ON public.horarios_funcionamento;
+CREATE POLICY horarios_insert ON public.horarios_funcionamento
+  FOR INSERT WITH CHECK (
     EXISTS (
       SELECT 1 FROM public.profissionais p
       WHERE p.id = profissional_id
-      AND (public.is_estabelecimento_owner(p.estabelecimento_id) OR public.is_admin())
+        AND (public.is_estabelecimento_owner(p.estabelecimento_id) OR public.is_admin())
+    )
+  );
+
+DROP POLICY IF EXISTS horarios_update ON public.horarios_funcionamento;
+CREATE POLICY horarios_update ON public.horarios_funcionamento
+  FOR UPDATE USING (
+    EXISTS (
+      SELECT 1 FROM public.profissionais p
+      WHERE p.id = profissional_id
+        AND (public.is_estabelecimento_owner(p.estabelecimento_id) OR public.is_admin())
     )
   )
   WITH CHECK (
     EXISTS (
       SELECT 1 FROM public.profissionais p
       WHERE p.id = profissional_id
-      AND (public.is_estabelecimento_owner(p.estabelecimento_id) OR public.is_admin())
+        AND (public.is_estabelecimento_owner(p.estabelecimento_id) OR public.is_admin())
     )
   );
 
--- ============================================================================
--- POLÍTICAS RLS: bloqueios_agenda
--- ============================================================================
-
-DROP POLICY IF EXISTS bloqueios_manage_owner ON public.bloqueios_agenda;
-CREATE POLICY bloqueios_manage_owner ON public.bloqueios_agenda
-  FOR ALL USING (
+DROP POLICY IF EXISTS horarios_delete ON public.horarios_funcionamento;
+CREATE POLICY horarios_delete ON public.horarios_funcionamento
+  FOR DELETE USING (
     EXISTS (
       SELECT 1 FROM public.profissionais p
       WHERE p.id = profissional_id
-      AND (public.is_estabelecimento_owner(p.estabelecimento_id) OR public.is_admin())
+        AND (public.is_estabelecimento_owner(p.estabelecimento_id) OR public.is_admin())
+    )
+  );
+
+-- ----------------------------------------------------------
+-- bloqueios_agenda
+-- ----------------------------------------------------------
+DROP POLICY IF EXISTS bloqueios_select ON public.bloqueios_agenda;
+CREATE POLICY bloqueios_select ON public.bloqueios_agenda
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM public.profissionais p
+      WHERE p.id = profissional_id
+        AND (public.is_estabelecimento_owner(p.estabelecimento_id) OR public.is_admin())
+    )
+  );
+
+DROP POLICY IF EXISTS bloqueios_insert ON public.bloqueios_agenda;
+CREATE POLICY bloqueios_insert ON public.bloqueios_agenda
+  FOR INSERT WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.profissionais p
+      WHERE p.id = profissional_id
+        AND (public.is_estabelecimento_owner(p.estabelecimento_id) OR public.is_admin())
+    )
+  );
+
+DROP POLICY IF EXISTS bloqueios_update ON public.bloqueios_agenda;
+CREATE POLICY bloqueios_update ON public.bloqueios_agenda
+  FOR UPDATE USING (
+    EXISTS (
+      SELECT 1 FROM public.profissionais p
+      WHERE p.id = profissional_id
+        AND (public.is_estabelecimento_owner(p.estabelecimento_id) OR public.is_admin())
     )
   )
   WITH CHECK (
     EXISTS (
       SELECT 1 FROM public.profissionais p
       WHERE p.id = profissional_id
-      AND (public.is_estabelecimento_owner(p.estabelecimento_id) OR public.is_admin())
+        AND (public.is_estabelecimento_owner(p.estabelecimento_id) OR public.is_admin())
     )
   );
 
--- ============================================================================
--- POLÍTICAS RLS: servicos
--- ============================================================================
+DROP POLICY IF EXISTS bloqueios_delete ON public.bloqueios_agenda;
+CREATE POLICY bloqueios_delete ON public.bloqueios_agenda
+  FOR DELETE USING (
+    EXISTS (
+      SELECT 1 FROM public.profissionais p
+      WHERE p.id = profissional_id
+        AND (public.is_estabelecimento_owner(p.estabelecimento_id) OR public.is_admin())
+    )
+  );
 
-DROP POLICY IF EXISTS servicos_select_public ON public.servicos;
-CREATE POLICY servicos_select_public ON public.servicos
+-- ----------------------------------------------------------
+-- servicos
+-- ----------------------------------------------------------
+DROP POLICY IF EXISTS servicos_select ON public.servicos;
+CREATE POLICY servicos_select ON public.servicos
   FOR SELECT USING (
     ativo = true
     AND EXISTS (
       SELECT 1 FROM public.estabelecimentos e
       WHERE e.id = estabelecimento_id AND e.status = 'aprovado'
     )
+    OR public.is_estabelecimento_owner(estabelecimento_id)
+    OR public.is_admin()
   );
 
-DROP POLICY IF EXISTS servicos_manage_owner ON public.servicos;
-CREATE POLICY servicos_manage_owner ON public.servicos
-  FOR ALL USING (public.is_estabelecimento_owner(estabelecimento_id) OR public.is_admin())
+DROP POLICY IF EXISTS servicos_insert ON public.servicos;
+CREATE POLICY servicos_insert ON public.servicos
+  FOR INSERT WITH CHECK (public.is_estabelecimento_owner(estabelecimento_id) OR public.is_admin());
+
+DROP POLICY IF EXISTS servicos_update ON public.servicos;
+CREATE POLICY servicos_update ON public.servicos
+  FOR UPDATE USING (public.is_estabelecimento_owner(estabelecimento_id) OR public.is_admin())
   WITH CHECK (public.is_estabelecimento_owner(estabelecimento_id) OR public.is_admin());
 
--- ============================================================================
--- POLÍTICAS RLS: servico_midias
--- ============================================================================
+DROP POLICY IF EXISTS servicos_delete ON public.servicos;
+CREATE POLICY servicos_delete ON public.servicos
+  FOR DELETE USING (public.is_estabelecimento_owner(estabelecimento_id) OR public.is_admin());
 
-DROP POLICY IF EXISTS servico_midias_select_public ON public.servico_midias;
-CREATE POLICY servico_midias_select_public ON public.servico_midias
+-- ----------------------------------------------------------
+-- servico_midias
+-- ----------------------------------------------------------
+DROP POLICY IF EXISTS servico_midias_select ON public.servico_midias;
+CREATE POLICY servico_midias_select ON public.servico_midias
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM public.servicos s
       JOIN public.estabelecimentos e ON e.id = s.estabelecimento_id
       WHERE s.id = servico_id AND s.ativo = true AND e.status = 'aprovado'
     )
+    OR EXISTS (
+      SELECT 1 FROM public.servicos s
+      WHERE s.id = servico_id
+        AND (public.is_estabelecimento_owner(s.estabelecimento_id) OR public.is_admin())
+    )
   );
 
-DROP POLICY IF EXISTS servico_midias_manage_owner ON public.servico_midias;
-CREATE POLICY servico_midias_manage_owner ON public.servico_midias
-  FOR ALL USING (
+DROP POLICY IF EXISTS servico_midias_insert ON public.servico_midias;
+CREATE POLICY servico_midias_insert ON public.servico_midias
+  FOR INSERT WITH CHECK (
     EXISTS (
       SELECT 1 FROM public.servicos s
       WHERE s.id = servico_id
-      AND (public.is_estabelecimento_owner(s.estabelecimento_id) OR public.is_admin())
+        AND (public.is_estabelecimento_owner(s.estabelecimento_id) OR public.is_admin())
+    )
+  );
+
+DROP POLICY IF EXISTS servico_midias_update ON public.servico_midias;
+CREATE POLICY servico_midias_update ON public.servico_midias
+  FOR UPDATE USING (
+    EXISTS (
+      SELECT 1 FROM public.servicos s
+      WHERE s.id = servico_id
+        AND (public.is_estabelecimento_owner(s.estabelecimento_id) OR public.is_admin())
     )
   )
   WITH CHECK (
     EXISTS (
       SELECT 1 FROM public.servicos s
       WHERE s.id = servico_id
-      AND (public.is_estabelecimento_owner(s.estabelecimento_id) OR public.is_admin())
+        AND (public.is_estabelecimento_owner(s.estabelecimento_id) OR public.is_admin())
     )
   );
 
--- ============================================================================
--- POLÍTICAS RLS: agendamentos (ZERO "Multiple Permissive Policies" — políticas separadas por ação)
--- ============================================================================
+DROP POLICY IF EXISTS servico_midias_delete ON public.servico_midias;
+CREATE POLICY servico_midias_delete ON public.servico_midias
+  FOR DELETE USING (
+    EXISTS (
+      SELECT 1 FROM public.servicos s
+      WHERE s.id = servico_id
+        AND (public.is_estabelecimento_owner(s.estabelecimento_id) OR public.is_admin())
+    )
+  );
 
-DROP POLICY IF EXISTS agendamentos_select_cliente ON public.agendamentos;
-CREATE POLICY agendamentos_select_cliente ON public.agendamentos
+-- ----------------------------------------------------------
+-- agendamentos
+-- ----------------------------------------------------------
+DROP POLICY IF EXISTS agendamentos_select ON public.agendamentos;
+CREATE POLICY agendamentos_select ON public.agendamentos
   FOR SELECT USING (
     usuario_id = (select auth.uid())
     OR (usuario_id IS NULL AND telefone_cliente IN (
       SELECT whatsapp FROM public.usuarios WHERE id = (select auth.uid())
     ))
-  );
-
-DROP POLICY IF EXISTS agendamentos_select_profissional ON public.agendamentos;
-CREATE POLICY agendamentos_select_profissional ON public.agendamentos
-  FOR SELECT USING (
-    EXISTS (
+    OR EXISTS (
       SELECT 1 FROM public.profissionais p
       WHERE p.id = profissional_id
-      AND p.usuario_id = (select auth.uid())
+        AND p.usuario_id = (select auth.uid())
     )
+    OR public.is_estabelecimento_owner(estabelecimento_id)
+    OR public.is_admin()
   );
 
-DROP POLICY IF EXISTS agendamentos_select_owner ON public.agendamentos;
-CREATE POLICY agendamentos_select_owner ON public.agendamentos
-  FOR SELECT USING (public.is_estabelecimento_owner(estabelecimento_id));
+DROP POLICY IF EXISTS agendamentos_insert ON public.agendamentos;
+CREATE POLICY agendamentos_insert ON public.agendamentos
+  FOR INSERT WITH CHECK (false); -- Apenas service_role (Edge Functions) cria agendamentos via RPC
 
-DROP POLICY IF EXISTS agendamentos_admin_all ON public.agendamentos;
-CREATE POLICY agendamentos_admin_all ON public.agendamentos
-  FOR ALL USING (public.is_admin())
-  WITH CHECK (public.is_admin());
-
--- CRIAÇÃO: Apenas via Edge Function (service_role) — NÃO HÁ POLÍTICA FOR INSERT COM WITH CHECK (true)
-
-DROP POLICY IF EXISTS agendamentos_update_owner ON public.agendamentos;
-CREATE POLICY agendamentos_update_owner ON public.agendamentos
+DROP POLICY IF EXISTS agendamentos_update ON public.agendamentos;
+CREATE POLICY agendamentos_update ON public.agendamentos
   FOR UPDATE USING (
     public.is_estabelecimento_owner(estabelecimento_id)
     OR EXISTS (
@@ -1100,111 +1203,140 @@ CREATE POLICY agendamentos_update_owner ON public.agendamentos
     OR public.is_admin()
   );
 
--- ============================================================================
--- POLÍTICAS RLS: item_agendamento
--- ============================================================================
+DROP POLICY IF EXISTS agendamentos_delete ON public.agendamentos;
+CREATE POLICY agendamentos_delete ON public.agendamentos
+  FOR DELETE USING (
+    public.is_estabelecimento_owner(estabelecimento_id)
+    OR public.is_admin()
+  );
 
+-- ----------------------------------------------------------
+-- item_agendamento
+-- ----------------------------------------------------------
 DROP POLICY IF EXISTS item_agendamento_select ON public.item_agendamento;
 CREATE POLICY item_agendamento_select ON public.item_agendamento
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM public.agendamentos a
       WHERE a.id = agendamento_id
-      AND (
-        a.usuario_id = (select auth.uid())
-        OR public.is_estabelecimento_owner(a.estabelecimento_id)
-        OR EXISTS (
-          SELECT 1 FROM public.profissionais p
-          WHERE p.id = a.profissional_id AND p.usuario_id = (select auth.uid())
+        AND (
+          a.usuario_id = (select auth.uid())
+          OR public.is_estabelecimento_owner(a.estabelecimento_id)
+          OR EXISTS (
+            SELECT 1 FROM public.profissionais p
+            WHERE p.id = a.profissional_id AND p.usuario_id = (select auth.uid())
+          )
+          OR public.is_admin()
         )
-        OR public.is_admin()
-      )
     )
   );
 
--- Apenas service_role (Edge Functions) insere
+DROP POLICY IF EXISTS item_agendamento_insert ON public.item_agendamento;
+CREATE POLICY item_agendamento_insert ON public.item_agendamento
+  FOR INSERT WITH CHECK (false); -- Apenas service_role (Edge Functions) insere
 
-DROP POLICY IF EXISTS item_agendamento_admin_all ON public.item_agendamento;
-CREATE POLICY item_agendamento_admin_all ON public.item_agendamento
-  FOR ALL USING (public.is_admin())
+DROP POLICY IF EXISTS item_agendamento_update ON public.item_agendamento;
+CREATE POLICY item_agendamento_update ON public.item_agendamento
+  FOR UPDATE USING (public.is_admin())
   WITH CHECK (public.is_admin());
 
--- ============================================================================
--- POLÍTICAS RLS: galeria
--- ============================================================================
+DROP POLICY IF EXISTS item_agendamento_delete ON public.item_agendamento;
+CREATE POLICY item_agendamento_delete ON public.item_agendamento
+  FOR DELETE USING (public.is_admin());
 
-DROP POLICY IF EXISTS galeria_select_public ON public.galeria;
-CREATE POLICY galeria_select_public ON public.galeria
+-- ----------------------------------------------------------
+-- galeria
+-- ----------------------------------------------------------
+DROP POLICY IF EXISTS galeria_select ON public.galeria;
+CREATE POLICY galeria_select ON public.galeria
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM public.estabelecimentos e
       WHERE e.id = estabelecimento_id AND e.status = 'aprovado'
     )
+    OR public.is_estabelecimento_owner(estabelecimento_id)
+    OR public.is_admin()
   );
 
-DROP POLICY IF EXISTS galeria_manage_owner ON public.galeria;
-CREATE POLICY galeria_manage_owner ON public.galeria
-  FOR ALL USING (public.is_estabelecimento_owner(estabelecimento_id) OR public.is_admin())
+DROP POLICY IF EXISTS galeria_insert ON public.galeria;
+CREATE POLICY galeria_insert ON public.galeria
+  FOR INSERT WITH CHECK (public.is_estabelecimento_owner(estabelecimento_id) OR public.is_admin());
+
+DROP POLICY IF EXISTS galeria_update ON public.galeria;
+CREATE POLICY galeria_update ON public.galeria
+  FOR UPDATE USING (public.is_estabelecimento_owner(estabelecimento_id) OR public.is_admin())
   WITH CHECK (public.is_estabelecimento_owner(estabelecimento_id) OR public.is_admin());
 
--- ============================================================================
--- POLÍTICAS RLS: avaliacoes
--- ============================================================================
+DROP POLICY IF EXISTS galeria_delete ON public.galeria;
+CREATE POLICY galeria_delete ON public.galeria
+  FOR DELETE USING (public.is_estabelecimento_owner(estabelecimento_id) OR public.is_admin());
 
-DROP POLICY IF EXISTS avaliacoes_select_public ON public.avaliacoes;
-CREATE POLICY avaliacoes_select_public ON public.avaliacoes
+-- ----------------------------------------------------------
+-- avaliacoes
+-- ----------------------------------------------------------
+DROP POLICY IF EXISTS avaliacoes_select ON public.avaliacoes;
+CREATE POLICY avaliacoes_select ON public.avaliacoes
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM public.estabelecimentos e
       WHERE e.id = estabelecimento_id AND e.status = 'aprovado'
     )
+    OR public.is_estabelecimento_owner(estabelecimento_id)
+    OR public.is_admin()
   );
 
-DROP POLICY IF EXISTS avaliacoes_insert_cliente ON public.avaliacoes;
-CREATE POLICY avaliacoes_insert_cliente ON public.avaliacoes
+DROP POLICY IF EXISTS avaliacoes_insert ON public.avaliacoes;
+CREATE POLICY avaliacoes_insert ON public.avaliacoes
   FOR INSERT WITH CHECK (
     usuario_id = (select auth.uid())
     AND EXISTS (
       SELECT 1 FROM public.agendamentos a
       WHERE a.id = agendamento_id
-      AND a.usuario_id = (select auth.uid())
-      AND a.status = 'concluido'
-      AND a.avaliacao_estrelas IS NULL
+        AND a.usuario_id = (select auth.uid())
+        AND a.status = 'concluido'
+        AND a.avaliacao_estrelas IS NULL
     )
   );
 
-DROP POLICY IF EXISTS avaliacoes_update_owner ON public.avaliacoes;
-CREATE POLICY avaliacoes_update_owner ON public.avaliacoes
+DROP POLICY IF EXISTS avaliacoes_update ON public.avaliacoes;
+CREATE POLICY avaliacoes_update ON public.avaliacoes
   FOR UPDATE USING (public.is_estabelecimento_owner(estabelecimento_id) OR public.is_admin())
   WITH CHECK (public.is_estabelecimento_owner(estabelecimento_id) OR public.is_admin());
 
-DROP POLICY IF EXISTS avaliacoes_admin_all ON public.avaliacoes;
-CREATE POLICY avaliacoes_admin_all ON public.avaliacoes
-  FOR ALL USING (public.is_admin())
-  WITH CHECK (public.is_admin());
+DROP POLICY IF EXISTS avaliacoes_delete ON public.avaliacoes;
+CREATE POLICY avaliacoes_delete ON public.avaliacoes
+  FOR DELETE USING (public.is_estabelecimento_owner(estabelecimento_id) OR public.is_admin());
 
--- ============================================================================
--- POLÍTICAS RLS: publicacoes (feed)
--- ============================================================================
-
-DROP POLICY IF EXISTS publicacoes_select_public ON public.publicacoes;
-CREATE POLICY publicacoes_select_public ON public.publicacoes
+-- ----------------------------------------------------------
+-- publicacoes (feed)
+-- ----------------------------------------------------------
+DROP POLICY IF EXISTS publicacoes_select ON public.publicacoes;
+CREATE POLICY publicacoes_select ON public.publicacoes
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM public.estabelecimentos e
       WHERE e.id = estabelecimento_id AND e.status = 'aprovado'
     )
+    OR public.is_estabelecimento_owner(estabelecimento_id)
+    OR public.is_admin()
   );
 
-DROP POLICY IF EXISTS publicacoes_manage_owner ON public.publicacoes;
-CREATE POLICY publicacoes_manage_owner ON public.publicacoes
-  FOR ALL USING (public.is_estabelecimento_owner(estabelecimento_id) OR public.is_admin())
+DROP POLICY IF EXISTS publicacoes_insert ON public.publicacoes;
+CREATE POLICY publicacoes_insert ON public.publicacoes
+  FOR INSERT WITH CHECK (public.is_estabelecimento_owner(estabelecimento_id) OR public.is_admin());
+
+DROP POLICY IF EXISTS publicacoes_update ON public.publicacoes;
+CREATE POLICY publicacoes_update ON public.publicacoes
+  FOR UPDATE USING (public.is_estabelecimento_owner(estabelecimento_id) OR public.is_admin())
   WITH CHECK (public.is_estabelecimento_owner(estabelecimento_id) OR public.is_admin());
 
--- ============================================================================
--- POLÍTICAS RLS: publicacao_midias
--- ============================================================================
+DROP POLICY IF EXISTS publicacoes_delete ON public.publicacoes;
+CREATE POLICY publicacoes_delete ON public.publicacoes
+  FOR DELETE USING (public.is_estabelecimento_owner(estabelecimento_id) OR public.is_admin());
 
+-- ----------------------------------------------------------
+-- publicacao_midias
+-- ----------------------------------------------------------
 DROP POLICY IF EXISTS publicacao_midias_select ON public.publicacao_midias;
 CREATE POLICY publicacao_midias_select ON public.publicacao_midias
   FOR SELECT USING (
@@ -1213,213 +1345,298 @@ CREATE POLICY publicacao_midias_select ON public.publicacao_midias
       JOIN public.estabelecimentos e ON e.id = p.estabelecimento_id
       WHERE p.id = publicacao_id AND e.status = 'aprovado'
     )
+    OR EXISTS (
+      SELECT 1 FROM public.publicacoes p
+      WHERE p.id = publicacao_id
+        AND (public.is_estabelecimento_owner(p.estabelecimento_id) OR public.is_admin())
+    )
   );
 
-DROP POLICY IF EXISTS publicacao_midias_manage_owner ON public.publicacao_midias;
-CREATE POLICY publicacao_midias_manage_owner ON public.publicacao_midias
-  FOR ALL USING (
+DROP POLICY IF EXISTS publicacao_midias_insert ON public.publicacao_midias;
+CREATE POLICY publicacao_midias_insert ON public.publicacao_midias
+  FOR INSERT WITH CHECK (
     EXISTS (
       SELECT 1 FROM public.publicacoes p
       WHERE p.id = publicacao_id
-      AND (public.is_estabelecimento_owner(p.estabelecimento_id) OR public.is_admin())
+        AND (public.is_estabelecimento_owner(p.estabelecimento_id) OR public.is_admin())
+    )
+  );
+
+DROP POLICY IF EXISTS publicacao_midias_update ON public.publicacao_midias;
+CREATE POLICY publicacao_midias_update ON public.publicacao_midias
+  FOR UPDATE USING (
+    EXISTS (
+      SELECT 1 FROM public.publicacoes p
+      WHERE p.id = publicacao_id
+        AND (public.is_estabelecimento_owner(p.estabelecimento_id) OR public.is_admin())
     )
   )
   WITH CHECK (
     EXISTS (
       SELECT 1 FROM public.publicacoes p
       WHERE p.id = publicacao_id
-      AND (public.is_estabelecimento_owner(p.estabelecimento_id) OR public.is_admin())
+        AND (public.is_estabelecimento_owner(p.estabelecimento_id) OR public.is_admin())
     )
   );
 
--- ============================================================================
--- POLÍTICAS RLS: curtidas
--- ============================================================================
+DROP POLICY IF EXISTS publicacao_midias_delete ON public.publicacao_midias;
+CREATE POLICY publicacao_midias_delete ON public.publicacao_midias
+  FOR DELETE USING (
+    EXISTS (
+      SELECT 1 FROM public.publicacoes p
+      WHERE p.id = publicacao_id
+        AND (public.is_estabelecimento_owner(p.estabelecimento_id) OR public.is_admin())
+    )
+  );
 
-DROP POLICY IF EXISTS curtidas_own ON public.curtidas;
-CREATE POLICY curtidas_own ON public.curtidas
-  FOR ALL USING (usuario_id = (select auth.uid()))
-  WITH CHECK (usuario_id = (select auth.uid()));
+-- ----------------------------------------------------------
+-- curtidas
+-- ----------------------------------------------------------
+DROP POLICY IF EXISTS curtidas_select ON public.curtidas;
+CREATE POLICY curtidas_select ON public.curtidas
+  FOR SELECT USING (usuario_id = (select auth.uid()) OR public.is_admin());
 
-DROP POLICY IF EXISTS curtidas_admin_all ON public.curtidas;
-CREATE POLICY curtidas_admin_all ON public.curtidas
-  FOR ALL USING (public.is_admin())
-  WITH CHECK (public.is_admin());
+DROP POLICY IF EXISTS curtidas_insert ON public.curtidas;
+CREATE POLICY curtidas_insert ON public.curtidas
+  FOR INSERT WITH CHECK (usuario_id = (select auth.uid()));
 
--- ============================================================================
--- POLÍTICAS RLS: salvos
--- ============================================================================
+DROP POLICY IF EXISTS curtidas_update ON public.curtidas;
+CREATE POLICY curtidas_update ON public.curtidas
+  FOR UPDATE USING (usuario_id = (select auth.uid()) OR public.is_admin())
+  WITH CHECK (usuario_id = (select auth.uid()) OR public.is_admin());
 
-DROP POLICY IF EXISTS salvos_own ON public.salvos;
-CREATE POLICY salvos_own ON public.salvos
-  FOR ALL USING (usuario_id = (select auth.uid()))
-  WITH CHECK (usuario_id = (select auth.uid()));
+DROP POLICY IF EXISTS curtidas_delete ON public.curtidas;
+CREATE POLICY curtidas_delete ON public.curtidas
+  FOR DELETE USING (usuario_id = (select auth.uid()) OR public.is_admin());
 
-DROP POLICY IF EXISTS salvos_admin_all ON public.salvos;
-CREATE POLICY salvos_admin_all ON public.salvos
-  FOR ALL USING (public.is_admin())
-  WITH CHECK (public.is_admin());
+-- ----------------------------------------------------------
+-- salvos
+-- ----------------------------------------------------------
+DROP POLICY IF EXISTS salvos_select ON public.salvos;
+CREATE POLICY salvos_select ON public.salvos
+  FOR SELECT USING (usuario_id = (select auth.uid()) OR public.is_admin());
 
--- ============================================================================
--- POLÍTICAS RLS: comentarios
--- ============================================================================
+DROP POLICY IF EXISTS salvos_insert ON public.salvos;
+CREATE POLICY salvos_insert ON public.salvos
+  FOR INSERT WITH CHECK (usuario_id = (select auth.uid()));
 
-DROP POLICY IF EXISTS comentarios_select_public ON public.comentarios;
-CREATE POLICY comentarios_select_public ON public.comentarios
+DROP POLICY IF EXISTS salvos_update ON public.salvos;
+CREATE POLICY salvos_update ON public.salvos
+  FOR UPDATE USING (usuario_id = (select auth.uid()) OR public.is_admin())
+  WITH CHECK (usuario_id = (select auth.uid()) OR public.is_admin());
+
+DROP POLICY IF EXISTS salvos_delete ON public.salvos;
+CREATE POLICY salvos_delete ON public.salvos
+  FOR DELETE USING (usuario_id = (select auth.uid()) OR public.is_admin());
+
+-- ----------------------------------------------------------
+-- comentarios
+-- ----------------------------------------------------------
+DROP POLICY IF EXISTS comentarios_select ON public.comentarios;
+CREATE POLICY comentarios_select ON public.comentarios
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM public.publicacoes p
       JOIN public.estabelecimentos e ON e.id = p.estabelecimento_id
       WHERE p.id = publicacao_id AND e.status = 'aprovado'
     )
+    OR public.is_admin()
   );
 
-DROP POLICY IF EXISTS comentarios_insert_auth ON public.comentarios;
-CREATE POLICY comentarios_insert_auth ON public.comentarios
+DROP POLICY IF EXISTS comentarios_insert ON public.comentarios;
+CREATE POLICY comentarios_insert ON public.comentarios
   FOR INSERT WITH CHECK (
     (select auth.uid()) IS NOT NULL
     AND autor_id = (select auth.uid())
   );
 
-DROP POLICY IF EXISTS comentarios_delete_own ON public.comentarios;
-CREATE POLICY comentarios_delete_own ON public.comentarios
+DROP POLICY IF EXISTS comentarios_update ON public.comentarios;
+CREATE POLICY comentarios_update ON public.comentarios
+  FOR UPDATE USING (autor_id = (select auth.uid()) OR public.is_admin())
+  WITH CHECK (autor_id = (select auth.uid()) OR public.is_admin());
+
+DROP POLICY IF EXISTS comentarios_delete ON public.comentarios;
+CREATE POLICY comentarios_delete ON public.comentarios
   FOR DELETE USING (autor_id = (select auth.uid()) OR public.is_admin());
 
-DROP POLICY IF EXISTS comentarios_admin_all ON public.comentarios;
-CREATE POLICY comentarios_admin_all ON public.comentarios
-  FOR ALL USING (public.is_admin())
-  WITH CHECK (public.is_admin());
-
--- ============================================================================
--- POLÍTICAS RLS: inspiracaoes
--- ============================================================================
-
-DROP POLICY IF EXISTS inspiracaoes_select_public ON public.inspiracaoes;
-CREATE POLICY inspiracaoes_select_public ON public.inspiracaoes
+-- ----------------------------------------------------------
+-- inspiracaoes
+-- ----------------------------------------------------------
+DROP POLICY IF EXISTS inspiracaoes_select ON public.inspiracaoes;
+CREATE POLICY inspiracaoes_select ON public.inspiracaoes
   FOR SELECT USING (true);
 
-DROP POLICY IF EXISTS inspiracaoes_admin_all ON public.inspiracaoes;
-CREATE POLICY inspiracaoes_admin_all ON public.inspiracaoes
-  FOR ALL USING (public.is_admin())
+DROP POLICY IF EXISTS inspiracaoes_insert ON public.inspiracaoes;
+CREATE POLICY inspiracaoes_insert ON public.inspiracaoes
+  FOR INSERT WITH CHECK (public.is_admin());
+
+DROP POLICY IF EXISTS inspiracaoes_update ON public.inspiracaoes;
+CREATE POLICY inspiracaoes_update ON public.inspiracaoes
+  FOR UPDATE USING (public.is_admin())
   WITH CHECK (public.is_admin());
 
--- ============================================================================
--- POLÍTICAS RLS: inspiracao_midias
--- ============================================================================
+DROP POLICY IF EXISTS inspiracaoes_delete ON public.inspiracaoes;
+CREATE POLICY inspiracaoes_delete ON public.inspiracaoes
+  FOR DELETE USING (public.is_admin());
 
-DROP POLICY IF EXISTS inspiracao_midias_select_public ON public.inspiracao_midias;
-CREATE POLICY inspiracao_midias_select_public ON public.inspiracao_midias
+-- ----------------------------------------------------------
+-- inspiracao_midias
+-- ----------------------------------------------------------
+DROP POLICY IF EXISTS inspiracao_midias_select ON public.inspiracao_midias;
+CREATE POLICY inspiracao_midias_select ON public.inspiracao_midias
   FOR SELECT USING (true);
 
-DROP POLICY IF EXISTS inspiracao_midias_admin_all ON public.inspiracao_midias;
-CREATE POLICY inspiracao_midias_admin_all ON public.inspiracao_midias
-  FOR ALL USING (public.is_admin())
+DROP POLICY IF EXISTS inspiracao_midias_insert ON public.inspiracao_midias;
+CREATE POLICY inspiracao_midias_insert ON public.inspiracao_midias
+  FOR INSERT WITH CHECK (public.is_admin());
+
+DROP POLICY IF EXISTS inspiracao_midias_update ON public.inspiracao_midias;
+CREATE POLICY inspiracao_midias_update ON public.inspiracao_midias
+  FOR UPDATE USING (public.is_admin())
   WITH CHECK (public.is_admin());
 
--- ============================================================================
--- POLÍTICAS RLS: seguidores
--- ============================================================================
+DROP POLICY IF EXISTS inspiracao_midias_delete ON public.inspiracao_midias;
+CREATE POLICY inspiracao_midias_delete ON public.inspiracao_midias
+  FOR DELETE USING (public.is_admin());
 
-DROP POLICY IF EXISTS seguidores_own ON public.seguidores;
-CREATE POLICY seguidores_own ON public.seguidores
-  FOR ALL USING (usuario_id = (select auth.uid()))
-  WITH CHECK (usuario_id = (select auth.uid()));
+-- ----------------------------------------------------------
+-- seguidores
+-- ----------------------------------------------------------
+DROP POLICY IF EXISTS seguidores_select ON public.seguidores;
+CREATE POLICY seguidores_select ON public.seguidores
+  FOR SELECT USING (usuario_id = (select auth.uid()) OR public.is_admin());
 
--- Registros individuais visíveis apenas ao próprio usuário e admins
-DROP POLICY IF EXISTS seguidores_admin_all ON public.seguidores;
-CREATE POLICY seguidores_admin_all ON public.seguidores
-  FOR ALL USING (public.is_admin())
-  WITH CHECK (public.is_admin());
+DROP POLICY IF EXISTS seguidores_insert ON public.seguidores;
+CREATE POLICY seguidores_insert ON public.seguidores
+  FOR INSERT WITH CHECK (usuario_id = (select auth.uid()));
 
--- ============================================================================
--- POLÍTICAS RLS: planos_assinatura
--- ============================================================================
+DROP POLICY IF EXISTS seguidores_update ON public.seguidores;
+CREATE POLICY seguidores_update ON public.seguidores
+  FOR UPDATE USING (usuario_id = (select auth.uid()) OR public.is_admin())
+  WITH CHECK (usuario_id = (select auth.uid()) OR public.is_admin());
 
-DROP POLICY IF EXISTS planos_select_public ON public.planos_assinatura;
-CREATE POLICY planos_select_public ON public.planos_assinatura
+DROP POLICY IF EXISTS seguidores_delete ON public.seguidores;
+CREATE POLICY seguidores_delete ON public.seguidores
+  FOR DELETE USING (usuario_id = (select auth.uid()) OR public.is_admin());
+
+-- ----------------------------------------------------------
+-- planos_assinatura
+-- ----------------------------------------------------------
+DROP POLICY IF EXISTS planos_select ON public.planos_assinatura;
+CREATE POLICY planos_select ON public.planos_assinatura
   FOR SELECT USING (ativo = true);
 
-DROP POLICY IF EXISTS planos_admin_all ON public.planos_assinatura;
-CREATE POLICY planos_admin_all ON public.planos_assinatura
-  FOR ALL USING (public.is_admin())
+DROP POLICY IF EXISTS planos_insert ON public.planos_assinatura;
+CREATE POLICY planos_insert ON public.planos_assinatura
+  FOR INSERT WITH CHECK (public.is_admin());
+
+DROP POLICY IF EXISTS planos_update ON public.planos_assinatura;
+CREATE POLICY planos_update ON public.planos_assinatura
+  FOR UPDATE USING (public.is_admin())
   WITH CHECK (public.is_admin());
 
--- ============================================================================
--- POLÍTICAS RLS: assinaturas
--- ============================================================================
+DROP POLICY IF EXISTS planos_delete ON public.planos_assinatura;
+CREATE POLICY planos_delete ON public.planos_assinatura
+  FOR DELETE USING (public.is_admin());
 
-DROP POLICY IF EXISTS assinaturas_select_owner ON public.assinaturas;
-CREATE POLICY assinaturas_select_owner ON public.assinaturas
-  FOR SELECT USING (public.is_estabelecimento_owner(estabelecimento_id));
+-- ----------------------------------------------------------
+-- assinaturas
+-- ----------------------------------------------------------
+DROP POLICY IF EXISTS assinaturas_select ON public.assinaturas;
+CREATE POLICY assinaturas_select ON public.assinaturas
+  FOR SELECT USING (public.is_estabelecimento_owner(estabelecimento_id) OR public.is_admin());
 
-DROP POLICY IF EXISTS assinaturas_admin_all ON public.assinaturas;
-CREATE POLICY assinaturas_admin_all ON public.assinaturas
-  FOR ALL USING (public.is_admin())
+DROP POLICY IF EXISTS assinaturas_insert ON public.assinaturas;
+CREATE POLICY assinaturas_insert ON public.assinaturas
+  FOR INSERT WITH CHECK (false); -- Apenas service_role (Edge Functions)
+
+DROP POLICY IF EXISTS assinaturas_update ON public.assinaturas;
+CREATE POLICY assinaturas_update ON public.assinaturas
+  FOR UPDATE USING (public.is_admin())
   WITH CHECK (public.is_admin());
 
--- Apenas service_role (Edge Functions) insere/atualiza assinaturas
+DROP POLICY IF EXISTS assinaturas_delete ON public.assinaturas;
+CREATE POLICY assinaturas_delete ON public.assinaturas
+  FOR DELETE USING (public.is_admin());
 
--- ============================================================================
--- POLÍTICAS RLS: pagamentos (SENSÍVEL)
--- ============================================================================
-
-DROP POLICY IF EXISTS pagamentos_select_owner ON public.pagamentos;
-CREATE POLICY pagamentos_select_owner ON public.pagamentos
-  FOR SELECT USING (public.is_estabelecimento_owner(estabelecimento_id));
-
-DROP POLICY IF EXISTS pagamentos_select_cliente ON public.pagamentos;
-CREATE POLICY pagamentos_select_cliente ON public.pagamentos
+-- ----------------------------------------------------------
+-- pagamentos (SENSÍVEL)
+-- ----------------------------------------------------------
+DROP POLICY IF EXISTS pagamentos_select ON public.pagamentos;
+CREATE POLICY pagamentos_select ON public.pagamentos
   FOR SELECT USING (
-    agendamento_id IS NOT NULL
-    AND EXISTS (
-      SELECT 1 FROM public.agendamentos a
-      WHERE a.id = agendamento_id AND a.usuario_id = (select auth.uid())
+    public.is_estabelecimento_owner(estabelecimento_id)
+    OR (
+      agendamento_id IS NOT NULL
+      AND EXISTS (
+        SELECT 1 FROM public.agendamentos a
+        WHERE a.id = agendamento_id AND a.usuario_id = (select auth.uid())
+      )
     )
+    OR public.is_admin()
   );
 
-DROP POLICY IF EXISTS pagamentos_admin_all ON public.pagamentos;
-CREATE POLICY pagamentos_admin_all ON public.pagamentos
-  FOR ALL USING (public.is_admin())
+DROP POLICY IF EXISTS pagamentos_insert ON public.pagamentos;
+CREATE POLICY pagamentos_insert ON public.pagamentos
+  FOR INSERT WITH CHECK (false); -- Apenas service_role (Edge Functions)
+
+DROP POLICY IF EXISTS pagamentos_update ON public.pagamentos;
+CREATE POLICY pagamentos_update ON public.pagamentos
+  FOR UPDATE USING (public.is_admin())
   WITH CHECK (public.is_admin());
 
--- PROIBIDO: FOR INSERT WITH CHECK (true) — APENAS EDGE FUNCTIONS (service_role)
+DROP POLICY IF EXISTS pagamentos_delete ON public.pagamentos;
+CREATE POLICY pagamentos_delete ON public.pagamentos
+  FOR DELETE USING (public.is_admin());
 
--- ============================================================================
--- POLÍTICAS RLS: notificacoes (SENSÍVEL)
--- ============================================================================
+-- ----------------------------------------------------------
+-- notificacoes (SENSÍVEL)
+-- ----------------------------------------------------------
+DROP POLICY IF EXISTS notificacoes_select ON public.notificacoes;
+CREATE POLICY notificacoes_select ON public.notificacoes
+  FOR SELECT USING (destinatario_id = (select auth.uid()) OR public.is_admin());
 
-DROP POLICY IF EXISTS notificacoes_own ON public.notificacoes;
-CREATE POLICY notificacoes_own ON public.notificacoes
-  FOR ALL USING (destinatario_id = (select auth.uid()))
-  WITH CHECK (destinatario_id = (select auth.uid()));
+DROP POLICY IF EXISTS notificacoes_insert ON public.notificacoes;
+CREATE POLICY notificacoes_insert ON public.notificacoes
+  FOR INSERT WITH CHECK (false); -- Apenas service_role (Edge Functions)
 
-DROP POLICY IF EXISTS notificacoes_admin_all ON public.notificacoes;
-CREATE POLICY notificacoes_admin_all ON public.notificacoes
-  FOR ALL USING (public.is_admin())
-  WITH CHECK (public.is_admin());
+DROP POLICY IF EXISTS notificacoes_update ON public.notificacoes;
+CREATE POLICY notificacoes_update ON public.notificacoes
+  FOR UPDATE USING (destinatario_id = (select auth.uid()) OR public.is_admin())
+  WITH CHECK (destinatario_id = (select auth.uid()) OR public.is_admin());
 
--- PROIBIDO: FOR INSERT WITH CHECK (true) — APENAS EDGE FUNCTIONS
+DROP POLICY IF EXISTS notificacoes_delete ON public.notificacoes;
+CREATE POLICY notificacoes_delete ON public.notificacoes
+  FOR DELETE USING (destinatario_id = (select auth.uid()) OR public.is_admin());
 
--- ============================================================================
--- POLÍTICAS RLS: webhooks_processados (APENAS SERVICE_ROLE/ADMIN)
--- ============================================================================
-
-DROP POLICY IF EXISTS webhooks_admin_all ON public.webhooks_processados;
-CREATE POLICY webhooks_admin_all ON public.webhooks_processados
-  FOR ALL USING (public.is_admin())
-  WITH CHECK (public.is_admin());
-
--- Apenas service_role (Edge Functions) insere
-
--- ============================================================================
--- POLÍTICAS RLS: audit_logs (APENAS ADMIN/SERVICE_ROLE - IMUTÁVEL)
--- ============================================================================
-
-DROP POLICY IF EXISTS audit_logs_admin_select ON public.audit_logs;
-CREATE POLICY audit_logs_admin_select ON public.audit_logs
+-- ----------------------------------------------------------
+-- webhooks_processados (APENAS SERVICE_ROLE/ADMIN)
+-- ----------------------------------------------------------
+DROP POLICY IF EXISTS webhooks_select ON public.webhooks_processados;
+CREATE POLICY webhooks_select ON public.webhooks_processados
   FOR SELECT USING (public.is_admin());
 
--- Apenas service_role (Edge Functions) insere — NÃO HÁ UPDATE/DELETE
+DROP POLICY IF EXISTS webhooks_insert ON public.webhooks_processados;
+CREATE POLICY webhooks_insert ON public.webhooks_processados
+  FOR INSERT WITH CHECK (false); -- Apenas service_role (Edge Functions)
+
+DROP POLICY IF EXISTS webhooks_update ON public.webhooks_processados;
+CREATE POLICY webhooks_update ON public.webhooks_processados
+  FOR UPDATE USING (public.is_admin())
+  WITH CHECK (public.is_admin());
+
+DROP POLICY IF EXISTS webhooks_delete ON public.webhooks_processados;
+CREATE POLICY webhooks_delete ON public.webhooks_processados
+  FOR DELETE USING (public.is_admin());
+
+-- ----------------------------------------------------------
+-- audit_logs (APENAS ADMIN/SERVICE_ROLE - IMUTÁVEL)
+-- ----------------------------------------------------------
+DROP POLICY IF EXISTS audit_logs_select ON public.audit_logs;
+CREATE POLICY audit_logs_select ON public.audit_logs
+  FOR SELECT USING (public.is_admin());
+
+-- Apenas service_role (Edge Functions) insere — NÃO HÁ INSERT/UPDATE/DELETE policies
 
 -- ============================================================================
 -- VIEWS (ZERO "Security Definer View" — todas usam security_invoker = true)
@@ -1814,4 +2031,4 @@ GRANT EXECUTE ON FUNCTION public.rpc_anonimizar_usuario(UUID) TO authenticated, 
 -- COMENTÁRIOS FINAIS
 -- ============================================================================
 
-COMMENT ON DATABASE postgres IS 'Corte Rápido - SaaS Multi-tenant para Barbearias/Salões. Schema v1.0.0 - Zero Alertas Supabase Advisor';
+COMMENT ON DATABASE postgres IS 'Corte Rápido - SaaS Multi-tenant para Barbearias/Salões. Schema v1.0.0 - Zero Alertas Supabase Advisor - Performance Máxima';
