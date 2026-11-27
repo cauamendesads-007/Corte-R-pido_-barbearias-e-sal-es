@@ -177,7 +177,7 @@ describe('SupabaseAgendamentosService', () => {
     };
     mockSupabase.from.mockReturnValue({
       select: vi.fn(() => chain),
-      insert: vi.fn(() => ({ select: vi.fn(() => ({ single: vi.fn().mockResolvedValue({ data: returnData, error: null }) })) }),
+      insert: vi.fn(() => ({ select: vi.fn(() => ({ single: vi.fn().mockResolvedValue({ data: returnData, error: null }) })) })),
       update: vi.fn(() => ({ eq: vi.fn(() => ({ select: vi.fn(() => ({ single: vi.fn().mockResolvedValue({ data: returnData, error: null }) })) }) })),
       delete: vi.fn(() => ({ eq: vi.fn().mockResolvedValue({ error: null }) })),
       rpc: vi.fn(),

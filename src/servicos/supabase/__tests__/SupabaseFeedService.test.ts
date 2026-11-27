@@ -601,7 +601,7 @@ describe('SupabaseFeedService', () => {
               error: null,
             }),
           })),
-        }),
+        })),
       };
 
       mockSupabase.from.mockImplementation((table) => {

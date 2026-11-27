@@ -132,8 +132,9 @@ describe('gerarHorarios', () => {
 
 describe('ehHoje', () => {
   it('retorna true para hoje', () => {
-    const hoje = new Date().toISOString().split('T')[0];
-    expect(ehHoje(hoje)).toBe(true);
+    const hoje = new Date();
+    const hojeStr = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
+    expect(ehHoje(hojeStr)).toBe(true);
     expect(ehHoje(new Date())).toBe(true);
   });
 

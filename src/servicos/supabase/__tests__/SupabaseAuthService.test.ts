@@ -428,7 +428,7 @@ describe('SupabaseAuthService', () => {
         })),
       };
       mockSupabase.from.mockImplementation((table) => {
-        if (table === 'estabelecimentos') return { select: vi.fn(() => slugChain), insert: vi.fn(() => ({ select: vi.fn(() => ({ single: vi.fn().mockResolvedValue({ data: mockEstabelecimentoRow, error: null }) })) }) };
+        if (table === 'estabelecimentos') return { select: vi.fn(() => slugChain), insert: vi.fn(() => ({ select: vi.fn(() => ({ single: vi.fn().mockResolvedValue({ data: mockEstabelecimentoRow, error: null }) })) })) };
         return { insert: vi.fn().mockResolvedValue({ error: null }) };
       });
 
