@@ -182,7 +182,10 @@ export const SupabaseFeedService = {
 
       const { data, error } = await query.limit(50);
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseFeedService.listarFeed] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao buscar feed.' };
+      }
 
       let pubs = (data || []).map(row => mapPublicacaoRowToTipo(row as any));
 
@@ -256,7 +259,10 @@ export const SupabaseFeedService = {
         .eq('id', id)
         .maybeSingle();
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseFeedService.obterPublicacao] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao buscar publicação.' };
+      }
       if (!data) return { sucesso: true, dados: null };
 
       return { sucesso: true, dados: mapPublicacaoRowToTipo(data as any) };
@@ -317,7 +323,10 @@ export const SupabaseFeedService = {
         .select()
         .single();
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseFeedService.criarPublicacao] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao criar publicação.' };
+      }
 
       // Adiciona mídias
       if (dados.midias && dados.midias.length > 0) {
@@ -706,7 +715,10 @@ export const SupabaseFeedService = {
         .select()
         .single();
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseFeedService.adicionarComentario] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao adicionar comentário.' };
+      }
 
       // Incrementa contador de comentários
       const { error: rpcError } = await supabase.rpc('incrementar_contador', {
@@ -766,7 +778,10 @@ export const SupabaseFeedService = {
         .eq('id', publicacaoId)
         .eq('estabelecimento_id', estabelecimentoId);
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseFeedService.excluirPublicacao] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao excluir publicação.' };
+      }
 
       return { sucesso: true, dados: undefined };
     } catch (error) {
@@ -866,7 +881,10 @@ export const SupabaseFeedService = {
 
       const { data, error } = await query.limit(50);
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseFeedService.listarInspiracoes] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao buscar inspirações.' };
+      }
 
       return { sucesso: true, dados: (data || []).map(mapInspiracaoRowToTipo) };
     } catch (error) {
@@ -910,7 +928,10 @@ export const SupabaseFeedService = {
         .select()
         .single();
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseFeedService.criarInspiracao] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao criar inspiração.' };
+      }
 
       // Adiciona mídias
       if (dados.midias && dados.midias.length > 0) {
