@@ -178,7 +178,7 @@ describe('SupabaseAgendamentosService', () => {
     mockSupabase.from.mockReturnValue({
       select: vi.fn(() => chain),
       insert: vi.fn(() => ({ select: vi.fn(() => ({ single: vi.fn().mockResolvedValue({ data: returnData, error: null }) })) })),
-      update: vi.fn(() => ({ eq: vi.fn(() => ({ select: vi.fn(() => ({ single: vi.fn().mockResolvedValue({ data: returnData, error: null }) })) }) })),
+      update: vi.fn(() => ({ eq: vi.fn(() => ({ select: vi.fn(() => ({ single: vi.fn().mockResolvedValue({ data: returnData, error: null }) })) })) })),
       delete: vi.fn(() => ({ eq: vi.fn().mockResolvedValue({ error: null }) })),
       rpc: vi.fn(),
     });
@@ -296,7 +296,7 @@ describe('SupabaseAgendamentosService', () => {
       };
       mockSupabase.from.mockImplementation((table) => {
         if (table === 'profissionais') return { select: vi.fn(() => profChain) };
-        return { select: vi.fn(() => ({ eq: vi.fn(() => ({ maybeSingle: vi.fn() })) }) };
+        return { select: vi.fn(() => ({ eq: vi.fn(() => ({ maybeSingle: vi.fn() })) })) };
       });
 
       // Mock RPC para cada profissional
@@ -321,7 +321,7 @@ describe('SupabaseAgendamentosService', () => {
       };
       mockSupabase.from.mockImplementation((table) => {
         if (table === 'profissionais') return { select: vi.fn(() => profChain) };
-        return { select: vi.fn(() => ({ eq: vi.fn(() => ({ maybeSingle: vi.fn() })) }) };
+        return { select: vi.fn(() => ({ eq: vi.fn(() => ({ maybeSingle: vi.fn() })) })) };
       });
 
       const resultado = await service.obterHorariosDisponiveis('est-123', '2025-01-15', 30);
@@ -683,7 +683,7 @@ describe('SupabaseAgendamentosService', () => {
         confirmarPagamentoPix: vi.fn().mockResolvedValue({ sucesso: true, dados: undefined }),
       };
 
-      vi.doMock('@/servicos/api', () => ({ api: { agendamentos: mockApi } }));
+      vi.doMock('@/servicos/api', () => mockApi);
 
       // Re-import para pegar o mock
       vi.resetModules();

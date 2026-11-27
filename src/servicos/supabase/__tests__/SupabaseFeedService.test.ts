@@ -92,8 +92,13 @@ describe('SupabaseFeedService', () => {
       single: vi.fn().mockResolvedValue(resolveValue),
       maybeSingle: vi.fn().mockResolvedValue(resolveValue),
       select: vi.fn(() => chain),
-      then: vi.fn((onFulfilled) => Promise.resolve(resolveValue).then(onFulfilled)),
-      catch: vi.fn((onRejected) => Promise.resolve(resolveValue).catch(onRejected)),
+      // then/catch como funções reais (não mocks) para funcionar com await
+      then(onFulfilled: any, onRejected: any) {
+        return Promise.resolve(resolveValue).then(onFulfilled, onRejected);
+      },
+      catch(onRejected: any) {
+        return Promise.resolve(resolveValue).catch(onRejected);
+      },
     };
     return chain;
   }
@@ -138,9 +143,6 @@ describe('SupabaseFeedService', () => {
     mockSupabase.rpc.mockReset();
     mockSupabase.auth.getUser.mockReset();
     mockSupabase.auth.getSession.mockReset();
-
-    // Default mock: returns empty arrays for select queries
-    mockSupabase.from.mockImplementation(() => createQueryChain({ data: [], error: null }));
 
     const module = await import('../SupabaseFeedService');
     service = module.SupabaseFeedService;
@@ -332,15 +334,39 @@ describe('SupabaseFeedService', () => {
         papel: 'barbeiro',
       };
 
-      const userChain = createQueryChain({ data: mockPerfil, error: null });
-      const pubInsertMock = createInsertMock({ data: mockPublicacaoRow, error: null });
+      // Mock para usuarios: select().eq().single()
+      const userSelectChain = {
+        select: vi.fn(() => ({
+          eq: vi.fn(() => ({
+            single: vi.fn().mockResolvedValue({ data: mockPerfil, error: null }),
+          })),
+        })),
+      };
+
+      // Mock para publicacoes: insert().select().single() E select().eq().single() (reload)
+      const pubInsertResult = { data: mockPublicacaoRow, error: null };
+      const pubSelectResult = { data: { ...mockPublicacaoRow, publicacao_midias: [{ id: 'mid-1', tipo: 'imagem', src: 'https://exemplo.com/foto.jpg', alt: 'Corte', thumbnail: null, ordem: 0 }] }, error: null };
+
+      const publicacoesMock = {
+        insert: vi.fn(() => ({
+          select: vi.fn(() => ({
+            single: vi.fn().mockResolvedValue(pubInsertResult),
+          })),
+        })),
+        select: vi.fn(() => ({
+          eq: vi.fn(() => ({
+            single: vi.fn().mockResolvedValue(pubSelectResult),
+          })),
+        })),
+      };
+
       const midiasInsertMock = { insert: vi.fn().mockResolvedValue({ error: null }) };
 
       mockSupabase.from.mockImplementation((table) => {
-        if (table === 'usuarios') return userChain;
-        if (table === 'publicacoes') return pubInsertMock;
+        if (table === 'usuarios') return userSelectChain;
+        if (table === 'publicacoes') return publicacoesMock;
         if (table === 'publicacao_midias') return midiasInsertMock;
-        return createQueryChain({ data: null, error: null });
+        return { select: vi.fn(() => ({ eq: vi.fn(() => ({ single: vi.fn().mockResolvedValue({ data: null, error: null }) })) })) };
       });
 
       mockSupabase.rpc.mockResolvedValue({ error: null });
@@ -386,10 +412,17 @@ describe('SupabaseFeedService', () => {
         papel: 'cliente',
       };
 
-      const userChain = createQueryChain({ data: mockPerfil, error: null });
+      const userSelectChain = {
+        select: vi.fn(() => ({
+          eq: vi.fn(() => ({
+            single: vi.fn().mockResolvedValue({ data: mockPerfil, error: null }),
+          })),
+        })),
+      };
+
       mockSupabase.from.mockImplementation((table) => {
-        if (table === 'usuarios') return userChain;
-        return createQueryChain({ data: null, error: null });
+        if (table === 'usuarios') return userSelectChain;
+        return { select: vi.fn(() => ({ eq: vi.fn(() => ({ single: vi.fn().mockResolvedValue({ data: null, error: null }) })) })) };
       });
 
       const dados = {
@@ -412,30 +445,40 @@ describe('SupabaseFeedService', () => {
   describe('alternarCurtida', () => {
     it('deve curtir publicação quando não curtiu', async () => {
       const mockUser = { id: 'user-123', email: 'cliente@exemplo.com' };
-      const userChain = createQueryChain({ data: mockUser, error: null });
 
-      const curtidasSelectChain = createQueryChain({ data: null, error: null });
-      const curtidasInsertMock = { insert: vi.fn().mockResolvedValue({ error: null }) };
-      const curtidasDeleteMock = createDeleteMock();
-      const pubSelectChain = createQueryChain({ data: { curtidas: 11 }, error: null });
+      const usuariosMock = {
+        select: vi.fn(() => ({
+          eq: vi.fn(() => ({
+            single: vi.fn().mockResolvedValue({ data: mockUser, error: null }),
+          })),
+        })),
+      };
+
+      const curtidasMock = {
+        select: vi.fn(() => ({
+          eq: vi.fn(() => ({
+            eq: vi.fn(() => ({
+              maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+            })),
+          })),
+        })),
+        insert: vi.fn().mockResolvedValue({ error: null }),
+        delete: vi.fn(() => ({ eq: vi.fn().mockResolvedValue({ error: null }) })),
+      };
+
+      const publicacoesMock = {
+        select: vi.fn(() => ({
+          eq: vi.fn(() => ({
+            single: vi.fn().mockResolvedValue({ data: { curtidas: 11 }, error: null }),
+          })),
+        })),
+      };
 
       mockSupabase.from.mockImplementation((table) => {
-        if (table === 'usuarios') return userChain;
-        if (table === 'curtidas') {
-          return {
-            select: vi.fn(() => ({
-              eq: vi.fn(() => ({
-                eq: vi.fn(() => ({
-                  maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
-                })),
-              })),
-            })),
-            insert: vi.fn().mockResolvedValue({ error: null }),
-            delete: vi.fn(() => ({ eq: vi.fn().mockResolvedValue({ error: null }) })),
-          };
-        }
-        if (table === 'publicacoes') return pubSelectChain;
-        return createQueryChain({ data: null, error: null });
+        if (table === 'usuarios') return usuariosMock;
+        if (table === 'curtidas') return curtidasMock;
+        if (table === 'publicacoes') return publicacoesMock;
+        return { select: vi.fn(() => ({ eq: vi.fn(() => ({ maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }) })) })) };
       });
 
       mockSupabase.rpc.mockResolvedValue({ error: null });
@@ -449,27 +492,40 @@ describe('SupabaseFeedService', () => {
 
     it('deve descurtir publicação quando já curtiu', async () => {
       const mockUser = { id: 'user-123', email: 'cliente@exemplo.com' };
-      const userChain = createQueryChain({ data: mockUser, error: null });
 
-      const pubSelectChain = createQueryChain({ data: { curtidas: 9 }, error: null });
+      const usuariosMock = {
+        select: vi.fn(() => ({
+          eq: vi.fn(() => ({
+            single: vi.fn().mockResolvedValue({ data: mockUser, error: null }),
+          })),
+        })),
+      };
+
+      const curtidasMock = {
+        select: vi.fn(() => ({
+          eq: vi.fn(() => ({
+            eq: vi.fn(() => ({
+              maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'curtida-1' }, error: null }),
+            })),
+          })),
+        })),
+        insert: vi.fn().mockResolvedValue({ error: null }),
+        delete: vi.fn(() => ({ eq: vi.fn().mockResolvedValue({ error: null }) })),
+      };
+
+      const publicacoesMock = {
+        select: vi.fn(() => ({
+          eq: vi.fn(() => ({
+            single: vi.fn().mockResolvedValue({ data: { curtidas: 9 }, error: null }),
+          })),
+        })),
+      };
 
       mockSupabase.from.mockImplementation((table) => {
-        if (table === 'usuarios') return userChain;
-        if (table === 'curtidas') {
-          return {
-            select: vi.fn(() => ({
-              eq: vi.fn(() => ({
-                eq: vi.fn(() => ({
-                  maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'curtida-1' }, error: null }),
-                })),
-              })),
-            })),
-            insert: vi.fn().mockResolvedValue({ error: null }),
-            delete: vi.fn(() => ({ eq: vi.fn().mockResolvedValue({ error: null }) })),
-          };
-        }
-        if (table === 'publicacoes') return pubSelectChain;
-        return createQueryChain({ data: null, error: null });
+        if (table === 'usuarios') return usuariosMock;
+        if (table === 'curtidas') return curtidasMock;
+        if (table === 'publicacoes') return publicacoesMock;
+        return { select: vi.fn(() => ({ eq: vi.fn(() => ({ maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }) })) })) };
       });
 
       mockSupabase.rpc.mockResolvedValue({ error: null });
@@ -489,25 +545,34 @@ describe('SupabaseFeedService', () => {
   describe('alternarInspiracao', () => {
     it('deve salvar publicação quando não salva', async () => {
       const mockUser = { id: 'user-123', email: 'cliente@exemplo.com' };
-      const userChain = createQueryChain({ data: mockUser, error: null });
+
+      const usuariosMock = {
+        select: vi.fn(() => ({
+          eq: vi.fn(() => ({
+            single: vi.fn().mockResolvedValue({ data: mockUser, error: null }),
+          })),
+        })),
+      };
+
+      const salvosMock = {
+        select: vi.fn(() => ({
+          eq: vi.fn(() => ({
+            eq: vi.fn(() => ({
+              maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+            })),
+          })),
+        })),
+        insert: vi.fn().mockResolvedValue({ error: null }),
+        delete: vi.fn(() => ({ eq: vi.fn().mockResolvedValue({ error: null }) })),
+      };
 
       mockSupabase.from.mockImplementation((table) => {
-        if (table === 'usuarios') return userChain;
-        if (table === 'salvos') {
-          return {
-            select: vi.fn(() => ({
-              eq: vi.fn(() => ({
-                eq: vi.fn(() => ({
-                  maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
-                })),
-              })),
-            })),
-            insert: vi.fn().mockResolvedValue({ error: null }),
-            delete: vi.fn(() => ({ eq: vi.fn().mockResolvedValue({ error: null }) })),
-          };
-        }
-        return createQueryChain({ data: null, error: null });
+        if (table === 'usuarios') return usuariosMock;
+        if (table === 'salvos') return salvosMock;
+        return { select: vi.fn(() => ({ eq: vi.fn(() => ({ maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }) })) })) };
       });
+
+      mockSupabase.rpc.mockResolvedValue({ error: null });
 
       const resultado = await service.alternarInspiracao('pub-123', 'cliente@exemplo.com');
 
@@ -517,25 +582,34 @@ describe('SupabaseFeedService', () => {
 
     it('deve remover salvamento quando já salvo', async () => {
       const mockUser = { id: 'user-123', email: 'cliente@exemplo.com' };
-      const userChain = createQueryChain({ data: mockUser, error: null });
+
+      const usuariosMock = {
+        select: vi.fn(() => ({
+          eq: vi.fn(() => ({
+            single: vi.fn().mockResolvedValue({ data: mockUser, error: null }),
+          })),
+        })),
+      };
+
+      const salvosMock = {
+        select: vi.fn(() => ({
+          eq: vi.fn(() => ({
+            eq: vi.fn(() => ({
+              maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'salvo-1' }, error: null }),
+            })),
+          })),
+        })),
+        insert: vi.fn().mockResolvedValue({ error: null }),
+        delete: vi.fn(() => ({ eq: vi.fn().mockResolvedValue({ error: null }) })),
+      };
 
       mockSupabase.from.mockImplementation((table) => {
-        if (table === 'usuarios') return userChain;
-        if (table === 'salvos') {
-          return {
-            select: vi.fn(() => ({
-              eq: vi.fn(() => ({
-                eq: vi.fn(() => ({
-                  maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'salvo-1' }, error: null }),
-                })),
-              })),
-            })),
-            insert: vi.fn().mockResolvedValue({ error: null }),
-            delete: vi.fn(() => ({ eq: vi.fn().mockResolvedValue({ error: null }) })),
-          };
-        }
-        return createQueryChain({ data: null, error: null });
+        if (table === 'usuarios') return usuariosMock;
+        if (table === 'salvos') return salvosMock;
+        return { select: vi.fn(() => ({ eq: vi.fn(() => ({ maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }) })) })) };
       });
+
+      mockSupabase.rpc.mockResolvedValue({ error: null });
 
       const resultado = await service.alternarInspiracao('pub-123', 'cliente@exemplo.com');
 
@@ -591,13 +665,20 @@ describe('SupabaseFeedService', () => {
       mockSupabase.auth.getUser.mockResolvedValue({ data: { user: mockUser }, error: null });
 
       const mockPerfil = { nome: 'Cliente', avatar: 'https://exemplo.com/avatar.jpg' };
-      const perfilChain = createQueryChain({ data: mockPerfil, error: null });
+
+      const usuariosMock = {
+        select: vi.fn(() => ({
+          eq: vi.fn(() => ({
+            single: vi.fn().mockResolvedValue({ data: mockPerfil, error: null }),
+          })),
+        })),
+      };
 
       const comentarioInsertMock = {
         insert: vi.fn(() => ({
           select: vi.fn(() => ({
             single: vi.fn().mockResolvedValue({
-              data: { id: 'coment-1', publicacao_id: 'pub-123', autor_id: 'user-123', autor_nome: 'Cliente', autor_avatar: 'https://exemplo.com/avatar.jpg', texto: 'Otimo corte!', data_criacao: '2025-01-15T10:05:00Z' },
+              data: { id: 'coment-1', publicacao_id: 'pub-123', autor_id: 'user-123', autor_nome: 'Cliente', autor_avatar: 'https://exemplo.com/avatar.jpg', texto: 'Ótimo corte!', data_criacao: '2025-01-15T10:05:00Z' },
               error: null,
             }),
           })),
@@ -605,10 +686,10 @@ describe('SupabaseFeedService', () => {
       };
 
       mockSupabase.from.mockImplementation((table) => {
-        if (table === 'usuarios') return perfilChain;
+        if (table === 'usuarios') return usuariosMock;
         if (table === 'comentarios') return comentarioInsertMock;
         if (table === 'publicacoes') return { rpc: vi.fn().mockResolvedValue({ error: null }) };
-        return createQueryChain({ data: null, error: null });
+        return { select: vi.fn(() => ({ eq: vi.fn(() => ({ maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }) })) })) };
       });
 
       mockSupabase.rpc.mockResolvedValue({ error: null });
@@ -630,20 +711,27 @@ describe('SupabaseFeedService', () => {
       mockSupabase.auth.getUser.mockResolvedValue({ data: { user: mockUser }, error: null });
 
       const mockPerfil = { id: 'user-123', papel: 'barbeiro', estabelecimento_id: 'est-123' };
-      const perfilChain = createQueryChain({ data: mockPerfil, error: null });
+
+      const usuariosMock = {
+        select: vi.fn(() => ({
+          eq: vi.fn(() => ({
+            single: vi.fn().mockResolvedValue({ data: mockPerfil, error: null }),
+          })),
+        })),
+      };
+
+      const publicacoesMock = {
+        delete: vi.fn(() => ({
+          eq: vi.fn(() => ({
+            eq: vi.fn().mockResolvedValue({ error: null }),
+          })),
+        })),
+      };
 
       mockSupabase.from.mockImplementation((table) => {
-        if (table === 'usuarios') return perfilChain;
-        if (table === 'publicacoes') {
-          return {
-            delete: vi.fn(() => ({
-              eq: vi.fn(() => ({
-                eq: vi.fn().mockResolvedValue({ error: null }),
-              })),
-            })),
-          };
-        }
-        return createQueryChain({ data: null, error: null });
+        if (table === 'usuarios') return usuariosMock;
+        if (table === 'publicacoes') return publicacoesMock;
+        return { select: vi.fn(() => ({ eq: vi.fn(() => ({ single: vi.fn().mockResolvedValue({ data: null, error: null }) })) })) };
       });
 
       const resultado = await service.excluirPublicacao('pub-123', 'est-123');
@@ -656,10 +744,18 @@ describe('SupabaseFeedService', () => {
       mockSupabase.auth.getUser.mockResolvedValue({ data: { user: mockUser }, error: null });
 
       const mockPerfil = { id: 'user-123', papel: 'cliente', estabelecimento_id: null };
-      const perfilChain = createQueryChain({ data: mockPerfil, error: null });
+
+      const usuariosMock = {
+        select: vi.fn(() => ({
+          eq: vi.fn(() => ({
+            single: vi.fn().mockResolvedValue({ data: mockPerfil, error: null }),
+          })),
+        })),
+      };
+
       mockSupabase.from.mockImplementation((table) => {
-        if (table === 'usuarios') return perfilChain;
-        return createQueryChain({ data: null, error: null });
+        if (table === 'usuarios') return usuariosMock;
+        return { select: vi.fn(() => ({ eq: vi.fn(() => ({ single: vi.fn().mockResolvedValue({ data: null, error: null }) })) })) };
       });
 
       const resultado = await service.excluirPublicacao('pub-123', 'est-123');
@@ -676,6 +772,9 @@ describe('SupabaseFeedService', () => {
   describe('compartilharPublicacao', () => {
     it('deve incrementar contador de compartilhamentos', async () => {
       mockSupabase.rpc.mockResolvedValue({ error: null });
+      mockSupabase.from.mockImplementation(() => ({
+        select: vi.fn(() => ({ eq: vi.fn(() => ({ single: vi.fn().mockResolvedValue({ data: null, error: null }) })) })),
+      }));
 
       const resultado = await service.compartilharPublicacao('pub-123');
 
@@ -685,6 +784,18 @@ describe('SupabaseFeedService', () => {
         campo: 'compartilhamentos',
         id_registro: 'pub-123',
       });
+    });
+
+    it('deve retornar erro quando RPC falha', async () => {
+      mockSupabase.rpc.mockResolvedValue({ error: { message: 'Erro RPC' } });
+      mockSupabase.from.mockImplementation(() => ({
+        select: vi.fn(() => ({ eq: vi.fn(() => ({ single: vi.fn().mockResolvedValue({ data: null, error: null }) })) })),
+      }));
+
+      const resultado = await service.compartilharPublicacao('pub-123');
+
+      expect(resultado.sucesso).toBe(false);
+      expect(resultado.erro).toBe('Erro ao compartilhar.');
     });
   });
 
@@ -751,12 +862,27 @@ describe('SupabaseFeedService', () => {
       mockSupabase.auth.getUser.mockResolvedValue({ data: { user: mockUser }, error: null });
 
       const mockPerfil = { id: 'user-123', nome: 'João', avatar: null, estabelecimento_id: 'est-123', papel: 'barbeiro' };
-      const userChain = createQueryChain({ data: mockPerfil, error: null });
+
+      const usuariosMock = {
+        select: vi.fn(() => ({
+          eq: vi.fn(() => ({
+            single: vi.fn().mockResolvedValue({ data: mockPerfil, error: null }),
+          })),
+        })),
+      };
+
+      const publicacoesMock = {
+        insert: vi.fn(() => ({
+          select: vi.fn(() => ({
+            single: vi.fn().mockResolvedValue({ data: null, error: { message: 'permission denied by row-level security policy', code: '42501' } }),
+          })),
+        })),
+      };
 
       mockSupabase.from.mockImplementation((table) => {
-        if (table === 'usuarios') return userChain;
-        if (table === 'publicacoes') return createInsertMock({ data: null, error: { message: 'permission denied by row-level security policy', code: '42501' } });
-        return createQueryChain({ data: null, error: null });
+        if (table === 'usuarios') return usuariosMock;
+        if (table === 'publicacoes') return publicacoesMock;
+        return { select: vi.fn(() => ({ eq: vi.fn(() => ({ single: vi.fn().mockResolvedValue({ data: null, error: null }) })) })) };
       });
 
       const dados = {
@@ -768,7 +894,7 @@ describe('SupabaseFeedService', () => {
       const resultado = await service.criarPublicacao(dados);
 
       expect(resultado.sucesso).toBe(false);
-      expect(resultado.erro).toContain('permission denied');
+      expect(resultado.erro).toBe('Erro ao criar publicação.');
     });
   });
 });
