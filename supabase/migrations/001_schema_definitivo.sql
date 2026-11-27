@@ -280,13 +280,13 @@ CREATE INDEX IF NOT EXISTS idx_agendamentos_data_criacao ON public.agendamentos 
 -- Índice parcial de alta velocidade para consultas reais do app (slots disponíveis)
 CREATE INDEX IF NOT EXISTS idx_agendamentos_profissional_dia_ativo ON public.agendamentos (profissional_id, dia) WHERE status NOT IN ('cancelado', 'nao_compareceu');
 
--- search_path FIXO para a tabela (resolve "Function Search Path Mutable" no GiST constraint)
-ALTER TABLE public.agendamentos SET search_path = pg_catalog, public, extensions, auth;
-
 -- ============================================================================
 -- CONSTRAINT ANTI-OVERBOOKING POR PROFISSIONAL (REQUISITO OBRIGATÓRIO #3)
--- GiST com search_path fixo (extensions schema via search_path)
+-- GiST com search_path fixo na sessão (resolve "Function Search Path Mutable")
 -- ============================================================================
+
+-- search_path FIXO para a sessão de migração (garante resolução estável de operator classes GiST)
+SET LOCAL search_path = pg_catalog, public, extensions, auth;
 
 ALTER TABLE public.agendamentos DROP CONSTRAINT IF EXISTS agendamentos_sem_conflito_profissional;
 
@@ -300,6 +300,9 @@ EXCLUDE USING gist (
     '[)'
   ) WITH &&
 ) WHERE (status NOT IN ('cancelado', 'nao_compareceu'));
+
+-- Restaura search_path padrão
+RESET search_path;
 
 COMMENT ON CONSTRAINT agendamentos_sem_conflito_profissional ON public.agendamentos IS
 'Constraint anti-overbooking por profissional. Impede agendamentos sobrepostos para o mesmo profissional. Código de erro PostgreSQL: 23P01 (exclusion_violation).';
