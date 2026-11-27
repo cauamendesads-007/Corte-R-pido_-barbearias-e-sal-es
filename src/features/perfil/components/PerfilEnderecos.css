@@ -1,0 +1,249 @@
+/**
+ * Estilos do PerfilEnderecos - Gerenciamento de endereços.
+ * Design system escuro, 6 estados, responsivo, reduced-motion, high-contrast.
+ */
+
+.perfil-enderecos {
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-xl);
+}
+
+.perfil-enderecos__lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+}
+
+.perfil-enderecos__item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--espaco-4);
+  padding: var(--espaco-4);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-lg);
+  transition: border-color var(--transicao-rapida), box-shadow var(--transicao-rapida);
+}
+
+.perfil-enderecos__item:hover {
+  border-color: var(--cor-borda-hover);
+  box-shadow: var(--sombra-sm);
+}
+
+.perfil-enderecos__item.principal {
+  border-color: var(--cor-primaria);
+  background: var(--cor-primaria-fraca);
+}
+
+.perfil-enderecos__item:focus-within {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .perfil-enderecos__item {
+    transition: none;
+  }
+}
+
+.perfil-enderecos__item-principal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+  flex: 1;
+  min-width: 0;
+}
+
+.perfil-enderecos__badge-principal {
+  align-self: flex-start;
+}
+
+.perfil-enderecos__item-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+}
+
+.perfil-enderecos__item-logradouro {
+  margin: 0;
+  font-size: var(--fonte-tamanho-base);
+  font-weight: 500;
+  color: var(--cor-texto);
+  line-height: 1.4;
+}
+
+.perfil-enderecos__item-bairro-cidade {
+  margin: 0;
+  font-size: var(--fonte-tamanho-sm);
+  color: var(--cor-texto-secundario);
+}
+
+.perfil-enderecos__item-cep {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-1);
+  margin: 0;
+  font-size: var(--fonte-tamanho-xs);
+  color: var(--cor-texto-terciario);
+}
+
+.perfil-enderecos__item-acoes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+  flex-shrink: 0;
+}
+
+.perfil-enderecos__menu-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: var(--raio-md);
+  background: var(--cor-fundo);
+  color: var(--cor-texto-secundario);
+  cursor: pointer;
+  transition: background-color var(--transicao-rapida), color var(--transicao-rapida);
+}
+
+.perfil-enderecos__menu-btn:hover {
+  background: var(--cor-superficie-hover);
+  color: var(--cor-texto);
+}
+
+.perfil-enderecos__menu-btn:focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+.perfil-enderecos__dropdown {
+  z-index: 100;
+}
+
+/* Grid do modal */
+.perfil-enderecos__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--espaco-4);
+  margin-bottom: var(--espaco-4);
+}
+
+.perfil-enderecos__grid > *:nth-child(1) { grid-column: span 2; } /* CEP */
+.perfil-enderecos__grid > *:nth-child(2) { grid-column: span 2; } /* Logradouro */
+.perfil-enderecos__grid > *:nth-child(3) { grid-column: span 1; } /* Número */
+.perfil-enderecos__grid > *:nth-child(4) { grid-column: span 2; } /* Complemento */
+.perfil-enderecos__grid > *:nth-child(5) { grid-column: span 1; } /* Bairro */
+.perfil-enderecos__grid > *:nth-child(6) { grid-column: span 1; } /* Cidade */
+.perfil-enderecos__grid > *:nth-child(7) { grid-column: span 1; } /* Estado */
+.perfil-enderecos__grid > *:nth-child(8) { grid-column: span 1; } /* Tipo */
+
+.perfil-enderecos__checkbox {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  margin-bottom: var(--espaco-4);
+  font-size: var(--fonte-tamanho-sm);
+  color: var(--cor-texto-secundario);
+  cursor: pointer;
+}
+
+.perfil-enderecos__checkbox input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--cor-primaria);
+}
+
+.perfil-enderecos__modal-acoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--espaco-3);
+  padding-top: var(--espaco-4);
+  border-top: 1px solid var(--cor-borda);
+}
+
+.perfil-enderecos__modal-acoes .botao {
+  min-width: 120px;
+}
+
+/* Erro */
+.perfil-enderecos__erro {
+  margin-bottom: var(--espaco-4);
+}
+
+/* Empty */
+.perfil-enderecos__empty {
+  padding: var(--espaco-8);
+}
+
+/* Skeleton */
+.perfil-enderecos__skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+  .perfil-enderecos__item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .perfil-enderecos__item-acoes {
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+
+  .perfil-enderecos__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .perfil-enderecos__grid > * {
+    grid-column: 1 / -1 !important;
+  }
+}
+
+@media (max-width: 480.x) {
+  .perfil-enderecos__modal-acoes {
+    flex-direction: column-reverse;
+  }
+
+  .perfil-enderecos__modal-acoes .botao {
+    width: 100%;
+  }
+}
+
+/* High Contrast */
+@media (prefers-contrast: high) {
+  .perfil-enderecos__item {
+    border-width: 2px;
+  }
+
+  .perfil-enderecos__item.principal {
+    border-width: 3px;
+  }
+}
+
+/* Print */
+@media print {
+  .perfil-enderecos__item-acoes,
+  .perfil-enderecos__modal {
+    display: none !important;
+  }
+
+  .perfil-enderecos {
+    border: 1px solid #000 !important;
+    break-inside: avoid;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .perfil-enderecos__item {
+    break-inside: avoid;
+    border: 1px solid #000 !important;
+    background: white !important;
+  }
+}

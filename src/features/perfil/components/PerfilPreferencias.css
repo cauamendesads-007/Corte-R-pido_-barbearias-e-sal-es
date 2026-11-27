@@ -1,0 +1,173 @@
+/**
+ * Estilos do PerfilPreferencias - Painel de preferências.
+ * Design system escuro, 6 estados, responsivo, reduced-motion, high-contrast.
+ */
+
+.perfil-preferencias {
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-xl);
+}
+
+.perfil-preferencias__secao {
+  margin-bottom: var(--espaco-8);
+}
+
+.perfil-preferencias__secao:last-child {
+  margin-bottom: 0;
+}
+
+.perfil-preferencias__secao-titulo {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  margin: 0 0 var(--espaco-4);
+  font-size: var(--fonte-tamanho-base);
+  font-weight: 600;
+  color: var(--cor-texto);
+  padding-bottom: var(--espaco-2);
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.perfil-preferencias__secao-icone {
+  font-size: var(--fonte-tamanho-lg);
+  line-height: 1;
+}
+
+/* Opções de tema */
+.perfil-preferencias__opcoes {
+  display: flex;
+  gap: var(--espaco-3);
+  flex-wrap: wrap;
+}
+
+.perfil-preferencias__opcao {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  flex: 1;
+  min-width: 120px;
+  padding: var(--espaco-3) var(--espaco-4);
+  border: 2px solid var(--cor-borda);
+  border-radius: var(--raio-lg);
+  background: var(--cor-superficie);
+  cursor: pointer;
+  transition: border-color var(--transicao-rapida), background-color var(--transicao-rapida);
+}
+
+.perfil-preferencias__opcao:hover {
+  border-color: var(--cor-borda-hover);
+  background: var(--cor-superficie-hover);
+}
+
+.perfil-preferencias__opcao:focus-within {
+  border-color: var(--cor-foco);
+  box-shadow: 0 0 0 3px var(--cor-primaria-fraca);
+}
+
+.perfil-preferencias__opcao.selecionada {
+  border-color: var(--cor-primaria);
+  background: var(--cor-primaria-fraca);
+}
+
+.perfil-preferencias__radio {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.perfil-preferencias__opcao-conteudo {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  width: 100%;
+}
+
+.perfil-preferencias__opcao-icone {
+  font-size: var(--fonte-tamanho-lg);
+}
+
+.perfil-preferencias__opcao-texto {
+  font-size: var(--fonte-tamanho-sm);
+  font-weight: 500;
+  color: var(--cor-texto);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .perfil-preferencias__opcao {
+    transition: none;
+  }
+}
+
+/* Switches */
+.perfil-preferencias__switches {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+}
+
+/* Grid */
+.perfil-preferencias__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--espaco-4);
+}
+
+/* Erro */
+.perfil-preferencias__erro {
+  margin-bottom: var(--espaco-4);
+}
+
+/* Vazio */
+.perfil-preferencias__vazio {
+  padding: var(--espaco-8);
+  text-align: center;
+  color: var(--cor-texto-terciario);
+}
+
+/* Skeleton */
+.perfil-preferencias__skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+}
+
+/* Responsivo */
+@media (max-width: 480px) {
+  .perfil-preferencias__opcoes {
+    flex-direction: column;
+  }
+
+  .perfil-preferencias__opcao {
+    width: 100%;
+    min-width: auto;
+  }
+
+  .perfil-preferencias__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* High Contrast */
+@media (prefers-contrast: high) {
+  .perfil-preferencias__opcao {
+    border-width: 3px;
+  }
+
+  .perfil-preferencias__secao-titulo {
+    border-bottom-width: 2px;
+  }
+}
+
+/* Print */
+@media print {
+  .perfil-preferencias {
+    border: 1px solid #000 !important;
+    break-inside: avoid;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .perfil-preferencias__secao {
+    break-inside: avoid;
+  }
+}

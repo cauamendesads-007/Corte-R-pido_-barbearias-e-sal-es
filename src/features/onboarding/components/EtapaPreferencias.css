@@ -1,0 +1,187 @@
+/**
+ * Estilos da Etapa Preferências.
+ * Design system escuro, 6 estados, responsivo, reduced-motion, high-contrast.
+ */
+
+.onboarding-etapa--preferencias {
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.onboarding-etapa__header {
+  text-align: center;
+  margin-bottom: var(--espaco-4);
+}
+
+.onboarding-etapa__titulo {
+  margin: 0 0 var(--espaco-2);
+  font-size: var(--fonte-tamanho-2xl);
+  font-weight: 700;
+  color: var(--cor-texto);
+  line-height: 1.3;
+}
+
+.onboarding-etapa__subtitulo {
+  margin: 0;
+  font-size: var(--fonte-tamanho-base);
+  color: var(--cor-texto-secundario);
+  line-height: 1.6;
+}
+
+.onboarding-etapa__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-6);
+}
+
+.onboarding-etapa__fieldset {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.onboarding-etapa__fieldset-legenda {
+  display: block;
+  margin-bottom: var(--espaco-3);
+  font-size: var(--fonte-tamanho-lg);
+  font-weight: 600;
+  color: var(--cor-texto);
+  padding-bottom: var(--espaco-2);
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+/* Switches */
+.onboarding-etapa__switches {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+}
+
+/* Tema opções */
+.onboarding-etapa__tema-opcoes {
+  display: flex;
+  gap: var(--espaco-3);
+  flex-wrap: wrap;
+}
+
+.onboarding-etapa__tema-opcao {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  flex: 1;
+  min-width: 120px;
+  padding: var(--espaco-3) var(--espaco-4);
+  border: 2px solid var(--cor-borda);
+  border-radius: var(--raio-lg);
+  background: var(--cor-superficie);
+  cursor: pointer;
+  transition: border-color var(--transicao-rapida), background-color var(--transicao-rapida);
+}
+
+.onboarding-etapa__tema-opcao:hover {
+  border-color: var(--cor-borda-hover);
+  background: var(--cor-superficie-hover);
+}
+
+.onboarding-etapa__tema-opcao:focus-within {
+  border-color: var(--cor-foco);
+  box-shadow: 0 0 0 3px var(--cor-primaria-fraca);
+}
+
+.onboarding-etapa__tema-opcao.selecionada {
+  border-color: var(--cor-primaria);
+  background: var(--cor-primaria-fraca);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .onboarding-etapa__tema-opcao {
+    transition: none;
+  }
+}
+
+.onboarding-etapa__radio {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.onboarding-etapa__tema-opcao-conteudo {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  width: 100%;
+  justify-content: center;
+}
+
+.onboarding-etapa__tema-opcao-icone {
+  font-size: var(--fonte-tamanho-xl);
+}
+
+.onboarding-etapa__tema-opcao-texto {
+  font-size: var(--fonte-tamanho-sm);
+  font-weight: 500;
+  color: var(--cor-texto);
+}
+
+/* Ações */
+.onboarding-etapa__acoes {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--espaco-3);
+  padding-top: var(--espaco-4);
+  border-top: 1px solid var(--cor-borda);
+  margin-top: var(--espaco-4);
+}
+
+.onboarding-etapa__acoes .botao {
+  min-width: 140px;
+}
+
+/* Responsivo */
+@media (max-width: 480.x) {
+  .onboarding-etapa__tema-opcoes {
+    flex-direction: column;
+  }
+
+  .onboarding-etapa__tema-opcao {
+    width: 100%;
+    min-width: auto;
+  }
+
+  .onboarding-etapa__acoes {
+    flex-direction: column-reverse;
+  }
+
+  .onboarding-etapa__acoes .botao {
+    width: 100%;
+  }
+}
+
+/* High Contrast */
+@media (prefers-contrast: high) {
+  .onboarding-etapa__tema-opcao {
+    border-width: 3px;
+  }
+
+  .onboarding-etapa__fieldset-legenda {
+    border-bottom-width: 2px;
+  }
+
+  .onboarding-etapa__acoes {
+    border-top-width: 2px;
+  }
+}
+
+/* Print */
+@media print {
+  .onboarding-etapa__acoes {
+    display: none !important;
+  }
+
+  .onboarding-etapa--preferencias {
+    border: 1px solid #000 !important;
+    break-inside: avoid;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

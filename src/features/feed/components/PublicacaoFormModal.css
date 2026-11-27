@@ -1,0 +1,193 @@
+/**
+ * Estilos do PublicacaoFormModal
+ * Preserva 100% visual escuro atual, WCAG 2.2 AA
+ */
+
+.publicacao-form-modal {
+  --cor-fundo: var(--cor-superficie, #1a1a2e);
+  --cor-borda: var(--cor-borda, #2d2d44);
+  --cor-texto: var(--cor-texto, #eaeaea);
+  --cor-texto-secundario: var(--cor-texto-secundario, #a0a0b0);
+  --cor-primaria: var(--cor-primaria, #d4a843);
+  --cor-sucesso: var(--cor-sucesso, #4ade80);
+  --cor-perigo: var(--cor-perigo, #ef4444);
+  --raio: var(--raio-md, 12px);
+  --raio-sm: var(--raio-sm, 8px);
+  --transicao: var(--transicao-media, 250ms cubic-bezier(0.4, 0, 0.2, 1));
+}
+
+.publicacao-form-modal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-lg, 24px);
+}
+
+.publicacao-form-modal__campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-xs, 4px);
+}
+
+.publicacao-form-modal__label {
+  font-size: var(--tamanho-sm, 14px);
+  font-weight: 500;
+  color: var(--cor-texto);
+}
+
+.publicacao-form-modal__obrigatorio {
+  color: var(--cor-perigo);
+  margin-left: 2px;
+}
+
+/* CampoTexto dentro do modal herda estilos mas customizações */
+.publicacao-form-modal .campo-texto {
+  width: 100%;
+}
+
+.publicacao-form-modal .campo-texto__textarea {
+  min-height: 120px;
+  resize: vertical;
+  font-family: inherit;
+  font-size: var(--tamanho-base, 16px);
+  line-height: 1.6;
+}
+
+.publicacao-form-modal .campo-texto__contador {
+  font-size: var(--tamanho-xs, 12px);
+  color: var(--cor-texto-secundario);
+  text-align: right;
+}
+
+.publicacao-form-modal .campo-texto--erro .campo-texto__input,
+.publicacao-form-modal .campo-texto--erro .campo-texto__textarea {
+  border-color: var(--cor-perigo);
+}
+
+.publicacao-form-modal .campo-texto__erro {
+  font-size: var(--tamanho-xs, 12px);
+  color: var(--cor-perigo);
+}
+
+.publicacao-form-modal__sucesso {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-xs, 4px);
+  font-size: var(--tamanho-xs, 12px);
+  color: var(--cor-sucesso);
+  margin-top: var(--espaco-xs, 4px);
+}
+
+.publicacao-form-modal__erro {
+  font-size: var(--tamanho-xs, 12px);
+  color: var(--cor-perigo);
+  margin-top: var(--espaco-xs, 4px);
+}
+
+/* CampoSelecao dentro do modal */
+.publicacao-form-modal .campo-selecao__select {
+  width: 100%;
+  padding: var(--espaco-sm, 12px);
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  color: var(--cor-texto);
+  font-size: var(--tamanho-base, 16px);
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color var(--transicao-rapida), box-shadow var(--transicao-rapida);
+}
+
+.publicacao-form-modal .campo-selecao__select:focus {
+  outline: none;
+  border-color: var(--cor-primaria);
+  box-shadow: 0 0 0 3px rgba(212, 168, 67, 0.2);
+}
+
+.publicacao-form-modal .campo-selecao--erro .campo-selecao__select {
+  border-color: var(--cor-perigo);
+}
+
+/* Upload de mídias */
+.publicacao-form-modal__upload {
+  margin-top: var(--espaco-xs, 4px);
+}
+
+.publicacao-form-modal__midias-preview {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: var(--espaco-sm, 12px);
+  margin-top: var(--espaco-sm, 12px);
+}
+
+.publicacao-form-modal__midia-item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: var(--raio-sm);
+  overflow: hidden;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--cor-borda);
+}
+
+.publicacao-form-modal__imagem,
+.publicacao-form-modal__video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.publicacao-form-modal__midia-tipo {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espaco-xs, 4px);
+  padding: var(--espaco-xs, 4px);
+  background: linear-gradient(transparent, rgba(0,0,0,0.8));
+  font-size: var(--tamanho-xs, 12px);
+  color: var(--cor-texto);
+}
+
+/* Ações */
+.publicacao-form-modal__acoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--espaco-sm, 12px);
+  margin-top: var(--espaco-md, 16px);
+  padding-top: var(--espaco-lg, 24px);
+  border-top: 1px solid var(--cor-borda);
+}
+
+/* Redução de movimento */
+@media (prefers-reduced-motion: reduce) {
+  .publicacao-form-modal .campo-texto__input,
+  .publicacao-form-modal .campo-texto__textarea,
+  .publicacao-form-modal .campo-selecao__select {
+    transition: none;
+  }
+}
+
+/* Alto contraste */
+@media (prefers-contrast: high) {
+  .publicacao-form-modal .campo-texto__input,
+  .publicacao-form-modal .campo-texto__textarea,
+  .publicacao-form-modal .campo-selecao__select,
+  .publicacao-form-modal__midia-item {
+    border-width: 2px;
+  }
+}
+
+/* Responsivo */
+@media (max-width: 640px) {
+  .publicacao-form-modal__acoes {
+    flex-direction: column-reverse;
+  }
+  .publicacao-form-modal__acoes > * {
+    width: 100%;
+  }
+  .publicacao-form-modal__midias-preview {
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  }
+}

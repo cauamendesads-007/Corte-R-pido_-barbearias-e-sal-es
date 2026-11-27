@@ -1,0 +1,209 @@
+/**
+ * Estilos da Etapa Conclusão.
+ * Design system escuro, 6 estados, responsivo, reduced-motion, high-contrast.
+ */
+
+.onboarding-etapa--conclusao {
+  max-width: 480px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.onboarding-etapa__conteudo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espaco-6);
+  padding: var(--espaco-8) var(--espaco-6);
+}
+
+.onboarding-etapa__icone-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: var(--cor-sucesso-fraca);
+  color: var(--cor-sucesso);
+  opacity: 0;
+  transform: scale(0.5);
+  transition: opacity var(--transicao-normal), transform var(--transicao-normal);
+}
+
+.onboarding-etapa__icone-wrapper.visivel {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.onboarding-etapa__icone-sucesso {
+  animation: onboarding-etapa__pulse 2s ease-in-out infinite;
+}
+
+@keyframes onboarding-etapa__pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .onboarding-etapa__icone-wrapper,
+  .onboarding-etapa__icone-sucesso {
+    transition: none;
+    animation: none;
+  }
+}
+
+.onboarding-etapa__titulo {
+  margin: 0;
+  font-size: var(--fonte-tamanho-3xl);
+  font-weight: 700;
+  color: var(--cor-texto);
+  line-height: 1.2;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity var(--transicao-normal), transform var(--transicao-normal);
+}
+
+.onboarding-etapa__titulo.visivel {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.onboarding-etapa__subtitulo {
+  margin: 0;
+  font-size: var(--fonte-tamanho-base);
+  color: var(--cor-texto-secundario);
+  line-height: 1.6;
+  max-width: 400px;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity var(--transicao-normal), transform var(--transicao-normal);
+}
+
+.onboarding-etapa__subtitulo.visivel {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.onboarding-etapa__beneficios {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  max-width: 360px;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity var(--transicao-normal), transform var(--transicao-normal);
+}
+
+.onboarding-etapa__beneficios.visivel {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.onboarding-etapa__beneficio-item {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+  padding: var(--espaco-3) var(--espaco-4);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-lg);
+  text-align: left;
+}
+
+.onboarding-etapa__beneficio-icone {
+  color: var(--cor-sucesso);
+  flex-shrink: 0;
+}
+
+.onboarding-etapa__beneficio-item span {
+  font-size: var(--fonte-tamanho-sm);
+  color: var(--cor-texto);
+  font-weight: 500;
+}
+
+.onboarding-etapa__carregando {
+  width: 100%;
+  max-width: 360px;
+}
+
+.onboarding-etapa__acoes {
+  width: 100%;
+  max-width: 360px;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity var(--transicao-normal), transform var(--transicao-normal);
+}
+
+.onboarding-etapa__acoes.visivel {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.onboarding-etapa__btn-entrar {
+  width: 100%;
+  padding: var(--espaco-4) var(--espaco-6);
+  font-size: var(--fonte-tamanho-base);
+}
+
+/* Responsivo */
+@media (max-width: 480px) {
+  .onboarding-etapa__conteudo {
+    padding: var(--espaco-6) var(--espaco-4);
+  }
+
+  .onboarding-etapa__icone-wrapper {
+    width: 96px;
+    height: 96px;
+  }
+
+  .onboarding-etapa__icone-sucesso {
+    width: 48px;
+    height: 48px;
+  }
+
+  .onboarding-etapa__titulo {
+    font-size: var(--fonte-tamanho-2xl);
+  }
+
+  .onboarding-etapa__beneficio-item {
+    padding: var(--espaco-2) var(--espaco-3);
+  }
+}
+
+/* High Contrast */
+@media (prefers-contrast: high) {
+  .onboarding-etapa__icone-wrapper {
+    border: 2px solid currentColor;
+  }
+
+  .onboarding-etapa__beneficio-item {
+    border-width: 2px;
+  }
+}
+
+/* Print */
+@media print {
+  .onboarding-etapa__acoes,
+  .onboarding-etapa__carregando {
+    display: none !important;
+  }
+
+  .onboarding-etapa--conclusao {
+    border: 1px solid #000 !important;
+    break-inside: avoid;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .onboarding-etapa__icone-wrapper {
+    background: #000 !important;
+    color: #000 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

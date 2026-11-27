@@ -20,8 +20,8 @@ import {
   Avatar,
   ToastProvider,
   useGlobalToast,
+  Icone,
 } from '@/componentes';
-import { ICONES } from '@/constantes';
 import './PainelAdmin.css';
 
 type AbaAdmin = 'visao' | 'estabelecimentos' | 'usuarios' | 'analises' | 'configuracoes';
@@ -98,11 +98,11 @@ const PainelAdmin = () => {
   };
 
   const abas = [
-    { id: 'visao', rotulo: 'Visão geral', icone: ICONES.painel },
-    { id: 'estabelecimentos', rotulo: 'Estabelecimentos', icone: ICONES.predio, contador: stats.totalEstabelecimentos },
-    { id: 'usuarios', rotulo: 'Usuários', icone: ICONES.usuarios, contador: stats.totalUsuarios },
-    { id: 'analises', rotulo: 'Análises', icone: ICONES.grafico },
-    { id: 'configuracoes', rotulo: 'Configurações', icone: ICONES.configuracoes },
+    { id: 'visao', rotulo: 'Visão geral', icone: <Icone nome="painel" tamanho={18} /> },
+    { id: 'estabelecimentos', rotulo: 'Estabelecimentos', icone: <Icone nome="predio" tamanho={18} />, contador: stats.totalEstabelecimentos },
+    { id: 'usuarios', rotulo: 'Usuários', icone: <Icone nome="usuarios" tamanho={18} />, contador: stats.totalUsuarios },
+    { id: 'analises', rotulo: 'Análises', icone: <Icone nome="grafico" tamanho={18} /> },
+    { id: 'configuracoes', rotulo: 'Configurações', icone: <Icone nome="configuracoes" tamanho={18} /> },
   ];
 
   if (!usuario || usuario.papel !== 'admin') {
@@ -134,74 +134,89 @@ const PainelAdmin = () => {
         </header>
 
         {/* Métricas */}
-        <div className="admin__metricas" role="region" aria-label="Métricas globais" data-testid="admin-metricas">
-          <Cartao>
-            <CartaoCorpo>
-              <div className="admin__metrica-icone" style={{ background: 'var(--cor-primaria-transparente)', color: 'var(--cor-primaria)' }}>
-                {ICONES.predio}
-              </div>
-              <div>
-                <p className="admin__metrica-valor">{stats.totalEstabelecimentos}</p>
-                <p className="admin__metrica-label">Estabelecimentos</p>
-              </div>
-            </CartaoCorpo>
-          </Cartao>
-          <Cartao>
-            <CartaoCorpo>
-              <div className="admin__metrica-icone" style={{ background: 'var(--cor-sucesso-transparente)', color: 'var(--cor-sucesso)' }}>
-                {ICONES.verificarCirculo}
-              </div>
-              <div>
-                <p className="admin__metrica-valor">{stats.ativos}</p>
-                <p className="admin__metrica-label">Ativos</p>
-              </div>
-            </CartaoCorpo>
-          </Cartao>
-          <Cartao>
-            <CartaoCorpo>
-              <div className="admin__metrica-icone" style={{ background: 'var(--cor-aviso-transparente)', color: 'var(--cor-aviso)' }}>
-                {ICONES.relogio}
-              </div>
-              <div>
-                <p className="admin__metrica-valor">{stats.pendentes}</p>
-                <p className="admin__metrica-label">Pendentes</p>
-              </div>
-            </CartaoCorpo>
-          </Cartao>
-          <Cartao>
-            <CartaoCorpo>
-              <div className="admin__metrica-icone" style={{ background: 'var(--cor-perigo-transparente)', color: 'var(--cor-perigo)' }}>
-                {ICONES.alerta}
-              </div>
-              <div>
-                <p className="admin__metrica-valor">{stats.suspensos}</p>
-                <p className="admin__metrica-label">Suspensos</p>
-              </div>
-            </CartaoCorpo>
-          </Cartao>
-          <Cartao>
-            <CartaoCorpo>
-              <div className="admin__metrica-icone" style={{ background: 'var(--cor-primaria-transparente)', color: 'var(--cor-primaria)' }}>
-                {ICONES.usuarios}
-              </div>
-              <div>
-                <p className="admin__metrica-valor">{stats.totalUsuarios}</p>
-                <p className="admin__metrica-label">Usuários</p>
-              </div>
-            </CartaoCorpo>
-          </Cartao>
-          <Cartao>
-            <CartaoCorpo>
-              <div className="admin__metrica-icone" style={{ background: 'var(--cor-sucesso-transparente)', color: 'var(--cor-sucesso)' }}>
-                {ICONES.moeda}
-              </div>
-              <div>
-                <p className="admin__metrica-valor">{stats.receitaEstimada.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
-                <p className="admin__metrica-label">Receita estimada/mês</p>
-              </div>
-            </CartaoCorpo>
-          </Cartao>
-        </div>
+        <section className="admin__metricas" role="region" aria-labelledby="metricas-titulo" data-testid="admin-metricas">
+          <h2 id="metricas-titulo" className="sr-only">Métricas globais</h2>
+          <ul className="admin__metricas-lista" role="list">
+            <li>
+              <Cartao>
+                <CartaoCorpo>
+                  <div className="admin__metrica-icone" style={{ background: 'var(--cor-primaria-transparente)', color: 'var(--cor-primaria)' }} aria-hidden="true">
+                    <Icone nome="predio" tamanho={20} />
+                  </div>
+                  <div>
+                    <p className="admin__metrica-valor">{stats.totalEstabelecimentos}</p>
+                    <p className="admin__metrica-label">Estabelecimentos</p>
+                  </div>
+                </CartaoCorpo>
+              </Cartao>
+            </li>
+            <li>
+              <Cartao>
+                <CartaoCorpo>
+                  <div className="admin__metrica-icone" style={{ background: 'var(--cor-sucesso-transparente)', color: 'var(--cor-sucesso)' }} aria-hidden="true">
+                    <Icone nome="verificarCirculo" tamanho={20} />
+                  </div>
+                  <div>
+                    <p className="admin__metrica-valor">{stats.ativos}</p>
+                    <p className="admin__metrica-label">Ativos</p>
+                  </div>
+                </CartaoCorpo>
+              </Cartao>
+            </li>
+            <li>
+              <Cartao>
+                <CartaoCorpo>
+                  <div className="admin__metrica-icone" style={{ background: 'var(--cor-aviso-transparente)', color: 'var(--cor-aviso)' }} aria-hidden="true">
+                    <Icone nome="relogio" tamanho={20} />
+                  </div>
+                  <div>
+                    <p className="admin__metrica-valor">{stats.pendentes}</p>
+                    <p className="admin__metrica-label">Pendentes</p>
+                  </div>
+                </CartaoCorpo>
+              </Cartao>
+            </li>
+            <li>
+              <Cartao>
+                <CartaoCorpo>
+                  <div className="admin__metrica-icone" style={{ background: 'var(--cor-perigo-transparente)', color: 'var(--cor-perigo)' }} aria-hidden="true">
+                    <Icone nome="alerta" tamanho={20} />
+                  </div>
+                  <div>
+                    <p className="admin__metrica-valor">{stats.suspensos}</p>
+                    <p className="admin__metrica-label">Suspensos</p>
+                  </div>
+                </CartaoCorpo>
+              </Cartao>
+            </li>
+            <li>
+              <Cartao>
+                <CartaoCorpo>
+                  <div className="admin__metrica-icone" style={{ background: 'var(--cor-primaria-transparente)', color: 'var(--cor-primaria)' }} aria-hidden="true">
+                    <Icone nome="usuarios" tamanho={20} />
+                  </div>
+                  <div>
+                    <p className="admin__metrica-valor">{stats.totalUsuarios}</p>
+                    <p className="admin__metrica-label">Usuários</p>
+                  </div>
+                </CartaoCorpo>
+              </Cartao>
+            </li>
+            <li>
+              <Cartao>
+                <CartaoCorpo>
+                  <div className="admin__metrica-icone" style={{ background: 'var(--cor-sucesso-transparente)', color: 'var(--cor-sucesso)' }} aria-hidden="true">
+                    <Icone nome="moeda" tamanho={20} />
+                  </div>
+                  <div>
+                    <p className="admin__metrica-valor">{stats.receitaEstimada.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+                    <p className="admin__metrica-label">Receita estimada/mês</p>
+                  </div>
+                </CartaoCorpo>
+              </Cartao>
+            </li>
+          </ul>
+        </section>
 
         {/* Abas */}
         <nav className="admin__abas" role="tablist" aria-label="Seções do admin">
@@ -225,254 +240,292 @@ const PainelAdmin = () => {
           ))}
         </nav>
 
-        {/* Painel Estabelecimentos */}
-        <div className="admin__painel" role="tabpanel" id="painel-estabelecimentos" aria-labelledby="aba-estabelecimentos" hidden={abaAtiva !== 'estabelecimentos'}>
-          <div className="admin__filtros">
-            <CampoBusca
-              label="Buscar estabelecimentos"
-              valor={buscaEstabelecimentos}
-              aoAlterar={setBuscaEstabelecimentos}
-              placeholder="Buscar por nome ou proprietário..."
-              className="admin__busca"
-              data-testid="admin-busca-estabelecimentos"
-            />
-            <Select
-              label="Status"
-              valor={filtroStatusEstab}
-              aoAlterar={(v) => setFiltroStatusEstab(v as 'todos' | 'ativo' | 'pendente' | 'suspenso')}
-              opcoes={[
-                { valor: 'todos', rotulo: 'Todos' },
-                { valor: 'ativo', rotulo: 'Ativos' },
-                { valor: 'pendente', rotulo: 'Pendentes' },
-                { valor: 'suspenso', rotulo: 'Suspensos' },
-              ]}
-              data-testid="admin-filtro-status-estab"
-            />
-          </div>
+        <main className="admin__main" role="main">
+          {/* Painel Estabelecimentos */}
+          <section
+            className="admin__painel"
+            role="tabpanel"
+            id="painel-estabelecimentos"
+            aria-labelledby="aba-estabelecimentos"
+            hidden={abaAtiva !== 'estabelecimentos'}
+          >
+            <form className="admin__filtros" role="search" aria-label="Filtrar estabelecimentos">
+              <CampoBusca
+                label="Buscar estabelecimentos"
+                valor={buscaEstabelecimentos}
+                aoAlterar={setBuscaEstabelecimentos}
+                placeholder="Buscar por nome ou proprietário..."
+                className="admin__busca"
+                data-testid="admin-busca-estabelecimentos"
+              />
+              <Select
+                label="Status"
+                valor={filtroStatusEstab}
+                aoAlterar={(v) => setFiltroStatusEstab(v as 'todos' | 'ativo' | 'pendente' | 'suspenso')}
+                opcoes={[
+                  { valor: 'todos', rotulo: 'Todos' },
+                  { valor: 'ativo', rotulo: 'Ativos' },
+                  { valor: 'pendente', rotulo: 'Pendentes' },
+                  { valor: 'suspenso', rotulo: 'Suspensos' },
+                ]}
+                data-testid="admin-filtro-status-estab"
+              />
+            </form>
 
-          <div className="admin__tabela-wrapper" data-testid="admin-estabelecimentos-tabela">
-            <table className="admin__tabela" role="table">
-              <thead>
-                <tr>
-                  <th>Estabelecimento</th>
-                  <th>Proprietário</th>
-                  <th>Cidade</th>
-                  <th>Nicho</th>
-                  <th>Status</th>
-                  <th>Plano</th>
-                  <th>Agend./mês</th>
-                  <th>Avaliação</th>
-                  <th>Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtrarEstabelecimentos.map((estab) => (
-                  <tr key={estab.id}>
-                    <td>
-                      <div className="admin__tabela-nome">
-                        <Avatar
-                          nome={estab.nome}
-                          tamanho="pequeno"
-                          corFundo={estab.nicho === 'feminino' ? '#ec4899' : estab.nicho === 'visagismo' ? '#a855f7' : estab.nicho === 'infantil' ? '#22c55e' : '#e11d48'}
-                        />
-                        <strong>{estab.nome}</strong>
-                      </div>
-                    </td>
-                    <td>{estab.proprietario}</td>
-                    <td>{estab.cidade}</td>
-                    <td>
-                      <Chip variante="nicho">{estab.nicho === 'feminino' ? '♀ Salão' : estab.nicho === 'visagismo' ? 'Visagismo' : estab.nicho === 'infantil' ? 'Infantil' : 'Barbearia'}</Chip>
-                    </td>
-                    <td>
-                      <Chip
-                        variante="status"
-                        selecionado={estab.status === 'ativo'}
-                        desabilitado
-                      >
-                        {estab.status === 'ativo' ? '✓ Ativo' : estab.status === 'pendente' ? '⏳ Pendente' : '⛔ Suspenso'}
-                      </Chip>
-                    </td>
-                    <td>
-                      <Chip variante="padrao" selecionado={false} desabilitado>
-                        {estab.plano === 'premium' ? '⭐ Premium' : estab.plano === 'profissional' ? '💼 Profissional' : '📦 Essencial'}
-                      </Chip>
-                    </td>
-                    <td>{estab.agendamentosMes}</td>
-                    <td>{estab.avaliacao ? `${ICONES.estrela} ${estab.avaliacao}` : '-'}</td>
-                    <td>
-                      <div className="admin__acoes-linha">
-                        {estab.status === 'pendente' && (
-                          <BotaoIcone icone={ICONES.verificar} variante="primario" tamanho="pequeno" aoClicar={handleAprovarEstabelecimento} ariaLabel="Aprovar" />
-                        )}
-                        {estab.status === 'ativo' && (
-                          <BotaoIcone icone={ICONES.alerta} variante="secundario" tamanho="pequeno" aoClicar={handleSuspenderEstabelecimento} ariaLabel="Suspender" />
-                        )}
-                        <BotaoIcone icone={ICONES.editar} variante="fantasma" tamanho="pequeno" aoClicar={() => {}} ariaLabel="Editar" />
-                      </div>
-                    </td>
+            <div className="admin__tabela-wrapper" data-testid="admin-estabelecimentos-tabela">
+              <table className="admin__tabela" role="table">
+                <thead>
+                  <tr>
+                    <th scope="col">Estabelecimento</th>
+                    <th scope="col">Proprietário</th>
+                    <th scope="col">Cidade</th>
+                    <th scope="col">Nicho</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Plano</th>
+                    <th scope="col">Agend./mês</th>
+                    <th scope="col">Avaliação</th>
+                    <th scope="col">Ações</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Painel Usuários */}
-        <div className="admin__painel" role="tabpanel" id="painel-usuarios" aria-labelledby="aba-usuarios" hidden={abaAtiva !== 'usuarios'}>
-          <div className="admin__filtros">
-            <CampoBusca
-              label="Buscar usuários"
-              valor={buscaUsuarios}
-              aoAlterar={setBuscaUsuarios}
-              placeholder="Buscar por nome ou e-mail..."
-              className="admin__busca"
-              data-testid="admin-busca-usuarios"
-            />
-            <Select
-              label="Tipo de usuário"
-              valor={filtroTipoUsuario}
-              aoAlterar={(v) => setFiltroTipoUsuario(v as 'todos' | 'cliente' | 'barbeiro' | 'admin')}
-              opcoes={[
-                { valor: 'todos', rotulo: 'Todos' },
-                { valor: 'cliente', rotulo: 'Clientes' },
-                { valor: 'barbeiro', rotulo: 'Barbeiros' },
-                { valor: 'admin', rotulo: 'Admins' },
-              ]}
-              data-testid="admin-filtro-tipo-usuario"
-            />
-          </div>
-
-          <div className="admin__tabela-wrapper" data-testid="admin-usuarios-tabela">
-            <table className="admin__tabela" role="table">
-              <thead>
-                <tr>
-                  <th>Usuário</th>
-                  <th>E-mail</th>
-                  <th>Telefone</th>
-                  <th>Tipo</th>
-                  <th>Estabelecimento</th>
-                  <th>Status</th>
-                  <th>Cadastro</th>
-                  <th>Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtrarUsuarios.map((user) => (
-                  <tr key={user.id}>
-                    <td>
-                      <div className="admin__tabela-nome">
-                        <Avatar
-                          nome={user.nome}
-                          tamanho="pequeno"
-                          corFundo={user.papel === 'barbeiro' ? '#e11d48' : user.papel === 'admin' ? '#dc2626' : '#0ea5e9'}
-                        />
-                        <strong>{user.nome}</strong>
-                      </div>
-                    </td>
-                    <td>{user.email}</td>
-                    <td>{user.telefone}</td>
-                    <td>
-                      <Chip variante="nicho">
-                        {user.papel === 'barbeiro' ? '💈 Barbeiro' : user.papel === 'admin' ? '⚙️ Admin' : '👤 Cliente'}
-                      </Chip>
-                    </td>
-                    <td>{user.estabelecimento}</td>
-                    <td>
-                      <Chip
-                        variante="status"
-                        selecionado={user.status === 'ativo'}
-                        desabilitado
-                      >
-                        {user.status === 'ativo' ? '✓ Ativo' : '⛔ Suspenso'}
-                      </Chip>
-                    </td>
-                    <td>{new Date(user.dataCadastro).toLocaleDateString('pt-BR')}</td>
-                    <td>
-                      <div className="admin__acoes-linha">
-                        {user.status === 'ativo' && (
-                          <BotaoIcone icone={ICONES.alerta} variante="secundario" tamanho="pequeno" aoClicar={handleAlterarStatusUsuario} ariaLabel="Suspender" />
-                        )}
-                        {user.status === 'suspenso' && (
-                          <BotaoIcone icone={ICONES.verificar} variante="primario" tamanho="pequeno" aoClicar={handleAlterarStatusUsuario} ariaLabel="Ativar" />
-                        )}
-                        <BotaoIcone icone={ICONES.editar} variante="fantasma" tamanho="pequeno" aoClicar={() => {}} ariaLabel="Editar" />
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Painel Análises (placeholder) */}
-        <div className="admin__painel" role="tabpanel" id="painel-analises" aria-labelledby="aba-analises" hidden={abaAtiva !== 'analises'}>
-          <h2>Análises e Relatórios</h2>
-          <div className="admin__metricas">
-            <Cartao>
-              <CartaoCorpo>
-                <p className="admin__metrica-valor">{stats.agendamentosMes.toLocaleString('pt-BR')}</p>
-                <p className="admin__metrica-label">Agendamentos este mês</p>
-              </CartaoCorpo>
-            </Cartao>
-            <Cartao>
-              <CartaoCorpo>
-                <p className="admin__metrica-valor">4.7</p>
-                <p className="admin__metrica-label">Avaliação média global</p>
-              </CartaoCorpo>
-            </Cartao>
-            <Cartao>
-              <CartaoCorpo>
-                <p className="admin__metrica-valor">89%</p>
-                <p className="admin__metrica-label">Taxa de conversão</p>
-              </CartaoCorpo>
-            </Cartao>
-            <Cartao>
-              <CartaoCorpo>
-                <p className="admin__metrica-valor">12 min</p>
-                <p className="admin__metrica-label">Tempo médio resposta</p>
-              </CartaoCorpo>
-            </Cartao>
-          </div>
-          <div className="admin__vazio">
-            <p>Gráficos e relatórios detalhados serão implementados aqui.</p>
-          </div>
-        </div>
-
-        {/* Painel Configurações */}
-        <div className="admin__painel" role="tabpanel" id="painel-configuracoes" aria-labelledby="aba-configuracoes" hidden={abaAtiva !== 'configuracoes'}>
-          <section className="admin__secao">
-            <h2>Planos de assinatura</h2>
-            <div className="admin__planos-grid">
-              {planos.map((plano) => (
-                <Cartao key={plano.id} className="admin__plano-card" variante="padrao">
-                  <CartaoCorpo>
-                    <div className="admin__plano-header" style={{ borderColor: plano.cor }}>
-                      <h3>{plano.nome}</h3>
-                      <p className="admin__plano-preco">R$ {plano.preco}/mês</p>
-                    </div>
-                    <ul className="admin__plano-limites">
-                      <li>Barbeiros: {plano.limites.barbeiros === -1 ? 'Ilimitado' : plano.limites.barbeiros}</li>
-                      <li>Serviços: {plano.limites.servicos === -1 ? 'Ilimitado' : plano.limites.servicos}</li>
-                      <li>Fotos: {plano.limites.fotos === -1 ? 'Ilimitado' : plano.limites.fotos}</li>
-                      <li>Análises: {plano.limites.analises ? 'Sim' : 'Não'}</li>
-                      <li>API: {plano.limites.api ? 'Sim' : 'Não'}</li>
-                    </ul>
-                    <BotaoSecundario className="admin__plano-btn" style={{ borderColor: plano.cor, color: plano.cor }}>Editar</BotaoSecundario>
-                  </CartaoCorpo>
-                </Cartao>
-              ))}
+                </thead>
+                <tbody>
+                  {filtrarEstabelecimentos.map((estab) => (
+                    <tr key={estab.id}>
+                      <td>
+                        <div className="admin__tabela-nome">
+                          <Avatar
+                            nome={estab.nome}
+                            tamanho="pequeno"
+                            corFundo={estab.nicho === 'feminino' ? '#ec4899' : estab.nicho === 'visagismo' ? '#a855f7' : estab.nicho === 'infantil' ? '#22c55e' : '#e11d48'}
+                          />
+                          <strong>{estab.nome}</strong>
+                        </div>
+                      </td>
+                      <td>{estab.proprietario}</td>
+                      <td>{estab.cidade}</td>
+                      <td>
+                        <Chip variante="nicho">{estab.nicho === 'feminino' ? 'Salão' : estab.nicho === 'visagismo' ? 'Visagismo' : estab.nicho === 'infantil' ? 'Infantil' : 'Barbearia'}</Chip>
+                      </td>
+                      <td>
+                        <Chip
+                          variante="status"
+                          selecionado={estab.status === 'ativo'}
+                          desabilitado
+                        >
+                          {estab.status === 'ativo' ? 'Ativo' : estab.status === 'pendente' ? 'Pendente' : 'Suspenso'}
+                        </Chip>
+                      </td>
+                      <td>
+                        <Chip variante="padrao" selecionado={false} desabilitado>
+                          {estab.plano === 'premium' ? 'Premium' : estab.plano === 'profissional' ? 'Profissional' : 'Essencial'}
+                        </Chip>
+                      </td>
+                      <td>{estab.agendamentosMes}</td>
+                      <td>{estab.avaliacao ? <><Icone nome="estrela" tamanho={14} aria-hidden="true" /> {estab.avaliacao}</> : '-'}</td>
+                      <td>
+                        <div className="admin__acoes-linha">
+                          {estab.status === 'pendente' && (
+                            <BotaoIcone icone={<Icone nome="verificar" tamanho={16} />} variante="primario" tamanho="pequeno" aoClicar={handleAprovarEstabelecimento} ariaLabel="Aprovar" />
+                          )}
+                          {estab.status === 'ativo' && (
+                            <BotaoIcone icone={<Icone nome="alerta" tamanho={16} />} variante="secundario" tamanho="pequeno" aoClicar={handleSuspenderEstabelecimento} ariaLabel="Suspender" />
+                          )}
+                          <BotaoIcone icone={<Icone nome="editar" tamanho={16} />} variante="fantasma" tamanho="pequeno" aoClicar={() => {}} ariaLabel="Editar" />
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </section>
 
-          <section className="admin__secao">
-            <h2>Configurações gerais</h2>
-            <CampoTexto label="Nome da plataforma" valor="Corte Rápido" aoAlterar={() => {}} data-testid="admin-config-nome" />
-            <CampoTexto label="E-mail de suporte" valor="suporte@corterapido.com" aoAlterar={() => {}} data-testid="admin-config-email" />
-            <CampoTexto label="Taxa da plataforma (%)" valor="10" aoAlterar={() => {}} data-testid="admin-config-taxa" />
-            <BotaoPrimario>Salvar configurações</BotaoPrimario>
+          {/* Painel Usuários */}
+          <section
+            className="admin__painel"
+            role="tabpanel"
+            id="painel-usuarios"
+            aria-labelledby="aba-usuarios"
+            hidden={abaAtiva !== 'usuarios'}
+          >
+            <form className="admin__filtros" role="search" aria-label="Filtrar usuários">
+              <CampoBusca
+                label="Buscar usuários"
+                valor={buscaUsuarios}
+                aoAlterar={setBuscaUsuarios}
+                placeholder="Buscar por nome ou e-mail..."
+                className="admin__busca"
+                data-testid="admin-busca-usuarios"
+              />
+              <Select
+                label="Tipo de usuário"
+                valor={filtroTipoUsuario}
+                aoAlterar={(v) => setFiltroTipoUsuario(v as 'todos' | 'cliente' | 'barbeiro' | 'admin')}
+                opcoes={[
+                  { valor: 'todos', rotulo: 'Todos' },
+                  { valor: 'cliente', rotulo: 'Clientes' },
+                  { valor: 'barbeiro', rotulo: 'Barbeiros' },
+                  { valor: 'admin', rotulo: 'Admins' },
+                ]}
+                data-testid="admin-filtro-tipo-usuario"
+              />
+            </form>
+
+            <div className="admin__tabela-wrapper" data-testid="admin-usuarios-tabela">
+              <table className="admin__tabela" role="table">
+                <thead>
+                  <tr>
+                    <th scope="col">Usuário</th>
+                    <th scope="col">E-mail</th>
+                    <th scope="col">Telefone</th>
+                    <th scope="col">Tipo</th>
+                    <th scope="col">Estabelecimento</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Cadastro</th>
+                    <th scope="col">Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtrarUsuarios.map((user) => (
+                    <tr key={user.id}>
+                      <td>
+                        <div className="admin__tabela-nome">
+                          <Avatar
+                            nome={user.nome}
+                            tamanho="pequeno"
+                            corFundo={user.papel === 'barbeiro' ? '#e11d48' : user.papel === 'admin' ? '#dc2626' : '#0ea5e9'}
+                          />
+                          <strong>{user.nome}</strong>
+                        </div>
+                      </td>
+                      <td>{user.email}</td>
+                      <td>{user.telefone}</td>
+                      <td>
+                        <Chip variante="nicho">
+                          {user.papel === 'barbeiro' ? 'Barbeiro' : user.papel === 'admin' ? 'Admin' : 'Cliente'}
+                        </Chip>
+                      </td>
+                      <td>{user.estabelecimento}</td>
+                      <td>
+                        <Chip
+                          variante="status"
+                          selecionado={user.status === 'ativo'}
+                          desabilitado
+                        >
+                          {user.status === 'ativo' ? 'Ativo' : 'Suspenso'}
+                        </Chip>
+                      </td>
+                      <td>{new Date(user.dataCadastro).toLocaleDateString('pt-BR')}</td>
+                      <td>
+                        <div className="admin__acoes-linha">
+                          {user.status === 'ativo' && (
+                            <BotaoIcone icone={<Icone nome="alerta" tamanho={16} />} variante="secundario" tamanho="pequeno" aoClicar={handleAlterarStatusUsuario} ariaLabel="Suspender" />
+                          )}
+                          {user.status === 'suspenso' && (
+                            <BotaoIcone icone={<Icone nome="verificar" tamanho={16} />} variante="primario" tamanho="pequeno" aoClicar={handleAlterarStatusUsuario} ariaLabel="Ativar" />
+                          )}
+                          <BotaoIcone icone={<Icone nome="editar" tamanho={16} />} variante="fantasma" tamanho="pequeno" aoClicar={() => {}} ariaLabel="Editar" />
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </section>
-        </div>
+
+          {/* Painel Análises (placeholder) */}
+          <section
+            className="admin__painel"
+            role="tabpanel"
+            id="painel-analises"
+            aria-labelledby="aba-analises"
+            hidden={abaAtiva !== 'analises'}
+          >
+            <h2>Análises e Relatórios</h2>
+            <ul className="admin__metricas-lista" role="list">
+              <li>
+                <Cartao>
+                  <CartaoCorpo>
+                    <p className="admin__metrica-valor">{stats.agendamentosMes.toLocaleString('pt-BR')}</p>
+                    <p className="admin__metrica-label">Agendamentos este mês</p>
+                  </CartaoCorpo>
+                </Cartao>
+              </li>
+              <li>
+                <Cartao>
+                  <CartaoCorpo>
+                    <p className="admin__metrica-valor">4.7</p>
+                    <p className="admin__metrica-label">Avaliação média global</p>
+                  </CartaoCorpo>
+                </Cartao>
+              </li>
+              <li>
+                <Cartao>
+                  <CartaoCorpo>
+                    <p className="admin__metrica-valor">89%</p>
+                    <p className="admin__metrica-label">Taxa de conversão</p>
+                  </CartaoCorpo>
+                </Cartao>
+              </li>
+              <li>
+                <Cartao>
+                  <CartaoCorpo>
+                    <p className="admin__metrica-valor">12 min</p>
+                    <p className="admin__metrica-label">Tempo médio resposta</p>
+                  </CartaoCorpo>
+                </Cartao>
+              </li>
+            </ul>
+            <section className="admin__vazio" aria-labelledby="analises-vazio-titulo">
+              <p id="analises-vazio-titulo">Gráficos e relatórios detalhados serão implementados aqui.</p>
+            </section>
+          </section>
+
+          {/* Painel Configurações */}
+          <section
+            className="admin__painel"
+            role="tabpanel"
+            id="painel-configuracoes"
+            aria-labelledby="aba-configuracoes"
+            hidden={abaAtiva !== 'configuracoes'}
+          >
+            <section className="admin__secao" aria-labelledby="planos-titulo">
+              <h2 id="planos-titulo">Planos de assinatura</h2>
+              <ul className="admin__planos-grid" role="list">
+                {planos.map((plano) => (
+                  <li key={plano.id}>
+                    <Cartao className="admin__plano-card" variante="padrao">
+                      <CartaoCorpo>
+                        <header className="admin__plano-header" style={{ borderColor: plano.cor }}>
+                          <h3>{plano.nome}</h3>
+                          <p className="admin__plano-preco">R$ {plano.preco}/mês</p>
+                        </header>
+                        <ul className="admin__plano-limites">
+                          <li>Barbeiros: {plano.limites.barbeiros === -1 ? 'Ilimitado' : plano.limites.barbeiros}</li>
+                          <li>Serviços: {plano.limites.servicos === -1 ? 'Ilimitado' : plano.limites.servicos}</li>
+                          <li>Fotos: {plano.limites.fotos === -1 ? 'Ilimitado' : plano.limites.fotos}</li>
+                          <li>Análises: {plano.limites.analises ? 'Sim' : 'Não'}</li>
+                          <li>API: {plano.limites.api ? 'Sim' : 'Não'}</li>
+                        </ul>
+                        <BotaoSecundario className="admin__plano-btn" style={{ borderColor: plano.cor, color: plano.cor }}>Editar</BotaoSecundario>
+                      </CartaoCorpo>
+                    </Cartao>
+                  </li>
+                ))}
+              </ul>
+            </section>
+
+            <section className="admin__secao" aria-labelledby="config-titulo">
+              <h2 id="config-titulo">Configurações gerais</h2>
+              <form className="admin__config-form">
+                <CampoTexto label="Nome da plataforma" valor="Corte Rápido" aoAlterar={() => {}} data-testid="admin-config-nome" />
+                <CampoTexto label="E-mail de suporte" valor="suporte@corterapido.com" aoAlterar={() => {}} data-testid="admin-config-email" />
+                <CampoTexto label="Taxa da plataforma (%)" valor="10" aoAlterar={() => {}} data-testid="admin-config-taxa" />
+                <BotaoPrimario tipo="submit">Salvar configurações</BotaoPrimario>
+              </form>
+            </section>
+          </section>
+        </main>
       </Container>
     </ToastProvider>
   );

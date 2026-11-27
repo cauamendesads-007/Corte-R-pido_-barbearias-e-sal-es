@@ -1,0 +1,137 @@
+/**
+ * ModalCupom.css - Compartilha estilos base do ModalConfirmacao
+ * Estilos específicos para validação de cupom em tempo real.
+ */
+
+/* Reutiliza .modal-overlay, .modal-content, .modal-header, .modal-body, .modal-footer do ModalConfirmacao.css */
+
+/* Específicos do ModalCupom */
+.cupom-input-wrapper {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.cupom-input {
+  flex: 1;
+  padding: 12px 16px;
+  border: 2px solid var(--color-border, #e0e0e0);
+  border-radius: 8px;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: border-color var(--transition-fast, 150ms ease), box-shadow var(--transition-fast, 150ms ease);
+  background: var(--color-surface, #ffffff);
+  color: var(--color-text, #1a1a1a);
+}
+
+.cupom-input:focus-visible {
+  outline: none;
+  border-color: var(--color-primary, #2563eb);
+  box-shadow: 0 0 0 3px var(--color-primary-light, #eff6ff);
+}
+
+.cupom-input.erro {
+  border-color: var(--color-error, #dc2626);
+}
+
+.cupom-input.erro:focus-visible {
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+.cupom-input.sucesso {
+  border-color: var(--color-success, #16a34a);
+}
+
+.cupom-input.sucesso:focus-visible {
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+}
+
+.cupom-validar-btn {
+  white-space: nowrap;
+}
+
+.cupom-feedback {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 0.875rem;
+}
+
+.cupom-feedback.sucesso {
+  background: #f0fdf4;
+  color: var(--color-success, #16a34a);
+  border: 1px solid #bbf7d0;
+}
+
+.cupom-feedback.erro {
+  background: #fef2f2;
+  color: var(--color-error, #dc2626);
+  border: 1px solid #fecaca;
+}
+
+.feedback-icone {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.cupom-erro {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  color: var(--color-error, #dc2626);
+  font-size: 0.875rem;
+  margin-bottom: 16px;
+}
+
+.cupom-exemplos {
+  padding: 16px;
+  background: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-border, #e0e0e0);
+  border-radius: 8px;
+}
+
+.exemplos-titulo {
+  margin: 0 0 8px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text-secondary, #666666);
+}
+
+.cupom-exemplos ul {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary, #666666);
+}
+
+.cupom-exemplos li {
+  margin-bottom: 4px;
+}
+
+.cupom-exemplos code {
+  background: var(--color-primary-light, #eff6ff);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+  color: var(--color-primary, #2563eb);
+  font-size: 0.8125rem;
+}
+
+/* Responsivo */
+@media (max-width: 480px) {
+  .cupom-input-wrapper {
+    flex-direction: column;
+  }
+
+  .cupom-validar-btn {
+    width: 100%;
+  }
+}

@@ -12,6 +12,7 @@ import type {
   PosicaoFila,
   Agendamento,
   Publicacao,
+  PublicacaoTipo,
   Notificacao,
   NichoEstabelecimento,
   StatusAgendamento,
@@ -635,30 +636,41 @@ export function gerarAgendamentosMock(): Record<string, Agendamento[]> {
 export function gerarPublicacoesMock(): Publicacao[] {
   const estabelecimentos = gerarEstabelecimentosMock().filter(e => e.status === 'aprovado');
   const tags = ['corte', 'barba', 'pigmentacao', 'sobrancelha', 'coloracao', 'escova', 'hidratacao', 'manicure'];
+  const publicacaoTipos: PublicacaoTipo[] = ['corte', 'barba', 'combo', 'inspiracao', 'dica', 'outro'];
 
   return Array.from({ length: 20 }, (_, i) => {
     const est = estabelecimentos[Math.floor(Math.random() * estabelecimentos.length)];
     const tag = tags[Math.floor(Math.random() * tags.length)];
     const servico = est.servicos.find(s => s.tag === tag) || est.servicos[0];
+    const tipoPub = publicacaoTipos[Math.floor(Math.random() * publicacaoTipos.length)];
+    const curtidasCount = Math.floor(Math.random() * 50);
+    const salvosCount = Math.floor(Math.random() * 20);
+    const comentariosCount = Math.floor(Math.random() * 5);
+    const agora = Date.now() - Math.random() * 30 * 86400000;
 
     return {
       id: `post-${gerarId()}-${i}`,
       estabelecimentoId: est.id,
-      tipo: (Math.random() > 0.3 ? 'imagem' : 'video') as 'imagem' | 'video',
-      src: `https://picsum.photos/seed/post-${est.id}-${i}/600/750.jpg`,
+      autorId: est.id + '-owner',
+      autorNome: est.responsavel,
+      autorAvatar: '',
+      autorSeguido: false,
+      tipo: tipoPub,
       legenda: `Transformação incrível! ${servico?.nome || 'Serviço'} bem feito. #${tag} #${est.nome}`,
+      conteudo: `Transformação incrível! ${servico?.nome || 'Serviço'} bem feito. #${tag} #${est.nome}`,
       tagServico: tag,
-      curtidas: Array.from({ length: Math.floor(Math.random() * 50) }, () => `user-${gerarId()}`),
-      salvos: Array.from({ length: Math.floor(Math.random() * 20) }, () => `user-${gerarId()}`),
+      midias: [{ tipo: 'imagem' as const, src: `https://picsum.photos/seed/post-${est.id}-${i}/600/750.jpg` }],
+      curtidas: curtidasCount,
+      salvos: salvosCount,
       visualizacoes: Math.floor(Math.random() * 500) + 50,
       compartilhamentos: Math.floor(Math.random() * 30),
-      comentarios: Array.from({ length: Math.floor(Math.random() * 5) }, (_, j) => ({
-        id: `cmt-${gerarId()}-${j}`,
-        nomeAutor: NOMES_BRASILEIROS[Math.floor(Math.random() * NOMES_BRASILEIROS.length)].split(' ')[0],
-        texto: ['Ficou show!', 'Qual o valor?', 'Agendei o meu!', 'Top demais', 'Parabéns!'][Math.floor(Math.random() * 5)],
-        dataCriacao: Date.now() - Math.random() * 7 * 86400000,
-      })),
-      dataCriacao: Date.now() - Math.random() * 30 * 86400000,
+      comentarios: comentariosCount,
+      dataCriacao: agora,
+      criadoEm: agora,
+      usuarioCurtiu: false,
+      estaCurtido: false,
+      usuarioSalvou: false,
+      estaSalvo: false,
     };
   }).sort((a, b) => b.dataCriacao - a.dataCriacao);
 }

@@ -1,0 +1,377 @@
+/**
+ * DegradationBanner - Estilos para banner de degradação
+ * Design system: 6 estados, custom properties, WCAG 2.2 AA
+ */
+
+.degradation-banner {
+  position: relative;
+  background: var(--bg-secondary, #1e1e2e);
+  border: 1px solid var(--border-primary, #313244);
+  border-left-width: 4px;
+  border-left-color: var(--banner-color, var(--warning, #f59e0b));
+  border-radius: var(--radius-lg, 12px);
+  padding: var(--space-4, 16px);
+  font-family: var(--font-sans, 'Inter', system-ui, sans-serif);
+  color: var(--text-primary, #cdd6f4);
+  animation: banner-slide 0.3s ease-out;
+  overflow: hidden;
+}
+
+@keyframes banner-slide {
+  from {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.degradation-banner--compacto {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2, 8px) var(--space-3, 12px);
+  border-radius: var(--radius-md, 8px);
+  border-left-width: 3px;
+}
+
+.degradation-banner--compacto .degradation-banner__icone {
+  width: 20px;
+  height: 20px;
+  color: white;
+}
+
+.degradation-banner--compacto .degradation-banner__texto {
+  font-size: var(--text-sm, 13px);
+  font-weight: 500;
+  color: white;
+}
+
+.degradation-banner--compacto .degradation-banner__dispensar {
+  color: white;
+}
+
+.degradation-banner__conteudo {
+  width: 100%;
+}
+
+.degradation-banner__header {
+  display: grid;
+  grid-template-columns: 48px 1fr auto;
+  gap: var(--space-3, 12px);
+  align-items: start;
+}
+
+.degradation-banner__icone-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md, 8px);
+  color: white;
+  flex-shrink: 0;
+}
+
+.degradation-banner__icone-container svg {
+  width: 20px;
+  height: 20px;
+}
+
+.degradation-banner__texto-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2, 8px);
+  min-width: 0;
+}
+
+.degradation-banner__titulo {
+  margin: 0;
+  font-size: var(--text-base, 14px);
+  font-weight: 600;
+  color: var(--text-primary, #cdd6f4);
+  line-height: 1.3;
+}
+
+.degradation-banner__descricao {
+  margin: 0;
+  font-size: var(--text-sm, 13px);
+  color: var(--text-secondary, #a6adc8);
+  line-height: 1.5;
+}
+
+.degradation-banner__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1, 4px);
+}
+
+.degradation-banner__badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px var(--space-2, 8px);
+  border-radius: var(--radius-sm, 4px);
+  font-size: var(--text-xs, 11px);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: white;
+}
+
+.degradation-banner__badge--offline {
+  background: var(--text-muted, #6c7086);
+}
+
+.degradation-banner__badge--critico {
+  background: var(--error, #ef4444);
+}
+
+.degradation-banner__badge--parcial {
+  background: var(--warning, #f59e0b);
+}
+
+.degradation-banner__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2, 8px);
+  align-items: center;
+}
+
+.degradation-banner__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+  padding: var(--space-2, 8px) var(--space-3, 12px);
+  border: 1px solid var(--border-primary, #313244);
+  border-radius: var(--radius-md, 8px);
+  background: var(--bg-primary, #11111b);
+  color: var(--text-primary, #cdd6f4);
+  font-size: var(--text-sm, 13px);
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all var(--transition-fast, 150ms) ease;
+}
+
+.degradation-banner__btn:focus-visible {
+  outline: 2px solid var(--focus-ring, #89b4fa);
+  outline-offset: 2px;
+}
+
+.degradation-banner__btn:hover:not(:disabled) {
+  background: var(--bg-tertiary, #181825);
+  border-color: var(--border-secondary, #45475a);
+}
+
+.degradation-banner__btn:active:not(:disabled) {
+  background: var(--bg-hover, #313244);
+}
+
+.degradation-banner__btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed.
+}
+
+.degradation-banner__btn--primary {
+  background: var(--accent-primary, #89b4fa);
+  border-color: var(--accent-primary, #89b4fa);
+  color: var(--bg-primary, #11111b);
+}
+
+.degradation-banner__btn--primary:hover:not(:disabled) {
+  background: var(--accent-primary-hover, #74a4e8);
+  border-color: var(--accent-primary-hover, #74a4e8);
+}
+
+.degradation-banner__btn--secondary {
+  border-color: var(--border-primary, #313244);
+}
+
+.degradation-banner__btn--secondary:hover:not(:disabled) {
+  border-color: var(--accent-primary, #89b4fa);
+}
+
+.degradation-banner__btn--outline {
+  background: transparent;
+  border-color: var(--banner-color, var(--warning, #f59e0b));
+  color: var(--banner-color, var(--warning, #f59e0b));
+}
+
+.degradation-banner__btn--outline:hover:not(:disabled) {
+  background: var(--banner-color, var(--warning, #f59e0b));
+  color: white;
+}
+
+.degradation-banner__dispensar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted, #6c7086);
+  font-size: var(--text-xl, 24px);
+  line-height: 1;
+  cursor: pointer;
+  border-radius: var(--radius-md, 8px);
+  transition: all var(--transition-fast, 150ms) ease;
+}
+
+.degradation-banner__dispensar:focus-visible {
+  outline: 2px solid var(--focus-ring, #89b4fa);
+  outline-offset: 2px;
+}
+
+.degradation-banner__dispensar:hover {
+  background: var(--bg-tertiary, #181825);
+  color: var(--text-primary, #cdd6f4);
+}
+
+.degradation-banner--compacto .degradation-banner__dispensar {
+  color: white;
+}
+
+.degradation-banner--compacto .degradation-banner__dispensar:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Detalhes */
+.degradation-banner__detalhes {
+  margin-top: var(--space-4, 16px);
+  padding-top: var(--space-4, 16px);
+  border-top: 1px solid var(--border-primary, #313244);
+  animation: detalhes-slide 0.2s ease-out;
+}
+
+@keyframes detalhes-slide {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 500px;
+  }
+}
+
+.degradation-banner__secao {
+  margin-bottom: var(--space-4, 16px);
+}
+
+.degradation-banner__secao:last-child {
+  margin-bottom: 0;
+}
+
+.degradation-banner__secao-titulo {
+  margin: 0 0 var(--space-2, 8px) 0;
+  font-size: var(--text-sm, 13px);
+  font-weight: 600;
+  color: var(--text-secondary, #a6adc8);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.degradation-banner__lista {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2, 8px);
+}
+
+.degradation-banner__item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2, 8px);
+  padding: var(--space-2, 8px) var(--space-3, 12px);
+  background: var(--bg-tertiary, #181825);
+  border: 1px solid var(--border-primary, #313244);
+  border-radius: var(--radius-md, 8px);
+  font-size: var(--text-sm, 13px);
+}
+
+.degradation-banner__item-nome {
+  font-weight: 500;
+  color: var(--text-primary, #cdd6f4);
+}
+
+.degradation-banner__item-tipo {
+  font-size: var(--text-xs, 11px);
+  color: var(--text-muted, #6c7086);
+  background: var(--bg-primary, #11111b);
+  padding: 1px var(--space-2, 8px);
+  border-radius: var(--radius-sm, 4px);
+  text-transform: uppercase;
+}
+
+.degradation-banner__item-essencial {
+  font-size: var(--text-xs, 11px);
+  font-weight: 600;
+  color: var(--error, #ef4444);
+  background: var(--error-bg, rgba(239, 68, 68, 0.1));
+  padding: 1px var(--space-2, 8px);
+  border-radius: var(--radius-sm, 4px);
+  text-transform: uppercase;
+}
+
+.degradation-banner__item-fallback {
+  font-size: var(--text-xs, 11px);
+  color: var(--text-secondary, #a6adc8);
+  font-style: italic;
+}
+
+.degradation-banner__secao--acao {
+  text-align: right;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .degradation-banner,
+  .degradation-banner__detalhes {
+    animation: none;
+  }
+}
+
+/* High contrast */
+@media (prefers-contrast: high) {
+  .degradation-banner {
+    border-width: 2px;
+    border-left-width: 6px;
+  }
+
+  .degradation-banner__btn {
+    border-width: 2px;
+  }
+
+  .degradation-banner__item {
+    border-width: 2px;
+  }
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .degradation-banner__header {
+    grid-template-columns: 40px 1fr;
+    grid-template-rows: auto auto;
+  }
+
+  .degradation-banner__acoes {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+
+  .degradation-banner__btn {
+    flex: 1;
+    min-width: 0;
+    justify-content: center;
+  }
+
+  .degradation-banner__badges {
+    gap: var(--space-1, 4px);
+  }
+}

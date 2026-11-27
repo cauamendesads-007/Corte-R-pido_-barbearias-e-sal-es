@@ -31,6 +31,9 @@ export type StatusPagamento = 'no_local' | 'aguardando_pix' | 'pago';
 /** Tipos de mídia para portfólio */
 export type TipoMidia = 'imagem' | 'video';
 
+/** Tipos de publicação no feed */
+export type PublicacaoTipo = 'corte' | 'barba' | 'combo' | 'inspiracao' | 'dica' | 'outro';
+
 /** Tipos de notificação */
 export type TipoNotificacao = 'agendamento' | 'reagendamento' | 'cancelamento' | 'mensagem' | 'administracao' | 'pagamento';
 
@@ -173,32 +176,127 @@ export interface Agendamento {
   status: StatusAgendamento;
   servicoIds: string[];
   avaliacao?: AvaliacaoAgendamento;
+  observacoes?: string; // observações do cliente
 }
 
 /** Publicação no feed */
 export interface Publicacao {
   id: string;
   estabelecimentoId: string;
-  tipo: 'imagem' | 'video' | 'texto';
-  src?: string;
+  autorId: string;
+  autorNome: string;
+  autorAvatar?: string;
+  autorSeguido?: boolean;
+  tipo: 'corte' | 'barba' | 'combo' | 'inspiracao' | 'dica' | 'outro';
   legenda: string;
+  conteudo: string; // alias para legenda
   tagServico?: string;
-  curtidas: string[]; // ids de usuários
-  salvos: string[]; // ids de usuários
+  midias?: MidiaPublicacao[];
+  curtidas: number; // contador
+  salvos: number; // contador
   visualizacoes: number;
   compartilhamentos: number;
-  comentarios: Comentario[];
+  comentarios: number; // contador
   dataCriacao: number; // timestamp
+  criadoEm: number; // alias para dataCriacao
   usuarioCurtiu?: boolean;
+  estaCurtido?: boolean; // alias para usuarioCurtiu
   usuarioSalvou?: boolean;
+  estaSalvo?: boolean; // alias para usuarioSalvou
+}
+
+/** Input para criar/editar publicação */
+export interface PublicacaoInput {
+  conteudo: string;
+  tipo: PublicacaoTipo;
+  midias: Array<{ src: string; tipo: 'imagem' | 'video'; alt?: string; thumbnail?: string }>;
+}
+
+/** Status da publicação */
+export type PublicacaoStatus = 'rascunho' | 'publicado' | 'arquivado';
+
+/** Input para comentário */
+export interface ComentarioInput {
+  texto: string;
+  publicacaoId: string;
+}
+
+/** Curtida em publicação */
+export interface Curtida {
+  id: string;
+  publicacaoId: string;
+  usuarioId: string;
+  dataCriacao: number;
+}
+
+/** Inspiração */
+export interface Inspiracao {
+  id: string;
+  titulo: string;
+  categoria: InspiracaoCategoria;
+  descricao?: string;
+  midias: Array<{ src: string; tipo: 'imagem' | 'video' }>;
+  curtidas: number;
+  autorId: string;
+  autorNome: string;
+  autorAvatar?: string;
+  dataCriacao: number;
+}
+
+/** Input para criar inspiração */
+export interface InspiracaoInput {
+  titulo: string;
+  categoria: InspiracaoCategoria;
+  descricao?: string;
+  midias: Array<{ src: string; tipo: 'imagem' | 'video' }>;
+}
+
+/** Categorias de inspiração */
+export type InspiracaoCategoria = 'classico' | 'moderno' | 'degrade' | 'barba' | 'colorido' | 'infantil' | 'outro';
+
+/** Filtros do feed */
+export interface FeedFiltros {
+  tipo?: PublicacaoTipo;
+  busca?: string;
+  salvos?: boolean;
+  seguidos?: boolean;
+  autorId?: string;
+  dataInicio?: string;
+  dataFim?: string;
+}
+
+/** Ordenação do feed */
+export type FeedOrdenacao = 'recentes' | 'populares' | 'relevantes';
+
+/** Recomendação */
+export interface Recomendacao {
+  id: string;
+  tipo: 'estabelecimento' | 'publicacao' | 'servico';
+  itemId: string;
+  score: number;
+  motivo: string;
+}
+
+/** Mídia de publicação */
+export interface MidiaPublicacao {
+  id?: string;
+  tipo: 'imagem' | 'video';
+  src: string;
+  alt?: string;
+  thumbnail?: string;
 }
 
 /** Comentário em publicação */
 export interface Comentario {
   id: string;
-  nomeAutor: string;
+  publicacaoId: string;
+  autorId?: string;
+  autorNome: string;
+  autorAvatar?: string;
+  nomeAutor: string; // alias para autorNome
   texto: string;
   dataCriacao: number;
+  criadoEm: number; // alias para dataCriacao
 }
 
 /** Usuário do sistema */
@@ -318,6 +416,10 @@ export interface PropsBotao extends PropsComponenteBase {
   aoClicar?: () => void;
   tipo?: 'button' | 'submit' | 'reset';
   ariaLabel?: string;
+  role?: string;
+  'aria-selected'?: boolean;
+  'aria-controls'?: string;
+  id?: string;
   children: React.ReactNode;
   style?: React.CSSProperties;
 }
@@ -341,6 +443,8 @@ export interface PropsCampoTexto extends PropsComponenteBase {
   min?: number;
   max?: number;
   step?: number;
+  autoCapitalize?: string;
+  autoCorrect?: string;
 }
 
 /** Props para card de estabelecimento */

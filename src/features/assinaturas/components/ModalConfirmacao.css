@@ -1,0 +1,237 @@
+/**
+ * ModalConfirmacao.css - Design System 6 estados, WCAG 2.2 AA
+ * Focus trap, ESC para fechar, animações respectando prefers-reduced-motion.
+ */
+
+.modal-overlay {
+  --cor-fundo: var(--color-surface, #ffffff);
+  --cor-borda: var(--color-border, #e0e0e0);
+  --cor-texto: var(--color-text, #1a1a1a);
+  --cor-texto-secundario: var(--color-text-secondary, #666666);
+  --cor-primaria: var(--color-primary, #2563eb);
+  --cor-primaria-hover: var(--color-primary-hover, #1d4ed8);
+  --cor-sucesso: var(--color-success, #16a34a);
+  --cor-aviso: var(--color-warning, #f59e0b);
+  --cor-erro: var(--color-error, #dc2626);
+  --sombra: var(--shadow-lg, 0 20px 25px -5px rgb(0 0 0 / 0.1));
+  --raio: var(--radius-lg, 12px);
+  --transicao: var(--transition-fast, 150ms ease);
+
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-overlay,
+  .modal-overlay * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (prefers-contrast: high) {
+  .modal-overlay {
+    background: rgba(0, 0, 0, 0.7);
+  }
+}
+
+.modal-content {
+  background: var(--cor-fundo);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  max-width: 440px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--sombra);
+  animation: slideUp 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Variantes de cor */
+.modal-overlay.modal-perigo .modal-content {
+  border-color: var(--cor-erro);
+}
+
+.modal-overlay.modal-perigo .modal-icone {
+  color: var(--cor-erro);
+}
+
+.modal-overlay.modal-aviso .modal-content {
+  border-color: var(--cor-aviso);
+}
+
+.modal-overlay.modal-aviso .modal-icone {
+  color: var(--cor-aviso);
+}
+
+.modal-overlay.modal-info .modal-content {
+  border-color: var(--cor-primaria);
+}
+
+.modal-overlay.modal-info .modal-icone {
+  color: var(--cor-primaria);
+}
+
+.modal-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 20px 20px 0;
+}
+
+.modal-icone {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.modal-titulo {
+  flex: 1;
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--cor-texto);
+}
+
+.modal-fechar {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--cor-texto-secundario);
+  padding: 0 4px;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: color var(--transicao);
+}
+
+.modal-fechar:hover {
+  color: var(--cor-texto);
+}
+
+.modal-fechar:focus-visible {
+  outline: 2px solid var(--cor-primaria);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.modal-body {
+  padding: 16px 20px 20px;
+}
+
+.modal-mensagem {
+  margin: 0;
+  color: var(--cor-texto);
+  line-height: 1.6;
+  font-size: 0.9375rem;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 20px 20px;
+  border-top: 1px solid var(--cor-borda);
+}
+
+/* Botões no footer */
+.modal-footer .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transicao);
+  border: 2px solid transparent;
+  white-space: nowrap;
+}
+
+.modal-footer .btn:focus-visible {
+  outline: 2px solid var(--cor-primaria);
+  outline-offset: 2px;
+}
+
+.modal-footer .btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.modal-footer .btn-secundario {
+  background: var(--cor-fundo);
+  color: var(--cor-primaria);
+  border-color: var(--cor-primaria);
+}
+
+.modal-footer .btn-secundario:hover:not(:disabled) {
+  background: var(--color-primary-light, #eff6ff);
+}
+
+.modal-footer .btn-primario {
+  background: var(--cor-primaria);
+  color: white;
+  border-color: var(--cor-primaria);
+}
+
+.modal-footer .btn-primario:hover:not(:disabled) {
+  background: var(--cor-primaria-hover);
+  border-color: var(--cor-primaria-hover);
+}
+
+.modal-footer .btn-perigo {
+  background: var(--cor-erro);
+  color: white;
+  border-color: var(--cor-erro);
+}
+
+.modal-footer .btn-perigo:hover:not(:disabled) {
+  background: #b91c1c;
+  border-color: #b91c1c;
+}
+
+/* Responsivo */
+@media (max-width: 480px) {
+  .modal-overlay {
+    padding: 10px;
+    align-items: flex-end;
+  }
+
+  .modal-content {
+    max-height: 85vh;
+    border-radius: var(--raio) var(--raio) 0 0;
+    animation: slideUpMobile 0.3s ease;
+  }
+
+  @keyframes slideUpMobile {
+    from { opacity: 0; transform: translateY(100%); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .modal-footer {
+    flex-direction: column-reverse;
+  }
+
+  .modal-footer .btn {
+    width: 100%;
+  }
+}

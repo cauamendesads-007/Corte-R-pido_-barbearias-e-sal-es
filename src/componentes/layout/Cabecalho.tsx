@@ -6,7 +6,7 @@
 
 import React, { useState, useRef, useEffect, Fragment } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ICONES } from '@/constantes';
+import { Icone } from '@/componentes/ui/Icone';
 import { BotaoIcone } from '@/componentes/ui/Botao';
 import { CampoBusca } from '@/componentes/ui/CampoTexto';
 import { Avatar, AvatarNotificacao } from '@/componentes/ui/Avatar';
@@ -68,32 +68,32 @@ export const Cabecalho = ({
   };
 
   const rotasPublicas = [
-    { caminho: '/', rotulo: 'Início', icone: ICONES.casa },
-    { caminho: '/explorar', rotulo: 'Explorar', icone: ICONES.busca },
-    { caminho: '/sobre', rotulo: 'Sobre', icone: ICONES.info },
+    { caminho: '/', rotulo: 'Início', icone: <Icone nome="casa" tamanho={20} /> },
+    { caminho: '/explorar', rotulo: 'Explorar', icone: <Icone nome="busca" tamanho={20} /> },
+    { caminho: '/sobre', rotulo: 'Sobre', icone: <Icone nome="info" tamanho={20} /> },
   ];
 
   const rotasCliente = [
-    { caminho: '/feed', rotulo: 'Feed', icone: ICONES.grade },
-    { caminho: '/agendamentos', rotulo: 'Meus Cortes', icone: ICONES.calendario },
-    { caminho: '/inspiracoes', rotulo: 'Inspirações', icone: ICONES.coracao },
-    { caminho: '/perfil', rotulo: 'Perfil', icone: ICONES.usuario },
+    { caminho: '/feed', rotulo: 'Feed', icone: <Icone nome="grade" tamanho={20} /> },
+    { caminho: '/agendamentos', rotulo: 'Meus Cortes', icone: <Icone nome="calendario" tamanho={20} /> },
+    { caminho: '/inspiracoes', rotulo: 'Inspirações', icone: <Icone nome="coracao" tamanho={20} /> },
+    { caminho: '/perfil', rotulo: 'Perfil', icone: <Icone nome="usuario" tamanho={20} /> },
   ];
 
   const rotasBarbeiro = [
-    { caminho: '/painel', rotulo: 'Painel', icone: ICONES.grafico },
-    { caminho: '/painel/agenda', rotulo: 'Agenda', icone: ICONES.calendario },
-    { caminho: '/painel/servicos', rotulo: 'Serviços', icone: ICONES.tesoura },
-    { caminho: '/painel/fila', rotulo: 'Fila', icone: ICONES.fila },
-    { caminho: '/painel/galeria', rotulo: 'Galeria', icone: ICONES.foto },
-    { caminho: '/perfil', rotulo: 'Perfil', icone: ICONES.usuario },
+    { caminho: '/painel', rotulo: 'Painel', icone: <Icone nome="grafico" tamanho={20} /> },
+    { caminho: '/painel/agenda', rotulo: 'Agenda', icone: <Icone nome="calendario" tamanho={20} /> },
+    { caminho: '/painel/servicos', rotulo: 'Serviços', icone: <Icone nome="tesoura" tamanho={20} /> },
+    { caminho: '/painel/fila', rotulo: 'Fila', icone: <Icone nome="fila" tamanho={20} /> },
+    { caminho: '/painel/galeria', rotulo: 'Galeria', icone: <Icone nome="foto" tamanho={20} /> },
+    { caminho: '/perfil', rotulo: 'Perfil', icone: <Icone nome="usuario" tamanho={20} /> },
   ];
 
   const rotasAdmin = [
-    { caminho: '/admin', rotulo: 'Dashboard', icone: ICONES.grafico },
-    { caminho: '/admin/estabelecimentos', rotulo: 'Estabelecimentos', icone: ICONES.mapa },
-    { caminho: '/admin/usuarios', rotulo: 'Usuários', icone: ICONES.usuarios },
-    { caminho: '/admin/analises', rotulo: 'Análises', icone: ICONES.grafico },
+    { caminho: '/admin', rotulo: 'Dashboard', icone: <Icone nome="grafico" tamanho={20} /> },
+    { caminho: '/admin/estabelecimentos', rotulo: 'Estabelecimentos', icone: <Icone nome="mapa" tamanho={20} /> },
+    { caminho: '/admin/usuarios', rotulo: 'Usuários', icone: <Icone nome="usuarios" tamanho={20} /> },
+    { caminho: '/admin/analises', rotulo: 'Análises', icone: <Icone nome="grafico" tamanho={20} /> },
   ];
 
   const obterRotas = () => {
@@ -143,7 +143,7 @@ export const Cabecalho = ({
                 className="cabecalho__drawer-login"
                 onClick={() => { setMenuAberto(false); window.location.href = '/login'; }}
               >
-                {ICONES.usuario} Entrar / Cadastrar
+                <Icone nome="usuario" tamanho={20} /> Entrar / Cadastrar
               </button>
             )}
           </div>
@@ -173,7 +173,7 @@ export const Cabecalho = ({
               className="cabecalho__drawer-sair"
               onClick={() => { setMenuAberto(false); aoSair?.(); }}
             >
-              {ICONES.sair} Sair
+              <Icone nome="sair" tamanho={20} /> Sair
             </button>
           </div>
         )}
@@ -224,7 +224,7 @@ export const Cabecalho = ({
             {variante === 'publico' && (
               <>
                 <Link to="/login" className="cabecalho__link" data-testid={`${testId}-entrar`}>
-                  {ICONES.usuario} Entrar
+                  <Icone nome="usuario" tamanho={20} /> Entrar
                 </Link>
                 <Link to="/cadastro" className="botao botao--primario cabecalho__cadastro" data-testid={`${testId}-cadastrar`}>
                   Cadastrar
@@ -250,7 +250,7 @@ export const Cabecalho = ({
                 {window.innerWidth < 768 ? (
                   <BotaoIcone
                     ref={botaoMenuRef}
-                    icone={ICONES.menu}
+                    icone={<Icone nome="menu" tamanho={24} />}
                     ariaLabel="Abrir menu"
                     variante="fantasma"
                     tamanho="medio"
@@ -274,7 +274,7 @@ export const Cabecalho = ({
             {/* Botão de busca mobile */}
             {window.innerWidth < 768 && (variante === 'autenticado' || variante === 'barbeiro' || variante === 'admin') && (
               <BotaoIcone
-                icone={buscaAberta ? ICONES.fechar : ICONES.busca}
+                icone={buscaAberta ? <Icone nome="fechar" tamanho={24} /> : <Icone nome="busca" tamanho={24} />}
                 ariaLabel={buscaAberta ? 'Fechar busca' : 'Abrir busca'}
                 variante="fantasma"
                 tamanho="medio"

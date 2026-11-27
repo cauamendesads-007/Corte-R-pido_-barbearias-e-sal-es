@@ -1,0 +1,401 @@
+/**
+ * Estilos da Aba Segurança.
+ * Design system escuro, 6 estados, responsivo, reduced-motion, high-contrast.
+ */
+
+.aba-seguranca {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-6);
+}
+
+.aba-seguranca__cartao {
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-lg);
+}
+
+/* 2FA */
+.aba-seguranca__2fa-ativo,
+.aba-seguranca__2fa-inativo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+}
+
+.aba-seguranca__2fa-status {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+}
+
+.aba-seguranca__2fa-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-1);
+  padding: var(--espaco-1) var(--espaco-3);
+  background: var(--cor-sucesso-fraca);
+  color: var(--cor-sucesso);
+  border-radius: var(--raio-full);
+  font-size: var(--fonte-tamanho-sm);
+  font-weight: 600;
+  width: fit-content;
+}
+
+.aba-seguranca__2fa-metodo {
+  margin: 0;
+  font-size: var(--fonte-tamanho-sm);
+  color: var(--cor-texto-secundario);
+}
+
+.aba-seguranca__2fa-atualizado {
+  margin: 0;
+  font-size: var(--fonte-tamanho-xs);
+  color: var(--cor-texto-terciario);
+}
+
+.aba-seguranca__2fa-acoes {
+  display: flex;
+  gap: var(--espaco-3);
+}
+
+.aba-seguranca__2fa-info {
+  margin: 0;
+  font-size: var(--fonte-tamanho-sm);
+  color: var(--cor-texto-secundario);
+  line-height: 1.6;
+}
+
+.aba-seguranca__2fa-metodos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+}
+
+/* Senha */
+.aba-seguranca__senha-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+  margin-bottom: var(--espaco-4);
+}
+
+.aba-seguranca__senha-info p {
+  margin: 0;
+  font-size: var(--fonte-tamanho-sm);
+  color: var(--cor-texto-secundario);
+}
+
+.aba-seguranca__senha-historico {
+  font-size: var(--fonte-tamanho-xs) !important;
+  color: var(--cor-texto-terciario) !important;
+}
+
+/* Sessões */
+.aba-seguranca__sessoes-lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+}
+
+.aba-seguranca__sessao-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--espaco-4);
+  padding: var(--espaco-3);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-lg);
+  background: var(--cor-superficie);
+  transition: border-color var(--transicao-rapida), background-color var(--transicao-rapida);
+}
+
+.aba-seguranca__sessao-item:hover {
+  border-color: var(--cor-borda-hover);
+  background: var(--cor-superficie-hover);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aba-seguranca__sessao-item {
+    transition: none;
+  }
+}
+
+.aba-seguranca__sessao-item--atual {
+  border-color: var(--cor-primaria);
+  background: var(--cor-primaria-fraca);
+}
+
+.aba-seguranca__sessao-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.aba-seguranca__sessao-cabecalho {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  margin-bottom: var(--espaco-1);
+}
+
+.aba-seguranca__sessao-cabecalho h4 {
+  margin: 0;
+  font-size: var(--fonte-tamanho-base);
+  font-weight: 600;
+  color: var(--cor-texto);
+}
+
+.aba-seguranca__badge-atual {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px var(--espaco-2);
+  background: var(--cor-primaria);
+  color: var(--cor-primaria-contraste);
+  border-radius: var(--raio-full);
+  font-size: var(--fonte-tamanho-xs);
+  font-weight: 600;
+}
+
+.aba-seguranca__sessao-detalhes,
+.aba-seguranca__sessao-localizacao {
+  margin: 0;
+  font-size: var(--fonte-tamanho-sm);
+  color: var(--cor-texto-secundario);
+}
+
+.aba-seguranca__sessoes-acoes {
+  margin-top: var(--espaco-3);
+  padding-top: var(--espaco-3);
+  border-top: 1px solid var(--cor-borda);
+}
+
+/* Dispositivos */
+.aba-seguranca__dispositivos-lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+}
+
+.aba-seguranca__dispositivo-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--espaco-4);
+  padding: var(--espaco-3);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-lg);
+  background: var(--cor-superficie);
+  transition: border-color var(--transicao-rapida), background-color var(--transicao-rapida);
+}
+
+.aba-seguranca__dispositivo-item:hover {
+  border-color: var(--cor-borda-hover);
+  background: var(--cor-superficie-hover);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aba-seguranca__dispositivo-item {
+    transition: none;
+  }
+}
+
+.aba-seguranca__dispositivo-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.aba-seguranca__dispositivo-info h4 {
+  margin: 0 0 var(--espaco-1);
+  font-size: var(--fonte-tamanho-base);
+  font-weight: 600;
+  color: var(--cor-texto);
+}
+
+.aba-seguranca__dispositivo-detalhes,
+.aba-seguranca__dispositivo-datas {
+  margin: 0;
+  font-size: var(--fonte-tamanho-sm);
+  color: var(--cor-texto-secundario);
+}
+
+/* Log de segurança */
+.aba-seguranca__log-lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+}
+
+.aba-seguranca__log-item {
+  display: flex;
+  gap: var(--espaco-3);
+  padding: var(--espaco-3);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-lg);
+  background: var(--cor-superficie);
+}
+
+.aba-seguranca__log-icone {
+  font-size: var(--fonte-tamanho-lg);
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cor-fundo);
+  border-radius: var(--raio-md);
+}
+
+.aba-seguranca__log-conteudo {
+  flex: 1;
+  min-width: 0;
+}
+
+.aba-seguranca__log-mensagem {
+  margin: 0 0 var(--espaco-1);
+  font-size: var(--fonte-tamanho-sm);
+  font-weight: 500;
+  color: var(--cor-texto);
+}
+
+.aba-seguranca__log-tempo {
+  margin: 0;
+  font-size: var(--fonte-tamanho-xs);
+  color: var(--cor-texto-terciario);
+}
+
+/* Vazio */
+.aba-seguranca__vazio {
+  margin: 0;
+  padding: var(--espaco-6);
+  text-align: center;
+  font-size: var(--fonte-tamanho-sm);
+  color: var(--cor-texto-terciario);
+}
+
+/* 2FA Setup Modal */
+.aba-seguranca__2fa-setup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+}
+
+.aba-seguranca__2fa-setup > p:first-child {
+  margin: 0;
+  font-size: var(--fonte-tamanho-sm);
+  color: var(--cor-texto-secundario);
+  line-height: 1.6;
+}
+
+.aba-seguranca__2fa-qrcode {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espaco-3);
+  padding: var(--espaco-4);
+  background: var(--cor-fundo);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-lg);
+}
+
+.aba-seguranca__2fa-qrcode-placeholder {
+  width: 200px;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cor-superficie);
+  border: 2px dashed var(--cor-borda);
+  border-radius: var(--raio-md);
+  color: var(--cor-texto-terciario);
+  font-size: var(--fonte-tamanho-lg);
+}
+
+.aba-seguranca__2fa-secret {
+  margin: 0;
+  font-size: var(--fonte-tamanho-xs);
+  color: var(--cor-texto-terciario);
+  font-family: var(--fonte-mono);
+  word-break: break-all;
+}
+
+.aba-seguranca__2fa-secret code {
+  background: var(--cor-superficie);
+  padding: 2px 6px;
+  border-radius: var(--raio-sm);
+  border: 1px solid var(--cor-borda);
+}
+
+/* Responsivo */
+@media (max-width: 480px) {
+  .aba-seguranca__sessao-item,
+  .aba-seguranca__dispositivo-item {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--espaco-3);
+  }
+
+  .aba-seguranca__sessao-item .botao,
+  .aba-seguranca__dispositivo-item .botao {
+    width: 100%;
+  }
+
+  .aba-seguranca__2fa-acoes,
+  .aba-seguranca__2fa-metodos {
+    flex-direction: column;
+  }
+
+  .aba-seguranca__2fa-acoes .botao,
+  .aba-seguranca__2fa-metodos .botao {
+    width: 100%;
+  }
+
+  .aba-seguranca__log-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--espaco-2);
+  }
+
+  .aba-seguranca__2fa-qrcode-placeholder {
+    width: 100%;
+    max-width: 200px;
+  }
+}
+
+/* High Contrast */
+@media (prefers-contrast: high) {
+  .aba-seguranca__cartao {
+    border-width: 2px;
+  }
+
+  .aba-seguranca__sessao-item,
+  .aba-seguranca__dispositivo-item,
+  .aba-seguranca__log-item {
+    border-width: 2px;
+  }
+
+  .aba-seguranca__2fa-qrcode {
+    border-width: 2px;
+  }
+
+  .aba-seguranca__2fa-qrcode-placeholder {
+    border-width: 3px;
+  }
+}
+
+/* Print */
+@media print {
+  .aba-seguranca__cartao {
+    border: 1px solid #000 !important;
+    break-inside: avoid;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .aba-seguranca__sessao-item .botao,
+  .aba-seguranca__dispositivo-item .botao,
+  .aba-seguranca__sessoes-acoes .botao,
+  .aba-seguranca__2fa-acoes .botao,
+  .aba-seguranca__2fa-metodos .botao {
+    display: none !important;
+  }
+}

@@ -5,7 +5,7 @@
 
 import React, { forwardRef, useId, useRef, useState, useEffect, useCallback } from 'react';
 import type { PropsCampoTexto } from '@/tipos';
-import { ICONES } from '@/constantes';
+import { Icone } from './Icone';
 import './Select.css';
 
 interface OpcaoSelect {
@@ -38,7 +38,6 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
       desabilitado = false,
       obrigatorio = false,
       id: idProp,
-      autoComplete,
       placeholder = 'Selecione...',
       multiplo = false,
       buscavel = false,
@@ -195,7 +194,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           </select>
 
           <span className="select__seta" aria-hidden="true">
-            {ICONES.setaBaixo}
+            <Icone nome="setaBaixo" tamanho={16} />
           </span>
 
           {multiplo && valoresSelecionados.length > 0 && (
@@ -216,7 +215,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
                       }}
                       aria-label={`Remover ${opcao.rotulo}`}
                     >
-                      {ICONES.x}
+                      <Icone nome="fechar" tamanho={12} />
                     </button>
                   </span>
                 ) : null;
@@ -232,7 +231,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
 
         {erro && (
           <p id={erroId} className="select__erro" role="alert">
-            {ICONES.alerta} {erro}
+            <Icone nome="alerta" tamanho={14} /> {erro}
           </p>
         )}
 

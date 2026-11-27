@@ -1,6 +1,7 @@
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import tsconfigPaths from 'vite-tsconfig-paths';
 import { visualizer } from 'rollup-plugin-visualizer';
 
 const isGitHubPages = process.env.GITHUB_PAGES === 'true';
@@ -10,6 +11,7 @@ const isAnalyze = process.env.ANALYZE === 'true';
 export default defineConfig({
   plugins: [
     react(),
+    tsconfigPaths(),
     isAnalyze && visualizer({
       filename: 'dist/stats.html',
       open: true,

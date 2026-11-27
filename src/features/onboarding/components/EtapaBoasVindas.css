@@ -1,0 +1,182 @@
+/**
+ * Estilos da Etapa Boas-vindas.
+ * Design system escuro, 6 estados, responsivo, reduced-motion, high-contrast.
+ */
+
+.onboarding-etapa--boas-vindas {
+  max-width: 480px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.onboarding-etapa__conteudo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espaco-6);
+  padding: var(--espaco-8) var(--espaco-6);
+}
+
+.onboarding-etapa__icone-principal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: var(--cor-primaria-fraca);
+  color: var(--cor-primaria);
+  box-shadow: var(--sombra-lg);
+}
+
+.onboarding-etapa__titulo {
+  margin: 0;
+  font-size: var(--fonte-tamanho-3xl);
+  font-weight: 700;
+  color: var(--cor-texto);
+  line-height: 1.2;
+}
+
+.onboarding-etapa__subtitulo {
+  margin: 0;
+  font-size: var(--fonte-tamanho-base);
+  color: var(--cor-texto-secundario);
+  line-height: 1.6;
+  max-width: 400px;
+}
+
+.onboarding-etapa__beneficios {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  max-width: 360px;
+}
+
+.onboarding-etapa__beneficios li {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+  padding: var(--espaco-3) var(--espaco-4);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-lg);
+  text-align: left;
+  transition: border-color var(--transicao-rapida), box-shadow var(--transicao-rapida);
+}
+
+.onboarding-etapa__beneficios li:hover {
+  border-color: var(--cor-borda-hover);
+  box-shadow: var(--sombra-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .onboarding-etapa__beneficios li {
+    transition: none;
+  }
+}
+
+.onboarding-etapa__beneficio-icone {
+  color: var(--cor-sucesso);
+  flex-shrink: 0;
+}
+
+.onboarding-etapa__beneficios li span {
+  font-size: var(--fonte-tamanho-sm);
+  color: var(--cor-texto);
+  font-weight: 500;
+}
+
+.onboarding-etapa__acoes {
+  width: 100%;
+  max-width: 360px;
+}
+
+.onboarding-etapa__acoes .botao--grande {
+  width: 100%;
+  padding: var(--espaco-4) var(--espaco-6);
+  font-size: var(--fonte-tamanho-base);
+}
+
+.onboarding-etapa__ja-tem-conta {
+  margin: 0;
+  font-size: var(--fonte-tamanho-sm);
+  color: var(--cor-texto-terciario);
+}
+
+.onboarding-etapa__ja-tem-conta a {
+  color: var(--cor-primaria);
+  font-weight: 500;
+  text-decoration: none;
+  transition: color var(--transicao-rapida);
+}
+
+.onboarding-etapa__ja-tem-conta a:hover {
+  color: var(--cor-primaria-hover);
+  text-decoration: underline;
+}
+
+.onboarding-etapa__ja-tem-conta a:focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: 2px;
+  border-radius: var(--raio-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .onboarding-etapa__ja-tem-conta a {
+    transition: none;
+  }
+}
+
+/* Responsivo */
+@media (max-width: 480px) {
+  .onboarding-etapa__conteudo {
+    padding: var(--espaco-6) var(--espaco-4);
+  }
+
+  .onboarding-etapa__icone-principal {
+    width: 96px;
+    height: 96px;
+  }
+
+  .onboarding-etapa__icone-principal .icone {
+    width: 48px;
+    height: 48px;
+  }
+
+  .onboarding-etapa__titulo {
+    font-size: var(--fonte-tamanho-2xl);
+  }
+
+  .onboarding-etapa__beneficios li {
+    padding: var(--espaco-2) var(--espaco-3);
+  }
+}
+
+/* High Contrast */
+@media (prefers-contrast: high) {
+  .onboarding-etapa__beneficios li {
+    border-width: 2px;
+  }
+
+  .onboarding-etapa__icone-principal {
+    border: 2px solid currentColor;
+  }
+}
+
+/* Print */
+@media print {
+  .onboarding-etapa__acoes {
+    display: none !important;
+  }
+
+  .onboarding-etapa--boas-vindas {
+    border: 1px solid #000 !important;
+    break-inside: avoid;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

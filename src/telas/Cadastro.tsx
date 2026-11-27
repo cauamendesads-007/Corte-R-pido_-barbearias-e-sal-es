@@ -20,8 +20,8 @@ import {
   ChipGrupo,
   ToastProvider,
   useGlobalToast,
+  Icone,
 } from '@/componentes';
-import { ICONES } from '@/constantes';
 import './Cadastro.css';
 
 type TipoCadastro = 'cliente' | 'barbeiro' | 'admin';
@@ -44,10 +44,10 @@ interface DadosCadastro {
 }
 
 const NICHOS = [
-  { valor: 'barbearia', rotulo: '💈 Barbearia' },
-  { valor: 'feminino', rotulo: '♀ Salão Feminino' },
-  { valor: 'visagismo', rotulo: '✂ Visagismo' },
-  { valor: 'infantil', rotulo: '👶 Infantil' },
+  { valor: 'barbearia', rotulo: 'Barbearia', icone: <Icone nome="tesoura" tamanho={14} /> },
+  { valor: 'feminino', rotulo: 'Salão Feminino', icone: <Icone nome="usuario" tamanho={14} /> },
+  { valor: 'visagismo', rotulo: 'Visagismo', icone: <Icone nome="estrela" tamanho={14} /> },
+  { valor: 'infantil', rotulo: 'Infantil', icone: <Icone nome="casa" tamanho={14} /> },
 ];
 
 const Cadastro = () => {
@@ -173,7 +173,7 @@ const Cadastro = () => {
   const renderEtapaTipo = () => (
     <ToastProvider>
       <Container variante="tela-cheia" data-testid="cadastro-container">
-        <div className="cadastro__wrapper">
+        <main className="cadastro__main">
           <header className="cadastro__header">
             <Link to="/" className="cadastro__logo" aria-label="Corte Rápido">
               <span className="cadastro__logo-icone" aria-hidden="true">✂</span>
@@ -181,44 +181,49 @@ const Cadastro = () => {
             </Link>
           </header>
 
-          <Cartao variante="padrao" className="cadastro__card">
-            <CartaoCorpo className="cadastro__corpo">
-              <h1 className="cadastro__titulo">Criar conta</h1>
-              <p className="cadastro__subtitulo">Como você vai usar o Corte Rápido?</p>
+          <section className="cadastro__card-section" aria-labelledby="cadastro-titulo-tipo">
+            <Cartao variante="padrao" className="cadastro__card">
+              <CartaoCorpo className="cadastro__corpo">
+                <h1 id="cadastro-titulo-tipo" className="cadastro__titulo">Criar conta</h1>
+                <p className="cadastro__subtitulo">Como você vai usar o Corte Rápido?</p>
 
-              <ChipGrupo
-                opcoes={[
-                  { valor: 'cliente', rotulo: '👤 Cliente', icone: ICONES.usuario },
-                  { valor: 'barbeiro', rotulo: '💈 Barbeiro', icone: ICONES.tesoura },
-                  { valor: 'admin', rotulo: '⚙️ Admin', icone: ICONES.configuracoes },
-                ]}
-                selecionados={[tipo]}
-                aoAlterar={(v) => setTipo(v[0] as TipoCadastro)}
-                multiplo={false}
-                variante="selecao"
-                className="cadastro__tipo-chips"
-                data-testid="cadastro-tipo"
-              />
+                <fieldset className="cadastro__tipo-fieldset">
+                  <legend>Tipo de conta</legend>
+                  <ChipGrupo
+                    opcoes={[
+                      { valor: 'cliente', rotulo: 'Cliente', icone: <Icone nome="usuario" tamanho={16} /> },
+                      { valor: 'barbeiro', rotulo: 'Barbeiro', icone: <Icone nome="tesoura" tamanho={16} /> },
+                      { valor: 'admin', rotulo: 'Admin', icone: <Icone nome="configuracoes" tamanho={16} /> },
+                    ]}
+                    selecionados={[tipo]}
+                    aoAlterar={(v) => setTipo(v[0] as TipoCadastro)}
+                    multiplo={false}
+                    variante="selecao"
+                    className="cadastro__tipo-chips"
+                    data-testid="cadastro-tipo"
+                  />
+                </fieldset>
 
-              {erro && (
-                <div className="cadastro__erro" role="alert">{erro}</div>
-              )}
+                {erro && (
+                  <div className="cadastro__erro" role="alert">{erro}</div>
+                )}
 
-              <BotaoPrimario
-                className="cadastro__btn-continuar"
-                aoClicar={handleAvancar}
-                desabilitado={carregando}
-                data-testid="cadastro-btn-tipo"
-              >
-                Continuar
-              </BotaoPrimario>
+                <BotaoPrimario
+                  className="cadastro__btn-continuar"
+                  aoClicar={handleAvancar}
+                  desabilitado={carregando}
+                  data-testid="cadastro-btn-tipo"
+                >
+                  Continuar
+                </BotaoPrimario>
 
-              <p className="cadastro__login-link">
-                Já tem conta? <Link to="/login">Entrar</Link>
-              </p>
-            </CartaoCorpo>
-          </Cartao>
-        </div>
+                <p className="cadastro__login-link">
+                  Já tem conta? <Link to="/login">Entrar</Link>
+                </p>
+              </CartaoCorpo>
+            </Cartao>
+          </section>
+        </main>
       </Container>
     </ToastProvider>
   );
@@ -226,10 +231,10 @@ const Cadastro = () => {
   const renderEtapaEstabelecimento = () => (
     <ToastProvider>
       <Container variante="tela-cheia" data-testid="cadastro-container">
-        <div className="cadastro__wrapper">
+        <main className="cadastro__main">
           <header className="cadastro__header">
             <button className="cadastro__btn-voltar" onClick={handleVoltar} aria-label="Voltar">
-              {ICONES.voltar}
+              <Icone nome="voltar" tamanho={20} />
             </button>
             <Link to="/" className="cadastro__logo" aria-label="Corte Rápido">
               <span className="cadastro__logo-icone" aria-hidden="true">✂</span>
@@ -237,80 +242,84 @@ const Cadastro = () => {
             </Link>
           </header>
 
-          <Cartao variante="padrao" className="cadastro__card">
-            <CartaoCorpo className="cadastro__corpo">
-              <div className="cadastro__progresso">
-                <span className={etapa >= 1 ? 'cadastro__passo cadastro__passo--ativo' : 'cadastro__passo'}>1</span>
-                <span className="cadastro__passo-linha" />
-                <span className={etapa >= 3 ? 'cadastro__passo cadastro__passo--ativo' : 'cadastro__passo'}>2</span>
-                <span className="cadastro__passo-linha" />
-                <span className="cadastro__passo">3</span>
-              </div>
+          <section className="cadastro__card-section" aria-labelledby="cadastro-titulo-estab">
+            <Cartao variante="padrao" className="cadastro__card">
+              <CartaoCorpo className="cadastro__corpo">
+                <nav className="cadastro__progresso" aria-label="Progresso do cadastro">
+                  <ol>
+                    <li className={etapa >= 1 ? 'cadastro__passo cadastro__passo--ativo' : 'cadastro__passo'}><span>1</span></li>
+                    <li className="cadastro__passo-linha" aria-hidden="true" />
+                    <li className={etapa >= 3 ? 'cadastro__passo cadastro__passo--ativo' : 'cadastro__passo'}><span>2</span></li>
+                    <li className="cadastro__passo-linha" aria-hidden="true" />
+                    <li className="cadastro__passo"><span>3</span></li>
+                  </ol>
+                </nav>
 
-              <h1 className="cadastro__titulo">Dados do estabelecimento</h1>
-              <p className="cadastro__subtitulo">Informações para seu perfil profissional</p>
+                <h1 id="cadastro-titulo-estab" className="cadastro__titulo">Dados do estabelecimento</h1>
+                <p className="cadastro__subtitulo">Informações para seu perfil profissional</p>
 
-              <form onSubmit={(e) => { e.preventDefault(); handleAvancar(); }} className="cadastro__form">
-                <CampoTexto
-                  label="Nome do estabelecimento"
-                  valor={dados.estabelecimentoNome || ''}
-                  aoAlterar={(v) => atualizarDado('estabelecimentoNome', v)}
-                  placeholder="Ex: Barbearia do João"
-                  obrigatorio
-                  data-testid="cadastro-estab-nome"
-                />
+                <form onSubmit={(e) => { e.preventDefault(); handleAvancar(); }} className="cadastro__form">
+                  <CampoTexto
+                    label="Nome do estabelecimento"
+                    valor={dados.estabelecimentoNome || ''}
+                    aoAlterar={(v) => atualizarDado('estabelecimentoNome', v)}
+                    placeholder="Ex: Barbearia do João"
+                    obrigatorio
+                    data-testid="cadastro-estab-nome"
+                  />
 
-                <Select
-                  label="Categoria"
-                  valor={dados.estabelecimentoNicho || 'barbearia'}
-                  aoAlterar={(v) => atualizarDado('estabelecimentoNicho', Array.isArray(v) ? v[0] : v)}
-                  opcoes={NICHOS}
-                  obrigatorio
-                  data-testid="cadastro-estab-nicho"
-                />
+                  <Select
+                    label="Categoria"
+                    valor={dados.estabelecimentoNicho || 'barbearia'}
+                    aoAlterar={(v) => atualizarDado('estabelecimentoNicho', Array.isArray(v) ? v[0] : v)}
+                    opcoes={NICHOS}
+                    obrigatorio
+                    data-testid="cadastro-estab-nicho"
+                  />
 
-                <CampoTexto
-                  label="Cidade"
-                  valor={dados.estabelecimentoCidade || ''}
-                  aoAlterar={(v) => atualizarDado('estabelecimentoCidade', v)}
-                  placeholder="Sua cidade"
-                  obrigatorio
-                  data-testid="cadastro-estab-cidade"
-                />
+                  <CampoTexto
+                    label="Cidade"
+                    valor={dados.estabelecimentoCidade || ''}
+                    aoAlterar={(v) => atualizarDado('estabelecimentoCidade', v)}
+                    placeholder="Sua cidade"
+                    obrigatorio
+                    data-testid="cadastro-estab-cidade"
+                  />
 
-                <CampoTexto
-                  label="Endereço completo"
-                  valor={dados.estabelecimentoEndereco || ''}
-                  aoAlterar={(v) => atualizarDado('estabelecimentoEndereco', v)}
-                  placeholder="Rua, número, bairro"
-                  obrigatorio
-                  data-testid="cadastro-estab-endereco"
-                />
+                  <CampoTexto
+                    label="Endereço completo"
+                    valor={dados.estabelecimentoEndereco || ''}
+                    aoAlterar={(v) => atualizarDado('estabelecimentoEndereco', v)}
+                    placeholder="Rua, número, bairro"
+                    obrigatorio
+                    data-testid="cadastro-estab-endereco"
+                  />
 
-                <CampoTexto
-                  label="CPF (para verificação)"
-                  valor={dados.cpf || ''}
-                  aoAlterar={(v) => atualizarDado('cpf', v)}
-                  placeholder="000.000.000-00"
-                  inputMode="numeric"
-                  maxLength={14}
-                  obrigatorio
-                  ajuda="Apenas para verificação de identidade. Não será exibido publicamente."
-                  data-testid="cadastro-cpf"
-                />
+                  <CampoTexto
+                    label="CPF (para verificação)"
+                    valor={dados.cpf || ''}
+                    aoAlterar={(v) => atualizarDado('cpf', v)}
+                    placeholder="000.000.000-00"
+                    inputMode="numeric"
+                    maxLength={14}
+                    obrigatorio
+                    ajuda="Apenas para verificação de identidade. Não será exibido publicamente."
+                    data-testid="cadastro-cpf"
+                  />
 
-                {erro && (
-                  <div className="cadastro__erro" role="alert">{erro}</div>
-                )}
+                  {erro && (
+                    <div className="cadastro__erro" role="alert">{erro}</div>
+                  )}
 
-                <div className="cadastro__botoes">
-                  <BotaoSecundario aoClicar={handleVoltar} desabilitado={carregando}>Voltar</BotaoSecundario>
-                  <BotaoPrimario carregando={carregando} data-testid="cadastro-btn-estab">Continuar</BotaoPrimario>
-                </div>
-              </form>
-            </CartaoCorpo>
-          </Cartao>
-        </div>
+                  <div className="cadastro__botoes">
+                    <BotaoSecundario aoClicar={handleVoltar} desabilitado={carregando}>Voltar</BotaoSecundario>
+                    <BotaoPrimario carregando={carregando} data-testid="cadastro-btn-estab">Continuar</BotaoPrimario>
+                  </div>
+                </form>
+              </CartaoCorpo>
+            </Cartao>
+          </section>
+        </main>
       </Container>
     </ToastProvider>
   );
@@ -322,10 +331,10 @@ const Cadastro = () => {
     return (
       <ToastProvider>
         <Container variante="tela-cheia" data-testid="cadastro-container">
-          <div className="cadastro__wrapper">
+          <main className="cadastro__main">
             <header className="cadastro__header">
               <button className="cadastro__btn-voltar" onClick={handleVoltar} aria-label="Voltar">
-                {ICONES.voltar}
+                <Icone nome="voltar" tamanho={20} />
               </button>
               <Link to="/" className="cadastro__logo" aria-label="Corte Rápido">
                 <span className="cadastro__logo-icone" aria-hidden="true">✂</span>
@@ -333,112 +342,119 @@ const Cadastro = () => {
               </Link>
             </header>
 
-            <Cartao variante="padrao" className="cadastro__card">
-              <CartaoCorpo className="cadastro__corpo">
-                <div className="cadastro__progresso">
-                  <span className="cadastro__passo cadastro__passo--ativo">1</span>
-                  <span className="cadastro__passo-linha" />
-                  <span className={isBarbeiro ? 'cadastro__passo cadastro__passo--ativo' : 'cadastro__passo'}>2</span>
-                  <span className="cadastro__passo-linha" />
-                  <span className="cadastro__passo cadastro__passo--ativo">3</span>
-                </div>
+            <section className="cadastro__card-section" aria-labelledby="cadastro-titulo-dados">
+              <Cartao variante="padrao" className="cadastro__card">
+                <CartaoCorpo className="cadastro__corpo">
+                  <nav className="cadastro__progresso" aria-label="Progresso do cadastro">
+                    <ol>
+                      <li className="cadastro__passo cadastro__passo--ativo"><span>1</span></li>
+                      <li className="cadastro__passo-linha" aria-hidden="true" />
+                      <li className={isBarbeiro ? 'cadastro__passo cadastro__passo--ativo' : 'cadastro__passo'}><span>2</span></li>
+                      <li className="cadastro__passo-linha" aria-hidden="true" />
+                      <li className="cadastro__passo cadastro__passo--ativo"><span>3</span></li>
+                    </ol>
+                  </nav>
 
-                <h1 className="cadastro__titulo">Suas informações</h1>
-                <p className="cadastro__subtitulo">Preencha para criar sua conta</p>
+                  <h1 id="cadastro-titulo-dados" className="cadastro__titulo">Suas informações</h1>
+                  <p className="cadastro__subtitulo">Preencha para criar sua conta</p>
 
-                <form onSubmit={handleSubmit} className="cadastro__form" noValidate>
-                  <CampoTexto
-                    label="Nome completo"
-                    valor={dados.nome}
-                    aoAlterar={(v) => atualizarDado('nome', v)}
-                    placeholder="Seu nome"
-                    autoComplete="name"
-                    obrigatorio
-                    data-testid="cadastro-nome"
-                  />
-
-                  <CampoTexto
-                    label="E-mail"
-                    tipo="email"
-                    valor={dados.email}
-                    aoAlterar={(v) => atualizarDado('email', v)}
-                    placeholder="seu@email.com"
-                    autoComplete="email"
-                    obrigatorio
-                    data-testid="cadastro-email"
-                  />
-
-                  <CampoSenha
-                    label="Senha"
-                    valor={dados.senha}
-                    aoAlterar={(v) => atualizarDado('senha', v)}
-                    placeholder="Mínimo 6 caracteres"
-                    autoComplete="new-password"
-                    obrigatorio
-                    ajuda="Mínimo 6 caracteres"
-                    data-testid="cadastro-senha"
-                  />
-
-                  <CampoSenha
-                    label="Confirmar senha"
-                    valor={dados.confirmarSenha}
-                    aoAlterar={(v) => atualizarDado('confirmarSenha', v)}
-                    placeholder="Repita a senha"
-                    autoComplete="new-password"
-                    obrigatorio
-                    data-testid="cadastro-confirmar-senha"
-                  />
-
-                  <CampoWhatsapp
-                    label="WhatsApp"
-                    valor={dados.telefone}
-                    aoAlterar={(v) => atualizarDado('telefone', v)}
-                    obrigatorio
-                    ajuda="Usado para confirmações e notificações"
-                    data-testid="cadastro-telefone"
-                  />
-
-                  {isAdmin && (
+                  <form onSubmit={handleSubmit} className="cadastro__form" noValidate>
                     <CampoTexto
-                      label="Código de convite admin"
-                      valor={dados.codigoConvite || ''}
-                      aoAlterar={(v) => atualizarDado('codigoConvite', v)}
-                      placeholder="Código exclusivo"
+                      label="Nome completo"
+                      valor={dados.nome}
+                      aoAlterar={(v) => atualizarDado('nome', v)}
+                      placeholder="Seu nome"
+                      autoComplete="name"
                       obrigatorio
-                      data-testid="cadastro-codigo-admin"
+                      data-testid="cadastro-nome"
                     />
-                  )}
 
-                  <label className="cadastro__termos">
-                    <input
-                      type="checkbox"
-                      checked={aceitouTermos}
-                      onChange={(e) => setAceitouTermos(e.target.checked)}
-                      required
+                    <CampoTexto
+                      label="E-mail"
+                      tipo="email"
+                      valor={dados.email}
+                      aoAlterar={(v) => atualizarDado('email', v)}
+                      placeholder="seu@email.com"
+                      autoComplete="email"
+                      obrigatorio
+                      data-testid="cadastro-email"
                     />
-                    <span>
-                      Aceito os <Link to="/termos" target="_blank" rel="noopener">Termos de Uso</Link> e a <Link to="/privacidade" target="_blank" rel="noopener">Política de Privacidade</Link>
-                    </span>
-                  </label>
 
-                  {erro && (
-                    <div className="cadastro__erro" role="alert">{erro}</div>
-                  )}
+                    <CampoSenha
+                      label="Senha"
+                      valor={dados.senha}
+                      aoAlterar={(v) => atualizarDado('senha', v)}
+                      placeholder="Mínimo 6 caracteres"
+                      autoComplete="new-password"
+                      obrigatorio
+                      ajuda="Mínimo 6 caracteres"
+                      data-testid="cadastro-senha"
+                    />
 
-                  <div className="cadastro__botoes">
-                    {etapa > 1 && <BotaoSecundario aoClicar={handleVoltar} desabilitado={carregando}>Voltar</BotaoSecundario>}
-                    <BotaoPrimario carregando={carregando} data-testid="cadastro-btn-final">
-                      {carregando ? 'Criando conta...' : 'Criar conta'}
-                    </BotaoPrimario>
-                  </div>
-                </form>
+                    <CampoSenha
+                      label="Confirmar senha"
+                      valor={dados.confirmarSenha}
+                      aoAlterar={(v) => atualizarDado('confirmarSenha', v)}
+                      placeholder="Repita a senha"
+                      autoComplete="new-password"
+                      obrigatorio
+                      data-testid="cadastro-confirmar-senha"
+                    />
 
-                <p className="cadastro__login-link">
-                  Já tem conta? <Link to="/login">Entrar</Link>
-                </p>
-              </CartaoCorpo>
-            </Cartao>
-          </div>
+                    <CampoWhatsapp
+                      label="WhatsApp"
+                      valor={dados.telefone}
+                      aoAlterar={(v) => atualizarDado('telefone', v)}
+                      obrigatorio
+                      ajuda="Usado para confirmações e notificações"
+                      data-testid="cadastro-telefone"
+                    />
+
+                    {isAdmin && (
+                      <CampoTexto
+                        label="Código de convite admin"
+                        valor={dados.codigoConvite || ''}
+                        aoAlterar={(v) => atualizarDado('codigoConvite', v)}
+                        placeholder="Código exclusivo"
+                        obrigatorio
+                        data-testid="cadastro-codigo-admin"
+                      />
+                    )}
+
+                    <fieldset className="cadastro__termos-fieldset">
+                      <legend>Termos e condições</legend>
+                      <label className="cadastro__termos">
+                        <input
+                          type="checkbox"
+                          checked={aceitouTermos}
+                          onChange={(e) => setAceitouTermos(e.target.checked)}
+                          required
+                        />
+                        <span>
+                          Aceito os <Link to="/termos" target="_blank" rel="noopener noreferrer">Termos de Uso</Link> e a <Link to="/privacidade" target="_blank" rel="noopener noreferrer">Política de Privacidade</Link>
+                        </span>
+                      </label>
+                    </fieldset>
+
+                    {erro && (
+                      <div className="cadastro__erro" role="alert">{erro}</div>
+                    )}
+
+                    <div className="cadastro__botoes">
+                      {etapa > 1 && <BotaoSecundario aoClicar={handleVoltar} desabilitado={carregando}>Voltar</BotaoSecundario>}
+                      <BotaoPrimario carregando={carregando} data-testid="cadastro-btn-final">
+                        {carregando ? 'Criando conta...' : 'Criar conta'}
+                      </BotaoPrimario>
+                    </div>
+                  </form>
+
+                  <p className="cadastro__login-link">
+                    Já tem conta? <Link to="/login">Entrar</Link>
+                  </p>
+                </CartaoCorpo>
+              </Cartao>
+            </section>
+          </main>
         </Container>
       </ToastProvider>
     );

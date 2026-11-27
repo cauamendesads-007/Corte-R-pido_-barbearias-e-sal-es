@@ -1,0 +1,516 @@
+/**
+ * Estilos do DashboardBarbeiro
+ * Preserva 100% visual escuro atual, WCAG 2.2 AA
+ */
+
+.dashboard-barbeiro {
+  --cor-fundo: var(--cor-superficie, #1a1a2e);
+  --cor-borda: var(--cor-borda, #2d2d44);
+  --cor-texto: var(--cor-texto, #eaeaea);
+  --cor-texto-secundario: var(--cor-texto-secundario, #a0a0b0);
+  --cor-primaria: var(--cor-primaria, #d4a843);
+  --cor-sucesso: var(--cor-sucesso, #4ade80);
+  --cor-aviso: var(--cor-aviso, #fbbf24);
+  --cor-perigo: var(--cor-perigo, #ef4444);
+  --raio: var(--raio-lg, 16px);
+  --raio-md: var(--raio-md, 12px);
+  --transicao: var(--transicao-media, 250ms cubic-bezier(0.4, 0, 0.2, 1));
+}
+
+.dashboard-barbeiro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-lg, 24px);
+}
+
+/* Header */
+.dashboard-barbeiro__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--espaco-md, 16px);
+  padding: var(--espaco-md, 16px);
+  background: var(--cor-fundo);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+}
+
+.dashboard-barbeiro__header-esquerda {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-md, 16px);
+}
+
+.dashboard-barbeiro__titulo {
+  margin: 0;
+  font-size: var(--tamanho-xl, 24px);
+  font-weight: 700;
+  color: var(--cor-texto);
+}
+
+.dashboard-barbeiro__badge-notificacoes {
+  font-size: var(--tamanho-sm, 14px);
+}
+
+.dashboard-barbeiro__proximo-livre {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-xs, 4px);
+  padding: var(--espaco-sm, 12px) var(--espaco-md, 16px);
+  background: rgba(212, 168, 67, 0.15);
+  border: 1px solid rgba(212, 168, 67, 0.3);
+  border-radius: var(--raio-md);
+  color: var(--cor-primaria);
+  font-size: var(--tamanho-sm, 14px);
+  font-weight: 500;
+}
+
+/* Métricas */
+.dashboard-barbeiro__metricas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--espaco-md, 16px);
+}
+
+.dashboard-barbeiro__cartao-metrica {
+  border: 1px solid var(--cor-borda);
+}
+
+.dashboard-barbeiro__metrica {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-md, 16px);
+}
+
+.dashboard-barbeiro__metrica-icone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--raio-md);
+  background: rgba(255,255,255,0.05);
+  color: var(--cor-texto-secundario);
+}
+
+.dashboard-barbeiro__metrica-icone.sucesso {
+  background: rgba(74, 222, 128, 0.15);
+  color: var(--cor-sucesso);
+}
+
+.dashboard-barbeiro__metrica-icone.aviso {
+  background: rgba(251, 191, 36, 0.15);
+  color: var(--cor-aviso);
+}
+
+.dashboard-barbeiro__metrica-icone.primario {
+  background: rgba(212, 168, 67, 0.15);
+  color: var(--cor-primaria);
+}
+
+.dashboard-barbeiro__metrica-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dashboard-barbeiro__metrica-valor {
+  font-size: var(--tamanho-xl, 24px);
+  font-weight: 700;
+  color: var(--cor-texto);
+  line-height: 1;
+}
+
+.dashboard-barbeiro__metrica-label {
+  font-size: var(--tamanho-sm, 14px);
+  color: var(--cor-texto-secundario);
+}
+
+/* Abas */
+.dashboard-barbeiro__abas {
+  margin-top: var(--espaco-sm, 12px);
+}
+
+/* Seções */
+.dashboard-barbeiro__secao {
+  background: var(--cor-fundo);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  overflow: hidden;
+}
+
+.dashboard-barbeiro__secao-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--espaco-md, 16px);
+  border-bottom: 1px solid var(--cor-borda);
+  flex-wrap: wrap;
+  gap: var(--espaco-md, 16px);
+}
+
+.dashboard-barbeiro__secao-titulo {
+  margin: 0;
+  font-size: var(--tamanho-lg, 18px);
+  font-weight: 600;
+  color: var(--cor-texto);
+}
+
+.dashboard-barbeiro__fila-acoes {
+  display: flex;
+  gap: var(--espaco-sm, 12px);
+}
+
+/* Lista de agendamentos */
+.dashboard-barbeiro__lista-agendamentos {
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-barbeiro__agendamento-item {
+  display: grid;
+  grid-template-columns: 100px 1fr auto;
+  gap: var(--espaco-md, 16px);
+  align-items: center;
+  padding: var(--espaco-md, 16px);
+  border-bottom: 1px solid var(--cor-borda);
+  transition: background var(--transicao-rapida);
+}
+
+.dashboard-barbeiro__agendamento-item:last-child {
+  border-bottom: none;
+}
+
+.dashboard-barbeiro__agendamento-item:hover {
+  background: rgba(255,255,255,0.02);
+}
+
+.dashboard-barbeiro__agendamento-item--compacto {
+  grid-template-columns: 80px 1fr auto;
+  padding: var(--espaco-sm, 12px) var(--espaco-md, 16px);
+}
+
+.dashboard-barbeiro__agendamento-hora {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: right;
+}
+
+.dashboard-barbeiro__horario {
+  font-size: var(--tamanho-lg, 18px);
+  font-weight: 600;
+  color: var(--cor-texto);
+  font-variant-numeric: tabular-nums;
+}
+
+.dashboard-barbeiro__tempo-relativo {
+  font-size: var(--tamanho-xs, 12px);
+  color: var(--cor-texto-secundario);
+}
+
+.dashboard-barbeiro__agendamento-info {
+  min-width: 0;
+}
+
+.dashboard-barbeiro__agendamento-cliente {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-sm, 12px);
+}
+
+.dashboard-barbeiro__cliente-nome {
+  display: block;
+  font-size: var(--tamanho-base, 16px);
+  color: var(--cor-texto);
+}
+
+.dashboard-barbeiro__servico-nome {
+  font-size: var(--tamanho-sm, 14px);
+  color: var(--cor-texto-secundario);
+}
+
+.dashboard-barbeiro__observacoes {
+  margin: var(--espaco-xs, 4px) 0 0 calc(40px + 12px);
+  font-size: var(--tamanho-sm, 14px);
+  color: var(--cor-texto-secundario);
+  font-style: italic;
+}
+
+.dashboard-barbeiro__agendamento-acoes {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--espaco-sm, 12px);
+}
+
+.dashboard-barbeiro__status-chip {
+  white-space: nowrap;
+}
+
+.dashboard-barbeiro__status-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-xs, 4px);
+  max-width: 200px;
+}
+
+.dashboard-barbeiro__status-btn {
+  padding: var(--espaco-xs, 4px) var(--espaco-sm, 8px);
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-sm);
+  color: var(--cor-texto-secundario);
+  font-size: var(--tamanho-xs, 12px);
+  cursor: pointer;
+  transition: all var(--transicao-rapida);
+}
+
+.dashboard-barbeiro__status-btn:hover:not(:disabled) {
+  background: rgba(212, 168, 67, 0.15);
+  border-color: rgba(212, 168, 67, 0.3);
+  color: var(--cor-primaria);
+}
+
+.dashboard-barbeiro__status-btn.ativo {
+  background: rgba(212, 168, 67, 0.2);
+  border-color: var(--cor-primaria);
+  color: var(--cor-primaria);
+  font-weight: 600;
+}
+
+.dashboard-barbeiro__status-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Lista de fila */
+.dashboard-barbeiro__lista-fila {
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-barbeiro__fila-item {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-md, 16px);
+  padding: var(--espaco-md, 16px);
+  border-bottom: 1px solid var(--cor-borda);
+  transition: background var(--transicao-rapida);
+}
+
+.dashboard-barbeiro__fila-item:last-child {
+  border-bottom: none;
+}
+
+.dashboard-barbeiro__fila-item:hover {
+  background: rgba(255,255,255,0.02);
+}
+
+.dashboard-barbeiro__fila-posicao {
+  font-size: var(--tamanho-xl, 24px);
+  font-weight: 700;
+  color: var(--cor-primaria);
+  min-width: 40px;
+  text-align: center;
+}
+
+.dashboard-barbeiro__fila-cliente {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-sm, 12px);
+  flex: 1;
+  min-width: 0;
+}
+
+.dashboard-barbeiro__fila-nome {
+  display: block;
+  font-size: var(--tamanho-base, 16px);
+  color: var(--cor-texto);
+}
+
+.dashboard-barbeiro__fila-servico {
+  font-size: var(--tamanho-sm, 14px);
+  color: var(--cor-texto-secundario);
+}
+
+.dashboard-barbeiro__fila-tempo {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-xs, 4px);
+  font-size: var(--tamanho-sm, 14px);
+  color: var(--cor-texto-secundario);
+}
+
+.dashboard-barbeiro__fila-remover {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: none;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-md);
+  color: var(--cor-texto-secundario);
+  cursor: pointer;
+  transition: all var(--transicao-rapida);
+}
+
+.dashboard-barbeiro__fila-remover:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: var(--cor-perigo);
+  color: var(--cor-perigo);
+}
+
+/* Empty states */
+.dashboard-barbeiro__empty {
+  padding: var(--espaco-xl, 32px);
+}
+
+/* Ações rápidas */
+.dashboard-barbeiro__acoes-rapidas {
+  margin-top: var(--espaco-sm, 12px);
+}
+
+.dashboard-barbeiro__acoes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--espaco-md, 16px);
+}
+
+.dashboard-barbeiro__cartao-acao {
+  cursor: pointer;
+  transition: transform var(--transicao), box-shadow var(--transicao), border-color var(--transicao);
+  border: 1px solid var(--cor-borda);
+}
+
+.dashboard-barbeiro__cartao-acao:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+  border-color: rgba(212, 168, 67, 0.3);
+}
+
+.dashboard-barbeiro__cartao-acao:focus-visible {
+  outline: 2px solid var(--cor-primaria);
+  outline-offset: 2px;
+}
+
+.dashboard-barbeiro__acao-icone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto var(--espaco-md, 16px);
+  background: rgba(212, 168, 67, 0.15);
+  border-radius: var(--raio-md);
+  color: var(--cor-primaria);
+}
+
+.dashboard-barbeiro__acao-titulo {
+  margin: 0 0 var(--espaco-xs, 4px);
+  font-size: var(--tamanho-base, 16px);
+  font-weight: 600;
+  color: var(--cor-texto);
+  text-align: center;
+}
+
+.dashboard-barbeiro__acao-desc {
+  margin: 0;
+  font-size: var(--tamanho-sm, 14px);
+  color: var(--cor-texto-secundario);
+  text-align: center;
+}
+
+/* Skeleton */
+.dashboard-barbeiro__skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-lg, 24px);
+}
+
+.dashboard-barbeiro__header-skeleton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--espaco-md, 16px);
+}
+
+.dashboard-barbeiro__metricas-skeleton {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--espaco-md, 16px);
+}
+
+.dashboard-barbeiro__metrica-skeleton {
+  padding: var(--espaco-md, 16px);
+}
+
+.dashboard-barbeiro__agenda-skeleton {
+  padding: var(--espaco-md, 16px);
+}
+
+.dashboard-barbeiro__agendamento-skeleton {
+  padding: var(--espaco-md, 16px);
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+/* Redução de movimento */
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-barbeiro__cartao-acao,
+  .dashboard-barbeiro__agendamento-item,
+  .dashboard-barbeiro__fila-item,
+  .dashboard-barbeiro__status-btn {
+    transition: none;
+  }
+}
+
+/* Alto contraste */
+@media (prefers-contrast: high) {
+  .dashboard-barbeiro__agendamento-item,
+  .dashboard-barbeiro__fila-item,
+  .dashboard-barbeiro__cartao-acao {
+    border-width: 2px;
+  }
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+  .dashboard-barbeiro__header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .dashboard-barbeiro__metricas {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .dashboard-barbeiro__agendamento-item {
+    grid-template-columns: 80px 1fr;
+    grid-template-rows: auto auto;
+  }
+  .dashboard-barbeiro__agendamento-acoes {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: var(--espaco-sm, 12px);
+    padding-top: var(--espaco-sm, 12px);
+    border-top: 1px solid var(--cor-borda);
+  }
+  .dashboard-barbeiro__acoes-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-barbeiro__metricas {
+    grid-template-columns: 1fr;
+  }
+  .dashboard-barbeiro__acoes-grid {
+    grid-template-columns: 1fr;
+  }
+  .dashboard-barbeiro__fila-acoes {
+    width: 100%;
+    justify-content: space-between;
+  }
+}

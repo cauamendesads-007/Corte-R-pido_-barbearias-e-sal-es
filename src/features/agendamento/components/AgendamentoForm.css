@@ -1,0 +1,455 @@
+/**
+ * Estilos do AgendamentoForm
+ * Preserva 100% visual escuro atual, WCAG 2.2 AA, micro-interações 6 estados
+ */
+
+.agendamento-form {
+  --cor-fundo: var(--cor-superficie, #1a1a2e);
+  --cor-borda: var(--cor-borda, #2d2d44);
+  --cor-texto: var(--cor-texto, #eaeaea);
+  --cor-texto-secundario: var(--cor-texto-secundario, #a0a0b0);
+  --cor-primaria: var(--cor-primaria, #d4a843);
+  --cor-primaria-hover: var(--cor-primaria-hover, #e8c56d);
+  --cor-perigo: var(--cor-perigo, #e85d5d);
+  --cor-sucesso: var(--cor-sucesso, #4ade80);
+  --cor-aviso: var(--cor-aviso, #fbbf24);
+  --raio: var(--raio-md, 12px);
+  --raio-sm: var(--raio-sm, 8px);
+  --sombra: var(--sombra-md, 0 4px 20px rgba(0,0,0,0.3));
+  --transicao: var(--transicao-media, 250ms cubic-bezier(0.4, 0, 0.2, 1));
+  --foco-anel: 0 0 0 3px rgba(212, 168, 67, 0.4);
+}
+
+.agendamento-form__corpo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-lg, 24px);
+}
+
+.agendamento-form__header {
+  text-align: center;
+}
+
+.agendamento-form__titulo {
+  margin: 0 0 var(--espaco-xs, 4px);
+  font-size: var(--tamanho-xl, 20px);
+  font-weight: 700;
+  color: var(--cor-texto);
+}
+
+.agendamento-form__subtitulo {
+  margin: 0;
+  font-size: var(--tamanho-sm, 14px);
+  color: var(--cor-texto-secundario);
+}
+
+.agendamento-form__fieldset {
+  border: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-md, 16px);
+}
+
+.agendamento-form__fieldset legend {
+  font-size: var(--tamanho-sm, 14px);
+  font-weight: 600;
+  color: var(--cor-texto);
+  margin-bottom: var(--espaco-xs, 4px);
+  padding-left: var(--espaco-xs, 4px);
+}
+
+/* Grid de serviços */
+.agendamento-form__servicos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--espaco-sm, 12px);
+}
+
+.agendamento-form__servico-chip {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-sm, 12px);
+  padding: var(--espaco-md, 16px);
+  background: var(--cor-fundo);
+  border: 2px solid var(--cor-borda);
+  border-radius: var(--raio);
+  cursor: pointer;
+  transition: all var(--transicao);
+  position: relative;
+}
+
+.agendamento-form__servico-chip:hover {
+  border-color: var(--cor-primaria);
+  background: rgba(212, 168, 67, 0.08);
+}
+
+.agendamento-form__servico-chip:focus-within {
+  outline: none;
+  box-shadow: var(--foco-anel);
+  border-color: var(--cor-primaria);
+}
+
+.agendamento-form__servico-chip.selecionado {
+  border-color: var(--cor-primaria);
+  background: rgba(212, 168, 67, 0.12);
+}
+
+.agendamento-form__servico-input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.agendamento-form__servico-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.agendamento-form__servico-info strong {
+  font-size: var(--tamanho-base, 16px);
+  color: var(--cor-texto);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.agendamento-form__servico-info span {
+  font-size: var(--tamanho-xs, 12px);
+  color: var(--cor-texto-secundario);
+}
+
+.agendamento-form__aviso {
+  margin: var(--espaco-xs, 4px) 0 0;
+  font-size: var(--tamanho-sm, 14px);
+  color: var(--cor-aviso);
+}
+
+/* Resumo */
+.agendamento-form__resumo {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--espaco-md, 16px);
+  padding: var(--espaco-md, 16px);
+  background: rgba(212, 168, 67, 0.06);
+  border: 1px solid rgba(212, 168, 67, 0.2);
+  border-radius: var(--raio);
+}
+
+.agendamento-form__resumo-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  text-align: center;
+}
+
+.agendamento-form__resumo-item span {
+  font-size: var(--tamanho-xs, 12px);
+  color: var(--cor-texto-secundario);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.agendamento-form__resumo-item strong {
+  font-size: var(--tamanho-base, 16px);
+  color: var(--cor-texto);
+}
+
+.agendamento-form__resumo-item.destaque {
+  grid-column: span 3;
+}
+
+.agendamento-form__resumo-item.destaque strong {
+  font-size: var(--tamanho-lg, 18px);
+  color: var(--cor-primaria);
+}
+
+/* Horários */
+.agendamento-form__horario-label {
+  display: block;
+  font-size: var(--tamanho-sm, 14px);
+  font-weight: 500;
+  color: var(--cor-texto);
+  margin-bottom: var(--espaco-sm, 12px);
+}
+
+.agendamento-form__horarios-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  gap: var(--espaco-sm, 8px);
+}
+
+.agendamento-form__horario-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: var(--espaco-xs, 8px) var(--espaco-sm, 12px);
+  font-size: var(--tamanho-sm, 14px);
+  font-weight: 600;
+  color: var(--cor-texto);
+  background: var(--cor-fundo);
+  border: 2px solid var(--cor-borda);
+  border-radius: var(--raio-sm);
+  cursor: pointer;
+  transition: all var(--transicao-rapida, 150ms);
+}
+
+.agendamento-form__horario-btn:hover:not(:disabled) {
+  border-color: var(--cor-primaria);
+  background: rgba(212, 168, 67, 0.08);
+}
+
+.agendamento-form__horario-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--foco-anel);
+  border-color: var(--cor-primaria);
+}
+
+.agendamento-form__horario-btn.selecionado {
+  background: var(--cor-primaria);
+  border-color: var(--cor-primaria);
+  color: #0f0f1a;
+}
+
+.agendamento-form__horario-btn.indisponivel {
+  opacity: 0.4;
+  cursor: not-allowed;
+  color: var(--cor-texto-secundario);
+}
+
+.agendamento-form__horarios-skeleton {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  gap: var(--espaco-sm, 8px);
+}
+
+.agendamento-form__sem-horarios {
+  margin: 0;
+  font-size: var(--tamanho-sm, 14px);
+  color: var(--cor-texto-secundario);
+  text-align: center;
+  padding: var(--espaco-md, 16px);
+}
+
+/* Forma de pagamento */
+.agendamento-form__pagamento-opcoes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-sm, 12px);
+}
+
+.agendamento-form__pagamento-opcao {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-md, 16px);
+  padding: var(--espaco-md, 16px);
+  background: var(--cor-fundo);
+  border: 2px solid var(--cor-borda);
+  border-radius: var(--raio);
+  cursor: pointer;
+  transition: all var(--transicao);
+}
+
+.agendamento-form__pagamento-opcao:hover {
+  border-color: var(--cor-primaria);
+  background: rgba(212, 168, 67, 0.08);
+}
+
+.agendamento-form__pagamento-opcao:focus-within {
+  outline: none;
+  box-shadow: var(--foco-anel);
+  border-color: var(--cor-primaria);
+}
+
+.agendamento-form__pagamento-opcao.selecionada {
+  border-color: var(--cor-primaria);
+  background: rgba(212, 168, 67, 0.12);
+}
+
+.agendamento-form__pagamento-opcao input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.agendamento-form__pagamento-info {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-md, 16px);
+  flex: 1;
+}
+
+.agendamento-form__pagamento-info > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.agendamento-form__pagamento-info strong {
+  font-size: var(--tamanho-base, 16px);
+  color: var(--cor-texto);
+}
+
+.agendamento-form__pagamento-info span {
+  font-size: var(--tamanho-sm, 14px);
+  color: var(--cor-texto-secundario);
+}
+
+/* Erro */
+.agendamento-form__erro {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-sm, 8px);
+  padding: var(--espaco-sm, 12px) var(--espaco-md, 16px);
+  background: rgba(232, 93, 93, 0.12);
+  border: 1px solid rgba(232, 93, 93, 0.3);
+  border-radius: var(--raio-sm);
+  font-size: var(--tamanho-sm, 14px);
+  color: var(--cor-perigo);
+}
+
+/* Ações */
+.agendamento-form__acoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--espaco-md, 16px);
+  padding-top: var(--espaco-sm, 8px);
+  margin-top: var(--espaco-sm, 8px);
+  border-top: 1px solid var(--cor-borda);
+}
+
+/* Skeleton loading */
+.agendamento-form__skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-md, 16px);
+}
+
+/* Responsivo */
+@media (max-width: 640px) {
+  .agendamento-form__servicos-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .agendamento-form__resumo {
+    grid-template-columns: 1fr;
+  }
+
+  .agendamento-form__resumo-item.destaque {
+    grid-column: auto;
+  }
+
+  .agendamento-form__horarios-grid {
+    grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+  }
+
+  .agendamento-form__acoes {
+    flex-direction: column-reverse;
+  }
+
+  .agendamento-form__acoes > * {
+    width: 100%;
+  }
+}
+
+/* Redução de movimento */
+@media (prefers-reduced-motion: reduce) {
+  .agendamento-form__servico-chip,
+  .agendamento-form__horario-btn,
+  .agendamento-form__pagamento-opcao {
+    transition: none;
+  }
+}
+
+/* Alto contraste */
+@media (prefers-contrast: high) {
+  .agendamento-form__servico-chip.selecionado,
+  .agendamento-form__pagamento-opcao.selecionada {
+    border-width: 3px;
+  }
+
+  .agendamento-form__horario-btn.selecionado {
+    border-width: 3px;
+  }
+}
+
+/* Campo Data (native date input) */
+.campo-data {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-xs, 4px);
+}
+
+.campo-data__label {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-xs, 4px);
+  font-size: var(--tamanho-sm, 14px);
+  font-weight: 500;
+  color: var(--cor-texto);
+}
+
+.campo-data__obrigatorio {
+  color: var(--cor-aviso);
+  font-size: var(--tamanho-base, 16px);
+  line-height: 1;
+}
+
+.campo-data__input {
+  width: 100%;
+  min-height: 44px;
+  padding: var(--espaco-sm, 12px) var(--espaco-md, 16px);
+  font-size: var(--tamanho-base, 16px);
+  font-family: inherit;
+  color: var(--cor-texto);
+  background: var(--cor-fundo);
+  border: 2px solid var(--cor-borda);
+  border-radius: var(--raio-sm);
+  transition: all var(--transicao-rapida, 150ms);
+}
+
+.campo-data__input:hover {
+  border-color: var(--cor-primaria);
+}
+
+.campo-data__input:focus {
+  outline: none;
+  border-color: var(--cor-primaria);
+  box-shadow: var(--foco-anel);
+}
+
+.campo-data__input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.campo-data__input::-webkit-calendar-picker-indicator {
+  filter: invert(0.8);
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity var(--transicao-rapida);
+}
+
+.campo-data__input::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+/* Redução de movimento */
+@media (prefers-reduced-motion: reduce) {
+  .campo-data__input {
+    transition: none;
+  }
+}
+
+/* Alto contraste */
+@media (prefers-contrast: high) {
+  .campo-data__input:focus {
+    border-width: 3px;
+  }
+}
