@@ -1,0 +1,134 @@
+/**
+ * ErrorBoundary - Estilos para o componente de captura de erros
+ */
+
+.error-boundary {
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--espaco-8) var(--espaco-4);
+}
+
+.error-boundary__conteudo {
+  text-align: center;
+  max-width: 480px;
+  background: var(--cor-superficie);
+  border-radius: var(--radius-lg);
+  padding: var(--espaco-8);
+  box-shadow: var(--sombra-lg);
+  border: 1px solid var(--cor-borda);
+}
+
+.error-boundary__icone {
+  font-size: 48px;
+  color: var(--cor-alerta);
+  margin-bottom: var(--espaco-4);
+}
+
+.error-boundary__mensagem {
+  color: var(--cor-texto-secundario);
+  margin: var(--espaco-4) 0;
+  line-height: 1.6;
+}
+
+.error-boundary__detalhes {
+  text-align: left;
+  background: var(--cor-fundo);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--radius-md);
+  padding: var(--espaco-4);
+  margin: var(--espaco-4) 0;
+  font-size: 0.85rem;
+}
+
+.error-boundary__detalhes summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--cor-texto-secundario);
+  margin-bottom: var(--espaco-2);
+}
+
+.error-boundary__stack {
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--cor-texto);
+  font-family: var(--fonte-mono);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.error-boundary__acoes {
+  display: flex;
+  gap: var(--espaco-3);
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: var(--espaco-6);
+}
+
+.error-boundary__link {
+  background: none;
+  border: none;
+  color: var(--cor-primaria);
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: var(--espaco-2) var(--espaco-4);
+}
+
+.error-boundary__link:hover {
+  color: var(--cor-primaria-hover);
+}
+
+/* Rota Error Boundary (usado em App.tsx) */
+.rota-error-boundary {
+  min-height: 50vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--espaco-8) var(--espaco-4);
+}
+
+.rota-error-boundary__conteudo {
+  text-align: center;
+  max-width: 480px;
+  background: var(--cor-superficie);
+  border-radius: var(--radius-lg);
+  padding: var(--espaco-8);
+  box-shadow: var(--sombra-lg);
+  border: 1px solid var(--cor-borda);
+}
+
+.rota-error-boundary__conteudo p {
+  color: var(--cor-texto-secundario);
+  margin: var(--espaco-4) 0;
+}
+
+.rota-error-boundary__conteudo details {
+  text-align: left;
+  background: var(--cor-fundo);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--radius-md);
+  padding: var(--espaco-4);
+  margin: var(--espaco-4) 0;
+  font-size: 0.85rem;
+}
+
+.rota-error-boundary__conteudo summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--cor-texto-secundario);
+  margin-bottom: var(--espaco-2);
+}
+
+.rota-error-boundary__conteudo pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--cor-texto);
+  font-family: var(--fonte-mono);
+  font-size: 0.8rem;
+}
+
+.rota-error-boundary__conteudo .botao {
+  margin: var(--espaco-2);
+}

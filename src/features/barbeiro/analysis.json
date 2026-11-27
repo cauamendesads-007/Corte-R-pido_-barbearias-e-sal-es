@@ -1,0 +1,450 @@
+{
+  "domainModels": {
+    "AbaPainelBarbeiro": {
+      "type": "union",
+      "values": ["visao", "agenda", "servicos", "fila", "galeria", "configuracoes"],
+      "description": "Tabs available in the barber panel"
+    },
+    "Servico": {
+      "type": "interface",
+      "fields": {
+        "id": "string",
+        "nome": "string",
+        "preco": "number",
+        "duracaoMinutos": "number",
+        "tag": "ServicoTag",
+        "descricao": "string"
+      },
+      "description": "Service offered by the establishment"
+    },
+    "MetricasBarbeiro": {
+      "type": "interface",
+      "fields": {
+        "agendamentosHoje": "number",
+        "confirmados": "number",
+        "pendentes": "number",
+        "filaAtual": "number"
+      },
+      "description": "Dashboard metrics for the barber panel"
+    },
+    "ConfiguracaoEstabelecimento": {
+      "type": "interface",
+      "fields": {
+        "nome": "string",
+        "telefone": "string",
+        "descricao": "string",
+        "endereco": "string",
+        "cidade": "string"
+      },
+      "description": "Establishment configuration data"
+    },
+    "TemaOpcao": {
+      "type": "interface",
+      "fields": {
+        "cor": "string",
+        "ativo": "boolean"
+      },
+      "description": "Theme color option"
+    },
+    "ServicoTag": {
+      "type": "union",
+      "values": ["Corte", "Barba", "Combo", "Estética", "Tratamento", "Outro"],
+      "description": "Service category tags"
+    },
+    "AbaConfig": {
+      "type": "interface",
+      "fields": {
+        "id": "AbaPainelBarbeiro",
+        "contador": "number (optional)"
+      },
+      "description": "Tab configuration with optional badge counter"
+    }
+  },
+  "businessRules": {
+    "validationRules": {
+      "servico": {
+        "nome": "required, min 2 chars, max 60 chars",
+        "preco": "required, number, min 1, max 1000",
+        "duracaoMinutos": "required, number, min 5, max 240, step 5",
+        "tag": "required, must be one of SERVICO_TAGS",
+        "descricao": "optional, string"
+      },
+      "agendamentoStatusTransitions": {
+        "agendado": "initial state",
+        "confirmado": "can transition from agendado",
+        "concluido": "can transition from confirmado or via definirHorarioReal",
+        "cancelado": "can transition from any state",
+        "nao_compareceu": "no-show state"
+      },
+      "statusPagamento": {
+        "no_local": "pay at venue",
+        "aguardando_pix": "waiting for Pix payment",
+        "pago": "payment confirmed"
+      },
+      "filaRules": {
+        "include": "agendamentos where status not in ['cancelado', 'concluido']",
+        "sort": "by horario ascending",
+        "confirmados": "count where statusPagamento === 'pago' AND status not in ['cancelado', 'concluido']",
+        "aguardando": "total fila - confirmados"
+      }
+    },
+    "dashboardMetricsCalculation": {
+      "agendamentosHoje": "filter agendamentos by dia === today AND status !== 'cancelado'",
+      "confirmados": "filter agendamentosHoje by statusPagamento === 'pago'",
+      "pendentes": "filter agendamentosHoje by statusPagamento in ['aguardando_pix', 'no_local']",
+      "filaAtual": "filter agendamentosHoje by status not in ['cancelado', 'concluido']"
+    },
+    "faturamentoCalculation": {
+      "mesAtual": "filter agendamentos by date in current month AND statusPagamento === 'pago', sum valorTotal",
+      "total": "filter all agendamentos by statusPagamento === 'pago', sum valorTotal",
+      "ticketMedio": "faturamentoTotal / agendamentosConcluidos (if > 0)"
+    }
+  },
+  "serviceContracts": {
+    "IBarbeiroService": {
+      "methods": {
+        "obterDashboard": {
+          "returns": "Promise<ResultadoServico<{ agendamentosHoje, proximosAgendamentos, filaAtual, faturamentoMes }>>",
+          "description": "Get dashboard summary data"
+        },
+        "obterEstatisticas": {
+          "returns": "Promise<ResultadoServico<{ totalAgendamentos, agendamentosConfirmados, agendamentosCancelados, agendamentosConcluidos, faturamentoTotal, ticketMedio, servicosMaisPopulares, avaliacaoMedia }>>",
+          "description": "Get detailed statistics"
+        },
+        "listarAgendamentos": {
+          "params": "estabelecimentoId: string, filtros?: { status?: StatusPagamento, dataInicio?: string, dataFim?: string }",
+          "returns": "Promise<ResultadoServico<Agendamento[]>>",
+          "description": "List appointments with optional filters"
+        },
+        "atualizarStatus": {
+          "params": "agendamentoId: string, status: StatusPagamento",
+          "returns": "Promise<ResultadoServico<void>>",
+          "description": "Update payment status"
+        },
+        "cancelar": {
+          "params": "agendamentoId: string",
+          "returns": "Promise<ResultadoServico<void>>",
+          "description": "Cancel appointment"
+        },
+        "definirHorarioReal": {
+          "params": "agendamentoId: string, horarioReal: string",
+          "returns": "Promise<ResultadoServico<void>>",
+          "description": "Set actual service time and mark as completed"
+        },
+        "listarServicos": {
+          "params": "estabelecimentoId: string",
+          "returns": "Promise<ResultadoServico<Servico[]>>",
+          "description": "List establishment services"
+        },
+        "criarServico": {
+          "params": "estabelecimentoId: string, servico: Omit<Servico, 'id'>",
+          "returns": "Promise<ResultadoServico<Servico>>",
+          "description": "Create new service"
+        },
+        "atualizarServico": {
+          "params": "estabelecimentoId: string, servicoId: string, dados: Partial<Servico>",
+          "returns": "Promise<ResultadoServico<Servico>>",
+          "description": "Update service"
+        },
+        "excluirServico": {
+          "params": "estabelecimentoId: string, servicoId: string",
+          "returns": "Promise<ResultadoServico<void>>",
+          "description": "Delete service"
+        },
+        "listarGaleria": {
+          "params": "estabelecimentoId: string",
+          "returns": "Promise<ResultadoServico<ItemGaleria[]>>",
+          "description": "List gallery items"
+        },
+        "adicionarGaleria": {
+          "params": "estabelecimentoId: string, item: Omit<ItemGaleria, 'id'>",
+          "returns": "Promise<ResultadoServico<ItemGaleria>>",
+          "description": "Add gallery item"
+        },
+        "removerGaleria": {
+          "params": "estabelecimentoId: string, itemId: string",
+          "returns": "Promise<ResultadoServico<void>>",
+          "description": "Remove gallery item"
+        },
+        "obterEstabelecimento": {
+          "params": "id: string",
+          "returns": "Promise<ResultadoServico<Estabelecimento | null>>",
+          "description": "Get establishment details"
+        },
+        "atualizarEstabelecimento": {
+          "params": "id: string, dados: Partial<Estabelecimento>",
+          "returns": "Promise<ResultadoServico<Estabelecimento>>",
+          "description": "Update establishment info"
+        },
+        "atualizarConfiguracaoPix": {
+          "params": "id: string, config: ConfiguracaoPix",
+          "returns": "Promise<ResultadoServico<ConfiguracaoPix>>",
+          "description": "Update Pix configuration"
+        },
+        "atualizarMensagensAutomaticas": {
+          "params": "id: string, mensagens: Record<string, unknown>",
+          "returns": "Promise<ResultadoServico<Record<string, unknown>>>",
+          "description": "Update automatic WhatsApp messages"
+        },
+        "atualizarTema": {
+          "params": "id: string, tema: { cor?: string, layout?: string, titulo?: string, subtitulo?: string }",
+          "returns": "Promise<ResultadoServico<Estabelecimento>>",
+          "description": "Update visual theme"
+        },
+        "atualizarHorarioFuncionamento": {
+          "params": "id: string, horario: string",
+          "returns": "Promise<ResultadoServico<Estabelecimento>>",
+          "description": "Update business hours"
+        },
+        "definirAutoEdicao": {
+          "params": "id: string, permitido: boolean",
+          "returns": "Promise<ResultadoServico<void>>",
+          "description": "Enable/disable auto-editing"
+        }
+      }
+    },
+    "BarbeiroServiceMock": {
+      "description": "Mock implementation of IBarbeiroService using global state",
+      "keyBehaviors": [
+        "Simulates network latency via simularLatencia()",
+        "Simulates random errors via simularErroAleatorio()",
+        "Persists state changes via persistirEstado()",
+        "Uses global estadoGlobal for data storage",
+        "Generates IDs via gerarId()",
+        "Returns ResultadoServico wrapper with sucesso/falha helpers"
+      ],
+      "dataSources": {
+        "agendamentos": "estadoGlobal.agendamentos (Record<string, Agendamento[]>)",
+        "estabelecimentos": "estadoGlobal.estabelecimentos (Estabelecimento[])",
+        "servicos": "nested in estabelecimento.servicos",
+        "galeria": "nested in estabelecimento.galeria",
+        "fila": "nested in estabelecimento.fila"
+      }
+    },
+    "useAgendamentosBarbeiro": {
+      "description": "Hook for managing barber appointments with filters",
+      "returns": {
+        "agendamentos": "Agendamento[]",
+        "carregando": "boolean",
+        "erro": "string | null",
+        "filtros": "{ status?: StatusPagamento, dataInicio?: string, dataFim?: string }",
+        "setFiltros": "function",
+        "recarregar": "function",
+        "atualizarStatus": "function",
+        "cancelar": "function",
+        "definirHorarioReal": "function",
+        "limparErro": "function"
+      },
+      "filterLogic": {
+        "status": "filter by statusPagamento",
+        "dataInicio": "filter by dia >= dataInicio",
+        "dataFim": "filter by dia <= dataFim",
+        "sort": "by dia + horario ascending"
+      }
+    }
+  },
+  "uiComponents": {
+    "PainelBarbeiro": {
+      "description": "Main dashboard component composing all sub-panels",
+      "props": "none (self-contained)",
+      "state": {
+        "abaAtiva": "AbaPainelBarbeiro (default: 'visao')",
+        "servicos": "Servico[] (local state with 4 default services)"
+      },
+      "hooks": ["useAuth", "useAgendamentosBarbeiro", "useGlobalToast"],
+      "dataFlow": {
+        "agendamentos": "from useAgendamentosBarbeiro hook",
+        "metricas": "computed from agendamentos (hoje, confirmados, pendentes, fila)",
+        "abasConfig": "computed with counters for each tab",
+        "servicos": "local state with CRUD handlers"
+      },
+      "childComponents": [
+        "MetricasBarbeiro",
+        "AbasPainelBarbeiro",
+        "PainelAgendaBarbeiro",
+        "PainelServicosBarbeiro",
+        "PainelFilaBarbeiro",
+        "PainelGaleriaBarbeiro",
+        "PainelConfiguracoesBarbeiro"
+      ],
+      "accessControl": "requires usuario.papel === 'barbeiro'"
+    },
+    "MetricasBarbeiro": {
+      "description": "Displays 4 metric cards in a grid",
+      "props": {
+        "metricas": "MetricasBarbeiro (required)"
+      },
+      "metrics": [
+        { "label": "Agendamentos hoje", "icone": "📅", "cor": "primaria" },
+        { "label": "Confirmados", "icone": "✅", "cor": "sucesso" },
+        { "label": "Pendentes", "icone": "⏳", "cor": "aviso" },
+        { "label": "Na fila agora", "icone": "👥", "cor": "primaria" }
+      ]
+    },
+    "AbasPainelBarbeiro": {
+      "description": "Tab navigation with icons, labels, and badge counters",
+      "props": {
+        "abaAtiva": "AbaPainelBarbeiro (required)",
+        "onMudarAba": "(aba: AbaPainelBarbeiro) => void (required)",
+        "abas": "AbaConfig[] (required)"
+      },
+      "iconMapping": {
+        "visao": "ICONES.painel",
+        "agenda": "ICONES.calendario",
+        "servicos": "ICONES.tesoura",
+        "fila": "ICONES.fila",
+        "galeria": "ICONES.foto",
+        "configuracoes": "ICONES.configuracoes"
+      }
+    },
+    "PainelAgendaBarbeiro": {
+      "description": "Appointment list with filters (status, date range)",
+      "props": {
+        "agendamentos": "Agendamento[] (required)",
+        "carregando": "boolean (required)",
+        "filtros": "{ status?, dataInicio?, dataFim? } (required)",
+        "onFiltroChange": "function (required)",
+        "onCancelar": "(id: string) => void (required)",
+        "onVerTodos": "function (optional)"
+      },
+      "statusOptions": [
+        { "valor": "", "rotulo": "Todos os status" },
+        { "valor": "no_local", "rotulo": "Pagar no local" },
+        { "valor": "aguardando_pix", "rotulo": "Aguardando Pix" },
+        { "valor": "pago", "rotulo": "Confirmado" }
+      ]
+    },
+    "PainelServicosBarbeiro": {
+      "description": "Service management with CRUD modal",
+      "props": {
+        "servicos": "Servico[] (required)",
+        "onAdicionar": "(servico: Omit<Servico, 'id'>) => void (required)",
+        "onAtualizar": "(servico: Servico) => void (required)",
+        "onExcluir": "(id: string) => void (required)"
+      },
+      "validation": {
+        "nome": "required",
+        "preco": "required, > 0",
+        "duracaoMinutos": "required, > 0",
+        "tag": "required, one of SERVICO_TAGS"
+      },
+      "modalFields": [
+        "nome (CampoTexto, required)",
+        "preco (CampoNumero, min=1, max=1000, step=1, required)",
+        "duracaoMinutos (CampoNumero, min=5, max=240, step=5, required)",
+        "tag (Select, options=SERVICO_TAGS)",
+        "descricao (Textarea, 3 lines)"
+      ]
+    },
+    "PainelFilaBarbeiro": {
+      "description": "Today's queue management with stats",
+      "props": {
+        "agendamentosHoje": "Agendamento[] (required)",
+        "onCancelar": "(id: string) => void (required)"
+      },
+      "stats": [
+        "Clientes na fila (total agendamentos not cancelled/completed)",
+        "Aguardando (total - confirmados)",
+        "Em atendimento (confirmados with statusPagamento === 'pago')"
+      ],
+      "queueSorting": "by horario ascending"
+    },
+    "PainelGaleriaBarbeiro": {
+      "description": "Gallery placeholder (not yet implemented)",
+      "props": "none",
+      "features": ["Add photo/video button (placeholder)", "Empty state with icon"]
+    },
+    "PainelConfiguracoesBarbeiro": {
+      "description": "Establishment settings (partially implemented)",
+      "props": {
+        "usuario": "{ nome?, whatsapp?, avatar? } (required)"
+      },
+      "sections": [
+        "Informações do estabelecimento (nome, telefone, descrição, endereço, cidade)",
+        "Horário de funcionamento (placeholder)",
+        "Tema visual (6 color options, click handlers not wired)"
+      ],
+      "themeColors": ["#e11d48", "#0ea5e9", "#22c55e", "#f59e0b", "#a855f7", "#ec4899"]
+    }
+  },
+  "constants": {
+    "ABA_PAINEL_BARBEIRO_LABELS": {
+      "visao": "Visão geral",
+      "agenda": "Agenda",
+      "servicos": "Serviços",
+      "fila": "Fila",
+      "galeria": "Galeria",
+      "configuracoes": "Configurações"
+    },
+    "ABA_PAINEL_BARBEIRO_ICONES": {
+      "visao": "📊",
+      "agenda": "📅",
+      "servicos": "✂️",
+      "fila": "👥",
+      "galeria": "📸",
+      "configuracoes": "⚙️"
+    },
+    "SERVICO_TAGS": ["Corte", "Barba", "Combo", "Estética", "Tratamento", "Outro"],
+    "TAG_OPCOES": "SERVICO_TAGS mapped to { valor, rotulo }",
+    "STATUS_OPTIONS": [
+      { "valor": "", "rotulo": "Todos os status" },
+      { "valor": "no_local", "rotulo": "Pagar no local" },
+      { "valor": "aguardando_pix", "rotulo": "Aguardando Pix" },
+      { "valor": "pago", "rotulo": "Confirmado" }
+    ],
+    "STATUS_LABELS": {
+      "no_local": "💰 No local",
+      "aguardando_pix": "⏳ Aguardando Pix",
+      "pago": "✓ Pago"
+    },
+    "TEMA_CORES": ["#e11d48", "#0ea5e9", "#22c55e", "#f59e0b", "#a855f7", "#ec4899"],
+    "LIMITES": {
+      "precoMinimo": 0,
+      "precoMaximo": 10000,
+      "duracaoMinima": 5,
+      "duracaoMaxima": 480,
+      "nomeMinimo": 2,
+      "nomeMaximo": 60
+    }
+  },
+  "edgeCases": {
+    "accessControl": {
+      "description": "PainelBarbeiro returns 'Acesso restrito' if usuario is null or papel !== 'barbeiro'",
+      "fallback": "Shows restricted access message with test-id 'painel-acesso-negado'"
+    },
+    "emptyStates": {
+      "agenda": "Shows 'Nenhum agendamento' with context-aware message",
+      "servicos": "Shows 'Nenhum serviço cadastrado' with CTA to create first service",
+      "fila": "Shows 'Fila vazia' when no appointments in queue",
+      "galeria": "Shows 'Galeria vazia' with CTA to add photos"
+    },
+    "loadingStates": {
+      "agenda": "Shows 5 Skeleton text lines while carregando",
+      "metrics": "Computed from agendamentos array, no separate loading state"
+    },
+    "serviceValidation": {
+      "createService": "Alerts 'Preencha todos os campos obrigatórios' if nome/preco/duracao missing",
+      "priceValidation": "CampoNumero enforces min=1, max=1000",
+      "durationValidation": "CampoNumero enforces min=5, max=240, step=5"
+    },
+    "errorHandling": {
+      "serviceMock": "simularErroAleatorio() can randomly fail requests",
+      "hooks": "Catch blocks return { sucesso: false, erro: 'Erro de conexão...' }",
+      "notFound": "Service methods return falha('X não encontrado') for missing entities"
+    },
+    "dataPersistence": {
+      "mockService": "All mutations call persistirEstado() after state changes",
+      "stateRebuild": "After agendamento updates, entire estadoGlobal.agendamentos Record is rebuilt"
+    },
+    "filterEdgeCases": {
+      "statusFilter": "Empty string '' means no filter (all statuses)",
+      "dateFilters": "ISO string comparison (YYYY-MM-DD) for dataInicio/dataFim",
+      "combinedFilters": "All filters applied in sequence (AND logic)"
+    },
+    "filaCalculation": {
+      "confirmados": "Only counts agendamentos with statusPagamento === 'pago' AND status not cancelled/completed",
+      "aguardando": "Derived: total fila - confirmados (can be 0 or negative, clamped with Math.max)",
+      "sorting": "By horario string comparison (localeCompare)"
+    }
+  }
+}

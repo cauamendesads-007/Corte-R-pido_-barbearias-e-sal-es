@@ -1,0 +1,542 @@
+{
+  "tables": [
+    {
+      "name": "estabelecimentos",
+      "description": "Barbearias, salões e estabelecimentos de beleza cadastrados na plataforma",
+      "columns": [
+        { "name": "id", "type": "uuid", "primary_key": true, "description": "Identificador único (slug normalizado)" },
+        { "name": "slug", "type": "varchar(100)", "unique": true, "not_null": true, "description": "Slug URL amigável derivado do nome" },
+        { "name": "nome", "type": "varchar(100)", "not_null": true, "description": "Nome comercial do estabelecimento" },
+        { "name": "responsavel", "type": "varchar(100)", "not_null": true, "description": "Nome do proprietário/responsável" },
+        { "name": "cidade", "type": "varchar(100)", "not_null": true, "description": "Cidade onde está localizado" },
+        { "name": "nicho", "type": "nicho_estabelecimento_enum", "not_null": true, "description": "Categoria: barbearia, feminino, visagismo, infantil" },
+        { "name": "avaliacao", "type": "decimal(3,2)", "default": "0", "description": "Média de avaliações (0-5)" },
+        { "name": "status", "type": "status_estabelecimento_enum", "not_null": true, "default": "'pendente'", "description": "Aprovação: aprovado, pendente, rejeitado" },
+        { "name": "latitude", "type": "decimal(10,8)", "not_null": true, "description": "Latitude para geolocalização" },
+        { "name": "longitude", "type": "decimal(11,8)", "not_null": true, "description": "Longitude para geolocalização" },
+        { "name": "whatsapp", "type": "varchar(20)", "not_null": true, "description": "WhatsApp para contato (formato: DDD 9xxxx-xxxx)" },
+        { "name": "endereco", "type": "varchar(200)", "not_null": true, "description": "Endereço completo" },
+        { "name": "cep", "type": "varchar(10)", "description": "CEP (apenas no onboarding)" },
+        { "name": "sobre", "type": "text", "description": "Descrição/about do estabelecimento" },
+        { "name": "tema_cor", "type": "varchar(7)", "not_null": true, "description": "Cor principal do tema (hex)" },
+        { "name": "tema_layout", "type": "tipo_layout_enum", "not_null": true, "default": "'classico'", "description": "Layout: classico ou moderno" },
+        { "name": "tema_titulo", "type": "varchar(100)", "description": "Título personalizado da página" },
+        { "name": "tema_subtitulo", "type": "varchar(200)", "description": "Subtítulo personalizado da página" },
+        { "name": "horario_funcionamento", "type": "varchar(50)", "not_null": true, "description": "Horário (ex: '09:00-18:00' ou 'Seg a Sáb, 9h às 18h')" },
+        { "name": "permite_auto_edicao", "type": "boolean", "default": "false", "description": "Se barbeiro pode editar própria página" },
+        { "name": "pix_modo", "type": "pix_modo_enum", "not_null": true, "default": "'desativado'", "description": "Modo Pix: desativado, opcional, obrigatorio" },
+        { "name": "pix_chave", "type": "varchar(100)", "description": "Chave Pix para recebimento" },
+        { "name": "pix_percentual_sinal", "type": "integer", "default": "30", "description": "Percentual de sinal (10-100)" },
+        { "name": "tempo_medio_atendimento", "type": "integer", "default": "20", "description": "Tempo médio em minutos para cálculo de fila" },
+        { "name": "seguidores", "type": "integer", "default": "0", "description": "Contagem de seguidores" },
+        { "name": "taxa_fidelidade", "type": "decimal(5,2)", "default": "0", "description": "Taxa de fidelidade/desconto" },
+        { "name": "plano_id", "type": "varchar(50)", "description": "FK para plano_assinatura (essencial, profissional, premium)" },
+        { "name": "assinatura_inicio", "type": "date", "description": "Início do contrato atual" },
+        { "name": "assinatura_vencimento", "type": "date", "description": "Vencimento do contrato atual" },
+        { "name": "assinatura_desconto_tipo", "type": "desconto_tipo_enum", "description": "Tipo de desconto: percentual, valor_fixo" },
+        { "name": "assinatura_desconto_valor", "type": "decimal(10,2)", "description": "Valor do desconto" },
+        { "name": "assinatura_desconto_motivo", "type": "varchar(200)", "description": "Motivo do desconto" },
+        { "name": "created_at", "type": "timestamp", "not_null": true, "default": "now()" },
+        { "name": "updated_at", "type": "timestamp", "not_null": true, "default": "now()" }
+      ],
+      "indexes": [
+        { "name": "idx_estabelecimentos_status_nicho", "columns": ["status", "nicho"], "description": "Filtro marketplace por status e nicho" },
+        { "name": "idx_estabelecimentos_cidade", "columns": ["cidade"], "description": "Busca por cidade" },
+        { "name": "idx_estabelecimentos_slug", "columns": ["slug"], "unique": true, "description": "Busca por slug (página pública)" },
+        { "name": "idx_estabelecimentos_geo", "columns": ["latitude", "longitude"], "type": "gist", "description": "Busca por proximidade (PostGIS)" },
+        { "name": "idx_estabelecimentos_avaliacao", "columns": ["avaliacao"], "description": "Ordenação por avaliação" },
+        { "name": "idx_estabelecimentos_plano", "columns": ["plano_id"], "description": "Filtro por plano" }
+      ]
+    },
+    {
+      "name": "usuarios",
+      "description": "Usuários do sistema (clientes, barbeiros, admins)",
+      "columns": [
+        { "name": "id", "type": "uuid", "primary_key": true },
+        { "name": "email", "type": "varchar(255)", "unique": true, "not_null": true },
+        { "name": "senha_hash", "type": "varchar(255)", "not_null": true, "description": "Hash bcrypt/argon2" },
+        { "name": "papel", "type": "papel_usuario_enum", "not_null": true, "description": "cliente, barbeiro, admin" },
+        { "name": "nome", "type": "varchar(100)", "description": "Nome completo" },
+        { "name": "bio", "type": "varchar(160)", "description": "Bio do perfil" },
+        { "name": "whatsapp", "type": "varchar(20)", "description": "WhatsApp pessoal" },
+        { "name": "cidade", "type": "varchar(100)", "description": "Cidade do usuário" },
+        { "name": "avatar_url", "type": "varchar(500)", "description": "URL do avatar (storage bucket)" },
+        { "name": "estabelecimento_id", "type": "uuid", "description": "FK para estabelecimentos (apenas barbeiros)" },
+        { "name": "confirmado", "type": "boolean", "default": "false", "description": "E-mail confirmado" },
+        { "name": "lembretes_whatsapp", "type": "boolean", "default": "true", "description": "Receber lembretes via WhatsApp" },
+        { "name": "tema", "type": "tema_enum", "default": "'sistema'", "description": "claro, escuro, sistema" },
+        { "name": "fonte_grande", "type": "boolean", "default": "false", "description": "Acessibilidade: fonte grande" },
+        { "name": "reduzir_animacoes", "type": "boolean", "default": "false", "description": "Acessibilidade: reduzir animações" },
+        { "name": "perfil_publico", "type": "boolean", "default": "true", "description": "Privacidade: perfil público" },
+        { "name": "mostrar_avaliacoes", "type": "boolean", "default": "true", "description": "Privacidade: mostrar avaliações" },
+        { "name": "historico_visivel", "type": "boolean", "default": "true", "description": "Privacidade: histórico visível" },
+        { "name": "created_at", "type": "timestamp", "not_null": true, "default": "now()" },
+        { "name": "updated_at", "type": "timestamp", "not_null": true, "default": "now()" }
+      ],
+      "indexes": [
+        { "name": "idx_usuarios_email", "columns": ["email"], "unique": true },
+        { "name": "idx_usuarios_papel", "columns": ["papel"] },
+        { "name": "idx_usuarios_estabelecimento", "columns": ["estabelecimento_id"], "description": "Barbeiros de um estabelecimento" },
+        { "name": "idx_usuarios_confirmado", "columns": ["confirmado"] }
+      ]
+    },
+    {
+      "name": "agendamentos",
+      "description": "Agendamentos/horários marcados (core do checkout/booking)",
+      "columns": [
+        { "name": "id", "type": "uuid", "primary_key": true },
+        { "name": "estabelecimento_id", "type": "uuid", "not_null": true, "description": "FK estabelecimentos" },
+        { "name": "usuario_id", "type": "uuid", "description": "FK usuarios (cliente logado, opcional)" },
+        { "name": "dia", "type": "date", "not_null": true, "description": "Data do agendamento (YYYY-MM-DD)" },
+        { "name": "horario", "type": "time", "not_null": true, "description": "Horário (HH:MM)" },
+        { "name": "duracao_minutos", "type": "integer", "not_null": true, "description": "Duração total em minutos" },
+        { "name": "nome_cliente", "type": "varchar(100)", "not_null": true, "description": "Nome do cliente (mesmo se não logado)" },
+        { "name": "telefone_cliente", "type": "varchar(20)", "not_null": true, "description": "Telefone para contato" },
+        { "name": "servicos", "type": "text", "not_null": true, "description": "Nomes dos serviços concatenados (ex: 'Corte, Barba')" },
+        { "name": "servico_ids", "type": "uuid[]", "not_null": true, "description": "Array de IDs dos serviços" },
+        { "name": "valor_total", "type": "decimal(10,2)", "not_null": true, "description": "Valor total do agendamento" },
+        { "name": "status_pagamento", "type": "status_pagamento_enum", "not_null": true, "default": "'no_local'", "description": "no_local, aguardando_pix, pago" },
+        { "name": "status", "type": "status_agendamento_enum", "not_null": true, "default": "'agendado'", "description": "agendado, confirmado, concluido, cancelado, nao_compareceu" },
+        { "name": "avaliacao_estrelas", "type": "integer", "description": "1-5 estrelas (se avaliado)" },
+        { "name": "avaliacao_comentario", "type": "text", "description": "Comentário da avaliação" },
+        { "name": "avaliacao_data", "type": "timestamp", "description": "Data da avaliação" },
+        { "name": "horario_real", "type": "time", "description": "Horário real de início (para 'concluido')" },
+        { "name": "created_at", "type": "timestamp", "not_null": true, "default": "now()" },
+        { "name": "updated_at", "type": "timestamp", "not_null": true, "default": "now()" }
+      ],
+      "indexes": [
+        { "name": "idx_agendamentos_estabelecimento_dia", "columns": ["estabelecimento_id", "dia"], "description": "Listar agendamentos do dia do estabelecimento" },
+        { "name": "idx_agendamentos_usuario", "columns": ["usuario_id"], "description": "Histórico do cliente" },
+        { "name": "idx_agendamentos_estabelecimento_status", "columns": ["estabelecimento_id", "status"], "description": "Filtrar por status (ex: não cancelados)" },
+        { "name": "idx_agendamentos_dia_horario", "columns": ["dia", "horario"], "description": "Verificar disponibilidade/conflito" },
+        { "name": "idx_agendamentos_status_pagamento", "columns": ["status_pagamento"], "description": "Filtrar pendentes de pagamento" },
+        { "name": "idx_agendamentos_conflito", "columns": ["estabelecimento_id", "dia", "horario", "duracao_minutos"], "description": "Índice composto para verificação de conflito (exclusion constraint candidate)" }
+      ],
+      "constraints": [
+        { "name": "chk_agendamento_duracao", "type": "check", "definition": "duracao_minutos BETWEEN 5 AND 480" },
+        { "name": "chk_agendamento_valor", "type": "check", "definition": "valor_total >= 0 AND valor_total <= 10000" },
+        { "name": "chk_agendamento_pix_percentual", "type": "check", "definition": "pix_percentual_sinal BETWEEN 10 AND 100", "table": "estabelecimentos" },
+        { "name": "uq_agendamento_horario_unico", "type": "exclusion", "definition": "EXCLUDE USING gist (estabelecimento_id WITH =, tstzrange(dia + horario, dia + horario + (duracao_minutos || ' minutes')::interval) WITH &&) WHERE (status != 'cancelado')" }
+      ]
+    },
+    {
+      "name": "servicos",
+      "description": "Serviços oferecidos por cada estabelecimento",
+      "columns": [
+        { "name": "id", "type": "uuid", "primary_key": true },
+        { "name": "estabelecimento_id", "type": "uuid", "not_null": true, "description": "FK estabelecimentos" },
+        { "name": "nome", "type": "varchar(100)", "not_null": true },
+        { "name": "preco", "type": "decimal(10,2)", "not_null": true },
+        { "name": "duracao_minutos", "type": "integer", "not_null": true },
+        { "name": "tag", "type": "servico_tag_enum", "not_null": true, "description": "Corte, Barba, Combo, Estética, Tratamento, Outro" },
+        { "name": "descricao", "type": "text", "description": "Descrição do serviço" },
+        { "name": "ordem", "type": "integer", "default": "0", "description": "Ordem de exibição" },
+        { "name": "created_at", "type": "timestamp", "not_null": true, "default": "now()" },
+        { "name": "updated_at", "type": "timestamp", "not_null": true, "default": "now()" }
+      ],
+      "indexes": [
+        { "name": "idx_servicos_estabelecimento", "columns": ["estabelecimento_id"] },
+        { "name": "idx_servicos_ordem", "columns": ["estabelecimento_id", "ordem"] }
+      ],
+      "constraints": [
+        { "name": "chk_servico_preco", "type": "check", "definition": "preco BETWEEN 0 AND 10000" },
+        { "name": "chk_servico_duracao", "type": "check", "definition": "duracao_minutos BETWEEN 5 AND 480" }
+      ]
+    },
+    {
+      "name": "servico_midias",
+      "description": "Fotos/vídeos de exemplo dos serviços (portfolio)",
+      "columns": [
+        { "name": "id", "type": "uuid", "primary_key": true },
+        { "name": "servico_id", "type": "uuid", "not_null": true, "description": "FK servicos" },
+        { "name": "tipo", "type": "tipo_midia_enum", "not_null": true, "description": "imagem, video" },
+        { "name": "src", "type": "varchar(500)", "not_null": true, "description": "URL no storage bucket" },
+        { "name": "ordem", "type": "integer", "default": "0" },
+        { "name": "created_at", "type": "timestamp", "not_null": true, "default": "now()" }
+      ],
+      "indexes": [
+        { "name": "idx_servico_midias_servico", "columns": ["servico_id"] }
+      ]
+    },
+    {
+      "name": "galeria",
+      "description": "Portfólio/galeria de imagens do estabelecimento",
+      "columns": [
+        { "name": "id", "type": "uuid", "primary_key": true },
+        { "name": "estabelecimento_id", "type": "uuid", "not_null": true, "description": "FK estabelecimentos" },
+        { "name": "src", "type": "varchar(500)", "not_null": true, "description": "URL no storage bucket" },
+        { "name": "tipo", "type": "tipo_midia_enum", "default": "'imagem'" },
+        { "name": "ordem", "type": "integer", "default": "0" },
+        { "name": "created_at", "type": "timestamp", "not_null": true, "default": "now()" }
+      ],
+      "indexes": [
+        { "name": "idx_galeria_estabelecimento", "columns": ["estabelecimento_id", "ordem"] }
+      ]
+    },
+    {
+      "name": "avaliacoes",
+      "description": "Avaliações de clientes sobre estabelecimentos",
+      "columns": [
+        { "name": "id", "type": "uuid", "primary_key": true },
+        { "name": "estabelecimento_id", "type": "uuid", "not_null": true, "description": "FK estabelecimentos" },
+        { "name": "usuario_id", "type": "uuid", "description": "FK usuarios (se logado)" },
+        { "name": "nome_cliente", "type": "varchar(100)", "not_null": true },
+        { "name": "estrelas", "type": "integer", "not_null": true, "description": "1-5" },
+        { "name": "comentario", "type": "text" },
+        { "name": "resposta", "type": "text", "description": "Resposta do estabelecimento" },
+        { "name": "avatar_url", "type": "varchar(500)", "description": "Avatar do cliente" },
+        { "name": "data", "type": "timestamp", "not_null": true, "default": "now()" },
+        { "name": "agendamento_id", "type": "uuid", "description": "FK agendamentos (se originado de agendamento concluído)" }
+      ],
+      "indexes": [
+        { "name": "idx_avaliacoes_estabelecimento", "columns": ["estabelecimento_id"] },
+        { "name": "idx_avaliacoes_data", "columns": ["data"] }
+      ],
+      "constraints": [
+        { "name": "chk_avaliacao_estrelas", "type": "check", "definition": "estrelas BETWEEN 1 AND 5" }
+      ]
+    },
+    {
+      "name": "publicacoes",
+      "description": "Posts do feed (estilo Instagram) dos estabelecimentos",
+      "columns": [
+        { "name": "id", "type": "uuid", "primary_key": true },
+        { "name": "estabelecimento_id", "type": "uuid", "not_null": true, "description": "FK estabelecimentos" },
+        { "name": "tipo", "type": "tipo_midia_enum", "not_null": true, "description": "imagem, video, texto" },
+        { "name": "src", "type": "varchar(500)", "description": "URL da mídia (storage bucket)" },
+        { "name": "legenda", "type": "varchar(300)", "description": "Legenda do post" },
+        { "name": "tag_servico", "type": "servico_tag_enum", "description": "Tag do serviço relacionado" },
+        { "name": "curtidas_count", "type": "integer", "default": "0", "description": "Contador desnormalizado" },
+        { "name": "salvos_count", "type": "integer", "default": "0" },
+        { "name": "visualizacoes", "type": "integer", "default": "0" },
+        { "name": "compartilhamentos", "type": "integer", "default": "0" },
+        { "name": "data_criacao", "type": "timestamp", "not_null": true, "default": "now()" }
+      ],
+      "indexes": [
+        { "name": "idx_publicacoes_estabelecimento", "columns": ["estabelecimento_id", "data_criacao"] },
+        { "name": "idx_publicacoes_feed", "columns": ["data_criacao"], "description": "Feed global ordenado por data" },
+        { "name": "idx_publicacoes_tag", "columns": ["tag_servico"] }
+      ]
+    },
+    {
+      "name": "publicacao_curtidas",
+      "description": "Many-to-many: usuários que curtiram publicações",
+      "columns": [
+        { "name": "publicacao_id", "type": "uuid", "not_null": true },
+        { "name": "usuario_id", "type": "uuid", "not_null": true },
+        { "name": "created_at", "type": "timestamp", "default": "now()" }
+      ],
+      "primary_key": ["publicacao_id", "usuario_id"],
+      "indexes": [
+        { "name": "idx_publicacao_curtidas_usuario", "columns": ["usuario_id"] }
+      ]
+    },
+    {
+      "name": "publicacao_salvos",
+      "description": "Many-to-many: usuários que salvaram publicações (inspirações)",
+      "columns": [
+        { "name": "publicacao_id", "type": "uuid", "not_null": true },
+        { "name": "usuario_id", "type": "uuid", "not_null": true },
+        { "name": "created_at", "type": "timestamp", "default": "now()" }
+      ],
+      "primary_key": ["publicacao_id", "usuario_id"],
+      "indexes": [
+        { "name": "idx_publicacao_salvos_usuario", "columns": ["usuario_id"] }
+      ]
+    },
+    {
+      "name": "comentarios",
+      "description": "Comentários em publicações",
+      "columns": [
+        { "name": "id", "type": "uuid", "primary_key": true },
+        { "name": "publicacao_id", "type": "uuid", "not_null": true },
+        { "name": "usuario_id", "type": "uuid", "description": "FK usuarios (se logado)" },
+        { "name": "nome_autor", "type": "varchar(100)", "not_null": true },
+        { "name": "texto", "type": "varchar(200)", "not_null": true },
+        { "name": "data_criacao", "type": "timestamp", "not_null": true, "default": "now()" }
+      ],
+      "indexes": [
+        { "name": "idx_comentarios_publicacao", "columns": ["publicacao_id", "data_criacao"] }
+      ]
+    },
+    {
+      "name": "notificacoes",
+      "description": "Notificações do sistema para usuários",
+      "columns": [
+        { "name": "id", "type": "uuid", "primary_key": true },
+        { "name": "destinatario_id", "type": "uuid", "not_null": true, "description": "FK usuarios (email do destinatário)" },
+        { "name": "tipo", "type": "tipo_notificacao_enum", "not_null": true, "description": "agendamento, reagendamento, cancelamento, mensagem, administracao, pagamento" },
+        { "name": "titulo", "type": "varchar(100)", "not_null": true },
+        { "name": "texto", "type": "text", "not_null": true },
+        { "name": "lida", "type": "boolean", "default": "false" },
+        { "name": "estabelecimento_id", "type": "uuid", "description": "FK estabelecimentos (contexto)" },
+        { "name": "data_criacao", "type": "timestamp", "not_null": true, "default": "now()" }
+      ],
+      "indexes": [
+        { "name": "idx_notificacoes_destinatario_lida", "columns": ["destinatario_id", "lida"] },
+        { "name": "idx_notificacoes_destinatario_data", "columns": ["destinatario_id", "data_criacao"] },
+        { "name": "idx_notificacoes_tipo", "columns": ["tipo"] }
+      ]
+    },
+    {
+      "name": "planos_assinatura",
+      "description": "Planos de assinatura disponíveis (admin configurável)",
+      "columns": [
+        { "name": "id", "type": "varchar(50)", "primary_key": true, "description": "ex: mensal, diario, essencial, profissional, premium" },
+        { "name": "nome", "type": "varchar(50)", "not_null": true },
+        { "name": "tipo", "type": "plano_tipo_enum", "not_null": true, "description": "mensal, diario" },
+        { "name": "preco", "type": "decimal(10,2)", "not_null": true },
+        { "name": "cor", "type": "varchar(7)", "description": "Cor para UI (hex)" },
+        { "name": "limite_barbeiros", "type": "integer", "default": "1", "description": "-1 = ilimitado" },
+        { "name": "limite_servicos", "type": "integer", "default": "10", "description": "-1 = ilimitado" },
+        { "name": "limite_fotos", "type": "integer", "default": "20", "description": "-1 = ilimitado" },
+        { "name": "tem_analises", "type": "boolean", "default": "false" },
+        { "name": "tem_api", "type": "boolean", "default": "false" },
+        { "name": "ativo", "type": "boolean", "default": "true" },
+        { "name": "created_at", "type": "timestamp", "default": "now()" },
+        { "name": "updated_at", "type": "timestamp", "default": "now()" }
+      ]
+    },
+    {
+      "name": "assinaturas_estabelecimento",
+      "description": "Assinaturas/vínculos contratuais dos estabelecimentos",
+      "columns": [
+        { "name": "estabelecimento_id", "type": "uuid", "primary_key": true, "description": "FK estabelecimentos" },
+        { "name": "plano_id", "type": "varchar(50)", "not_null": true, "description": "FK planos_assinatura" },
+        { "name": "inicio_contrato", "type": "date", "not_null": true },
+        { "name": "vencimento", "type": "date", "not_null": true },
+        { "name": "desconto_tipo", "type": "desconto_tipo_enum", "description": "percentual, valor_fixo" },
+        { "name": "desconto_valor", "type": "decimal(10,2)" },
+        { "name": "desconto_motivo", "type": "varchar(200)" },
+        { "name": "status", "type": "assinatura_status_enum", "default": "'ativa'", "description": "ativa, vencida, cancelada, suspensa" },
+        { "name": "created_at", "type": "timestamp", "default": "now()" },
+        { "name": "updated_at", "type": "timestamp", "default": "now()" }
+      ],
+      "indexes": [
+        { "name": "idx_assinaturas_vencimento", "columns": ["vencimento", "status"] },
+        { "name": "idx_assinaturas_plano", "columns": ["plano_id"] }
+      ]
+    },
+    {
+      "name": "pagamentos_historico",
+      "description": "Histórico de pagamentos das assinaturas",
+      "columns": [
+        { "name": "id", "type": "uuid", "primary_key": true },
+        { "name": "estabelecimento_id", "type": "uuid", "not_null": true },
+        { "name": "data", "type": "date", "not_null": true },
+        { "name": "descricao", "type": "varchar(200)", "not_null": true },
+        { "name": "valor", "type": "decimal(10,2)", "not_null": true },
+        { "name": "status", "type": "pagamento_status_enum", "default": "'pago'", "description": "pago, pendente, falhou, estornado" },
+        { "name": "metodo", "type": "varchar(50)", "description": "pix, boleto, cartao, transferencia" },
+        { "name": "referencia_externa", "type": "varchar(100)", "description": "ID do gateway de pagamento" },
+        { "name": "created_at", "type": "timestamp", "default": "now()" }
+      ],
+      "indexes": [
+        { "name": "idx_pagamentos_estabelecimento_data", "columns": ["estabelecimento_id", "data"] },
+        { "name": "idx_pagamentos_status", "columns": ["status"] }
+      ]
+    },
+    {
+      "name": "mensagens_automaticas",
+      "description": "Templates de mensagens automáticas de WhatsApp por estabelecimento",
+      "columns": [
+        { "name": "estabelecimento_id", "type": "uuid", "primary_key": true, "description": "FK estabelecimentos" },
+        { "name": "geral", "type": "text", "description": "Mensagem geral" },
+        { "name": "updated_at", "type": "timestamp", "default": "now()" }
+      ]
+    },
+    {
+      "name": "mensagens_automaticas_servico",
+      "description": "Mensagens automáticas por serviço (JSONB ou tabela separada)",
+      "columns": [
+        { "name": "id", "type": "uuid", "primary_key": true },
+        { "name": "estabelecimento_id", "type": "uuid", "not_null": true },
+        { "name": "servico_id", "type": "uuid", "not_null": true },
+        { "name": "mensagem", "type": "text", "not_null": true },
+        { "name": "updated_at", "type": "timestamp", "default": "now()" }
+      ],
+      "indexes": [
+        { "name": "idx_msg_auto_servico", "columns": ["estabelecimento_id", "servico_id"], "unique": true }
+      ]
+    },
+    {
+      "name": "seguidores",
+      "description": "Many-to-many: usuários seguindo estabelecimentos",
+      "columns": [
+        { "name": "usuario_id", "type": "uuid", "not_null": true },
+        { "name": "estabelecimento_id", "type": "uuid", "not_null": true },
+        { "name": "created_at", "type": "timestamp", "default": "now()" }
+      ],
+      "primary_key": ["usuario_id", "estabelecimento_id"],
+      "indexes": [
+        { "name": "idx_seguidores_estabelecimento", "columns": ["estabelecimento_id"] }
+      ]
+    },
+    {
+      "name": "fila_espera",
+      "description": "Fila de espera em tempo real (pode ser tabela separada para performance)",
+      "columns": [
+        { "name": "id", "type": "uuid", "primary_key": true },
+        { "name": "estabelecimento_id", "type": "uuid", "not_null": true },
+        { "name": "nome", "type": "varchar(100)", "not_null": true },
+        { "name": "horario_chegada", "type": "time", "not_null": true },
+        { "name": "posicao", "type": "integer", "description": "Posição na fila (desnormalizado)" },
+        { "name": "status", "type": "fila_status_enum", "default": "'aguardando'", "description": "aguardando, chamado, atendido, saiu" },
+        { "name": "created_at", "type": "timestamp", "default": "now()" },
+        { "name": "updated_at", "type": "timestamp", "default": "now()" }
+      ],
+      "indexes": [
+        { "name": "idx_fila_estabelecimento_status", "columns": ["estabelecimento_id", "status", "posicao"] }
+      ]
+    }
+  ],
+  "relationships": [
+    { "from": "usuarios", "to": "estabelecimentos", "type": "many_to_one", "from_column": "estabelecimento_id", "to_column": "id", "description": "Barbeiro pertence a um estabelecimento" },
+    { "from": "servicos", "to": "estabelecimentos", "type": "many_to_one", "from_column": "estabelecimento_id", "to_column": "id", "description": "Serviços de um estabelecimento" },
+    { "from": "servico_midias", "to": "servicos", "type": "many_to_one", "from_column": "servico_id", "to_column": "id", "description": "Mídias de um serviço" },
+    { "from": "galeria", "to": "estabelecimentos", "type": "many_to_one", "from_column": "estabelecimento_id", "to_column": "id", "description": "Galeria do estabelecimento" },
+    { "from": "avaliacoes", "to": "estabelecimentos", "type": "many_to_one", "from_column": "estabelecimento_id", "to_column": "id", "description": "Avaliações do estabelecimento" },
+    { "from": "avaliacoes", "to": "usuarios", "type": "many_to_one", "from_column": "usuario_id", "to_column": "id", "description": "Avaliação feita por usuário logado (opcional)" },
+    { "from": "avaliacoes", "to": "agendamentos", "type": "many_to_one", "from_column": "agendamento_id", "to_column": "id", "description": "Avaliação originada de agendamento concluído" },
+    { "from": "publicacoes", "to": "estabelecimentos", "type": "many_to_one", "from_column": "estabelecimento_id", "to_column": "id", "description": "Posts do feed do estabelecimento" },
+    { "from": "publicacao_curtidas", "to": "publicacoes", "type": "many_to_one", "from_column": "publicacao_id", "to_column": "id" },
+    { "from": "publicacao_curtidas", "to": "usuarios", "type": "many_to_one", "from_column": "usuario_id", "to_column": "id" },
+    { "from": "publicacao_salvos", "to": "publicacoes", "type": "many_to_one", "from_column": "publicacao_id", "to_column": "id" },
+    { "from": "publicacao_salvos", "to": "usuarios", "type": "many_to_one", "from_column": "usuario_id", "to_column": "id" },
+    { "from": "comentarios", "to": "publicacoes", "type": "many_to_one", "from_column": "publicacao_id", "to_column": "id" },
+    { "from": "comentarios", "to": "usuarios", "type": "many_to_one", "from_column": "usuario_id", "to_column": "id" },
+    { "from": "notificacoes", "to": "usuarios", "type": "many_to_one", "from_column": "destinatario_id", "to_column": "id", "description": "Notificação para usuário" },
+    { "from": "notificacoes", "to": "estabelecimentos", "type": "many_to_one", "from_column": "estabelecimento_id", "to_column": "id", "description": "Contexto do estabelecimento" },
+    { "from": "agendamentos", "to": "estabelecimentos", "type": "many_to_one", "from_column": "estabelecimento_id", "to_column": "id" },
+    { "from": "agendamentos", "to": "usuarios", "type": "many_to_one", "from_column": "usuario_id", "to_column": "id", "description": "Cliente logado (opcional)" },
+    { "from": "assinaturas_estabelecimento", "to": "estabelecimentos", "type": "one_to_one", "from_column": "estabelecimento_id", "to_column": "id" },
+    { "from": "assinaturas_estabelecimento", "to": "planos_assinatura", "type": "many_to_one", "from_column": "plano_id", "to_column": "id" },
+    { "from": "pagamentos_historico", "to": "estabelecimentos", "type": "many_to_one", "from_column": "estabelecimento_id", "to_column": "id" },
+    { "from": "mensagens_automaticas", "to": "estabelecimentos", "type": "one_to_one", "from_column": "estabelecimento_id", "to_column": "id" },
+    { "from": "mensagens_automaticas_servico", "to": "estabelecimentos", "type": "many_to_one", "from_column": "estabelecimento_id", "to_column": "id" },
+    { "from": "mensagens_automaticas_servico", "to": "servicos", "type": "many_to_one", "from_column": "servico_id", "to_column": "id" },
+    { "from": "seguidores", "to": "usuarios", "type": "many_to_one", "from_column": "usuario_id", "to_column": "id" },
+    { "from": "seguidores", "to": "estabelecimentos", "type": "many_to_one", "from_column": "estabelecimento_id", "to_column": "id" },
+    { "from": "fila_espera", "to": "estabelecimentos", "type": "many_to_one", "from_column": "estabelecimento_id", "to_column": "id" }
+  ],
+  "indexes": [
+    { "table": "estabelecimentos", "name": "idx_estabelecimentos_busca_marketplace", "columns": ["status", "nicho", "cidade", "avaliacao"], "type": "btree", "description": "Índice composto para filtros do marketplace" },
+    { "table": "agendamentos", "name": "idx_agendamentos_disponibilidade", "columns": ["estabelecimento_id", "dia", "horario", "duracao_minutos"], "type": "btree", "description": "Verificação rápida de horários disponíveis" },
+    { "table": "agendamentos", "name": "idx_agendamentos_faturamento", "columns": ["estabelecimento_id", "status_pagamento", "dia"], "type": "btree", "description": "Relatórios de faturamento" },
+    { "table": "publicacoes", "name": "idx_publicacoes_feed_algorithm", "columns": ["data_criacao", "estabelecimento_id"], "type": "btree", "description": "Algoritmo de feed (recência + seguindo)" },
+    { "table": "notificacoes", "name": "idx_notificacoes_nao_lidas", "columns": ["destinatario_id", "lida", "data_criacao"], "type": "btree", "where": "lida = false", "description": "Partial index para notificações não lidas" }
+  ],
+  "rlsPolicies": [
+    { "table": "estabelecimentos", "policy_name": "estabelecimentos_public_read", "command": "SELECT", "roles": ["anon", "authenticated"], "using": "status = 'aprovado'", "description": "Público vê apenas estabelecimentos aprovados" },
+    { "table": "estabelecimentos", "policy_name": "estabelecimentos_barbeiro_own", "command": "ALL", "roles": ["authenticated"], "using": "id IN (SELECT estabelecimento_id FROM usuarios WHERE id = auth.uid() AND papel = 'barbeiro')", "description": "Barbeiro gerencia apenas seu estabelecimento" },
+    { "table": "estabelecimentos", "policy_name": "estabelecimentos_admin_all", "command": "ALL", "roles": ["service_role", "admin"], "using": "true", "description": "Admin tem acesso total" },
+    { "table": "usuarios", "policy_name": "usuarios_own_profile", "command": "SELECT", "roles": ["authenticated"], "using": "id = auth.uid()", "description": "Usuário vê próprio perfil" },
+    { "table": "usuarios", "policy_name": "usuarios_own_update", "command": "UPDATE", "roles": ["authenticated"], "using": "id = auth.uid()", "with_check": "id = auth.uid()", "description": "Usuário atualiza próprio perfil" },
+    { "table": "usuarios", "policy_name": "usuarios_barbeiro_estabelecimento", "command": "SELECT", "roles": ["authenticated"], "using": "estabelecimento_id IN (SELECT estabelecimento_id FROM usuarios WHERE id = auth.uid() AND papel = 'barbeiro')", "description": "Barbeiro vê usuários do seu estabelecimento" },
+    { "table": "usuarios", "policy_name": "usuarios_admin_all", "command": "ALL", "roles": ["service_role", "admin"], "using": "true" },
+    { "table": "agendamentos", "policy_name": "agendamentos_cliente_own", "command": "SELECT", "roles": ["authenticated"], "using": "usuario_id = auth.uid()", "description": "Cliente vê seus agendamentos" },
+    { "table": "agendamentos", "policy_name": "agendamentos_barbeiro_estabelecimento", "command": "ALL", "roles": ["authenticated"], "using": "estabelecimento_id IN (SELECT estabelecimento_id FROM usuarios WHERE id = auth.uid() AND papel = 'barbeiro')", "description": "Barbeiro gerencia agendamentos do seu estabelecimento" },
+    { "table": "agendamentos", "policy_name": "agendamentos_anon_create", "command": "INSERT", "roles": ["anon", "authenticated"], "with_check": "true", "description": "Permite agendamento sem login (nome/telefone obrigatórios)" },
+    { "table": "agendamentos", "policy_name": "agendamentos_admin_all", "command": "ALL", "roles": ["service_role", "admin"], "using": "true" },
+    { "table": "servicos", "policy_name": "servicos_public_read_aprovado", "command": "SELECT", "roles": ["anon", "authenticated"], "using": "estabelecimento_id IN (SELECT id FROM estabelecimentos WHERE status = 'aprovado')", "description": "Público vê serviços de estabelecimentos aprovados" },
+    { "table": "servicos", "policy_name": "servicos_barbeiro_estabelecimento", "command": "ALL", "roles": ["authenticated"], "using": "estabelecimento_id IN (SELECT estabelecimento_id FROM usuarios WHERE id = auth.uid() AND papel = 'barbeiro')" },
+    { "table": "servicos", "policy_name": "servicos_admin_all", "command": "ALL", "roles": ["service_role", "admin"], "using": "true" },
+    { "table": "galeria", "policy_name": "galeria_public_read_aprovado", "command": "SELECT", "roles": ["anon", "authenticated"], "using": "estabelecimento_id IN (SELECT id FROM estabelecimentos WHERE status = 'aprovado')" },
+    { "table": "galeria", "policy_name": "galeria_barbeiro_estabelecimento", "command": "ALL", "roles": ["authenticated"], "using": "estabelecimento_id IN (SELECT estabelecimento_id FROM usuarios WHERE id = auth.uid() AND papel = 'barbeiro')" },
+    { "table": "avaliacoes", "policy_name": "avaliacoes_public_read", "command": "SELECT", "roles": ["anon", "authenticated"], "using": "estabelecimento_id IN (SELECT id FROM estabelecimentos WHERE status = 'aprovado')" },
+    { "table": "avaliacoes", "policy_name": "avaliacoes_cliente_create", "command": "INSERT", "roles": ["authenticated"], "with_check": "usuario_id = auth.uid() AND agendamento_id IN (SELECT id FROM agendamentos WHERE usuario_id = auth.uid() AND status = 'concluido')", "description": "Cliente só avalia agendamentos próprios concluídos" },
+    { "table": "avaliacoes", "policy_name": "avaliacoes_barbeiro_resposta", "command": "UPDATE", "roles": ["authenticated"], "using": "estabelecimento_id IN (SELECT estabelecimento_id FROM usuarios WHERE id = auth.uid() AND papel = 'barbeiro')", "with_check": "estabelecimento_id IN (SELECT estabelecimento_id FROM usuarios WHERE id = auth.uid() AND papel = 'barbeiro')", "description": "Barbeiro responde avaliações do seu estabelecimento" },
+    { "table": "publicacoes", "policy_name": "publicacoes_public_read_aprovado", "command": "SELECT", "roles": ["anon", "authenticated"], "using": "estabelecimento_id IN (SELECT id FROM estabelecimentos WHERE status = 'aprovado')" },
+    { "table": "publicacoes", "policy_name": "publicacoes_barbeiro_estabelecimento", "command": "ALL", "roles": ["authenticated"], "using": "estabelecimento_id IN (SELECT estabelecimento_id FROM usuarios WHERE id = auth.uid() AND papel = 'barbeiro')" },
+    { "table": "publicacao_curtidas", "policy_name": "curtidas_own", "command": "ALL", "roles": ["authenticated"], "using": "usuario_id = auth.uid()", "with_check": "usuario_id = auth.uid()" },
+    { "table": "publicacao_salvos", "policy_name": "salvos_own", "command": "ALL", "roles": ["authenticated"], "using": "usuario_id = auth.uid()", "with_check": "usuario_id = auth.uid()" },
+    { "table": "comentarios", "policy_name": "comentarios_public_read", "command": "SELECT", "roles": ["anon", "authenticated"], "using": "publicacao_id IN (SELECT id FROM publicacoes WHERE estabelecimento_id IN (SELECT id FROM estabelecimentos WHERE status = 'aprovado'))" },
+    { "table": "comentarios", "policy_name": "comentarios_own_create", "command": "INSERT", "roles": ["authenticated"], "with_check": "usuario_id = auth.uid()" },
+    { "table": "notificacoes", "policy_name": "notificacoes_own", "command": "ALL", "roles": ["authenticated"], "using": "destinatario_id = auth.uid()", "with_check": "destinatario_id = auth.uid()" },
+    { "table": "planos_assinatura", "policy_name": "planos_public_read", "command": "SELECT", "roles": ["anon", "authenticated"], "using": "ativo = true" },
+    { "table": "planos_assinatura", "policy_name": "planos_admin_all", "command": "ALL", "roles": ["service_role", "admin"], "using": "true" },
+    { "table": "assinaturas_estabelecimento", "policy_name": "assinaturas_barbeiro_own", "command": "SELECT", "roles": ["authenticated"], "using": "estabelecimento_id IN (SELECT estabelecimento_id FROM usuarios WHERE id = auth.uid() AND papel = 'barbeiro')" },
+    { "table": "assinaturas_estabelecimento", "policy_name": "assinaturas_admin_all", "command": "ALL", "roles": ["service_role", "admin"], "using": "true" },
+    { "table": "pagamentos_historico", "policy_name": "pagamentos_barbeiro_own", "command": "SELECT", "roles": ["authenticated"], "using": "estabelecimento_id IN (SELECT estabelecimento_id FROM usuarios WHERE id = auth.uid() AND papel = 'barbeiro')" },
+    { "table": "pagamentos_historico", "policy_name": "pagamentos_admin_all", "command": "ALL", "roles": ["service_role", "admin"], "using": "true" },
+    { "table": "fila_espera", "policy_name": "fila_public_read", "command": "SELECT", "roles": ["anon", "authenticated"], "using": "estabelecimento_id IN (SELECT id FROM estabelecimentos WHERE status = 'aprovado')" },
+    { "table": "fila_espera", "policy_name": "fila_barbeiro_estabelecimento", "command": "ALL", "roles": ["authenticated"], "using": "estabelecimento_id IN (SELECT estabelecimento_id FROM usuarios WHERE id = auth.uid() AND papel = 'barbeiro')" },
+    { "table": "fila_espera", "policy_name": "fila_anon_join", "command": "INSERT", "roles": ["anon", "authenticated"], "with_check": "true", "description": "Qualquer um pode entrar na fila" }
+  ],
+  "enums": [
+    { "name": "nicho_estabelecimento_enum", "values": ["barbearia", "feminino", "visagismo", "infantil"], "source": "NichoEstabelecimento type" },
+    { "name": "status_estabelecimento_enum", "values": ["aprovado", "pendente", "rejeitado"], "source": "StatusEstabelecimento type" },
+    { "name": "tipo_layout_enum", "values": ["classico", "moderno"], "source": "TipoLayout type" },
+    { "name": "papel_usuario_enum", "values": ["cliente", "barbeiro", "admin"], "source": "PapelUsuario type" },
+    { "name": "status_pagamento_enum", "values": ["no_local", "aguardando_pix", "pago"], "source": "StatusPagamento type" },
+    { "name": "status_agendamento_enum", "values": ["agendado", "confirmado", "concluido", "cancelado", "nao_compareceu"], "source": "StatusAgendamento type (inclui STATUS_AGENDAMENTO constants)" },
+    { "name": "tipo_midia_enum", "values": ["imagem", "video"], "source": "TipoMidia type" },
+    { "name": "tipo_notificacao_enum", "values": ["agendamento", "reagendamento", "cancelamento", "mensagem", "administracao", "pagamento"], "source": "TipoNotificacao type" },
+    { "name": "servico_tag_enum", "values": ["Corte", "Barba", "Combo", "Estética", "Tratamento", "Outro"], "source": "SERVICO_TAGS constant" },
+    { "name": "pix_modo_enum", "values": ["desativado", "opcional", "obrigatorio"], "source": "ConfiguracaoPix.modo" },
+    { "name": "desconto_tipo_enum", "values": ["percentual", "valor_fixo"], "source": "DescontoAssinatura.tipo" },
+    { "name": "plano_tipo_enum", "values": ["mensal", "diario"], "source": "PlanoAssinatura.tipo" },
+    { "name": "assinatura_status_enum", "values": ["ativa", "vencida", "cancelada", "suspensa"], "source": "Implied by business logic" },
+    { "name": "pagamento_status_enum", "values": ["pago", "pendente", "falhou", "estornado"], "source": "Implied by business logic" },
+    { "name": "fila_status_enum", "values": ["aguardando", "chamado", "atendido", "saiu"], "source": "Implied by business logic" },
+    { "name": "tema_enum", "values": ["claro", "escuro", "sistema"], "source": "ConfiguracaoAparencia.tema" },
+    { "name": "etapa_onboarding_enum", "values": ["boas-vindas", "dados-basicos", "localizacao-contato", "servicos-precos", "tema-aparencia", "pagamentos-pix", "confirmacao"], "source": "EtapaOnboarding type" },
+    { "name": "aba_painel_barbeiro_enum", "values": ["visao", "agenda", "servicos", "fila", "galeria", "configuracoes"], "source": "AbaPainelBarbeiro type" },
+    { "name": "aba_admin_enum", "values": ["visao", "estabelecimentos", "usuarios", "analises", "configuracoes"], "source": "AbaAdmin type" },
+    { "name": "aba_configuracoes_enum", "values": ["perfil", "notificacoes", "privacidade", "aparencia", "conta"], "source": "AbaConfiguracoes type" },
+    { "name": "aba_cliente_enum", "values": ["agendamentos", "perfil", "inspiracoes", "seguindo", "configuracoes"], "source": "ABAS_CLIENTE constant" }
+  ],
+  "constraints": [
+    { "table": "estabelecimentos", "name": "uq_estabelecimentos_slug", "type": "unique", "columns": ["slug"] },
+    { "table": "estabelecimentos", "name": "chk_pix_percentual", "type": "check", "definition": "pix_percentual_sinal BETWEEN 10 AND 100" },
+    { "table": "usuarios", "name": "uq_usuarios_email", "type": "unique", "columns": ["email"] },
+    { "table": "agendamentos", "name": "chk_agendamento_duracao", "type": "check", "definition": "duracao_minutos BETWEEN 5 AND 480" },
+    { "table": "agendamentos", "name": "chk_agendamento_valor", "type": "check", "definition": "valor_total >= 0 AND valor_total <= 10000" },
+    { "table": "agendamentos", "name": "excl_agendamento_conflito_horario", "type": "exclusion", "definition": "EXCLUDE USING gist (estabelecimento_id WITH =, tstzrange((dia || ' ' || horario)::timestamptz, ((dia || ' ' || horario)::timestamptz + (duracao_minutos || ' minutes')::interval)) WITH &&) WHERE (status NOT IN ('cancelado', 'nao_compareceu'))", "description": "Impede agendamentos sobrepostos no mesmo estabelecimento" },
+    { "table": "servicos", "name": "chk_servico_preco", "type": "check", "definition": "preco BETWEEN 0 AND 10000" },
+    { "table": "servicos", "name": "chk_servico_duracao", "type": "check", "definition": "duracao_minutos BETWEEN 5 AND 480" },
+    { "table": "avaliacoes", "name": "chk_avaliacao_estrelas", "type": "check", "definition": "estrelas BETWEEN 1 AND 5" },
+    { "table": "assinaturas_estabelecimento", "name": "chk_assinatura_datas", "type": "check", "definition": "vencimento > inicio_contrato" },
+    { "table": "pagamentos_historico", "name": "chk_pagamento_valor", "type": "check", "definition": "valor > 0" }
+  ],
+  "triggers": [
+    { "table": "estabelecimentos", "name": "trigger_estabelecimentos_updated_at", "event": "BEFORE UPDATE", "function": "update_updated_at_column()", "description": "Atualiza updated_at automaticamente" },
+    { "table": "usuarios", "name": "trigger_usuarios_updated_at", "event": "BEFORE UPDATE", "function": "update_updated_at_column()" },
+    { "table": "agendamentos", "name": "trigger_agendamentos_updated_at", "event": "BEFORE UPDATE", "function": "update_updated_at_column()" },
+    { "table": "servicos", "name": "trigger_servicos_updated_at", "event": "BEFORE UPDATE", "function": "update_updated_at_column()" },
+    { "table": "galeria", "name": "trigger_galeria_updated_at", "event": "BEFORE UPDATE", "function": "update_updated_at_column()" },
+    { "table": "avaliacoes", "name": "trigger_avaliacoes_recalc_media", "event": "AFTER INSERT OR UPDATE OR DELETE", "function": "recalc_estabelecimento_avaliacao_media()", "description": "Recalcula média de avaliação do estabelecimento" },
+    { "table": "agendamentos", "name": "trigger_agendamento_notificacao_criacao", "event": "AFTER INSERT", "function": "notify_novo_agendamento()", "description": "Cria notificações para barbeiro e cliente" },
+    { "table": "agendamentos", "name": "trigger_agendamento_notificacao_cancelamento", "event": "AFTER UPDATE", "function": "notify_cancelamento_agendamento()", "when": "OLD.status != 'cancelado' AND NEW.status = 'cancelado'", "description": "Notifica cancelamento" },
+    { "table": "agendamentos", "name": "trigger_agendamento_confirmar_pix", "event": "AFTER UPDATE", "function": "notify_pagamento_confirmado()", "when": "OLD.status_pagamento = 'aguardando_pix' AND NEW.status_pagamento = 'pago'", "description": "Notifica pagamento confirmado" },
+    { "table": "publicacoes", "name": "trigger_publicacao_notificar_seguidores", "event": "AFTER INSERT", "function": "notify_nova_publicacao_seguidores()", "description": "Notifica seguidores de nova publicação" },
+    { "table": "publicacao_curtidas", "name": "trigger_curtida_contador", "event": "AFTER INSERT OR DELETE", "function": "update_publicacao_curtidas_count()", "description": "Mantém contador desnormalizado de curtidas" },
+    { "table": "publicacao_salvos", "name": "trigger_salvo_contador", "event": "AFTER INSERT OR DELETE", "function": "update_publicacao_salvos_count()" },
+    { "table": "assinaturas_estabelecimento", "name": "trigger_assinatura_vencimento", "event": "AFTER INSERT OR UPDATE", "function": "check_assinatura_vencimento()", "description": "Agenda notificação de vencimento próximo" },
+    { "table": "fila_espera", "name": "trigger_fila_posicao", "event": "AFTER INSERT OR UPDATE OR DELETE", "function": "recalc_fila_posicoes()", "description": "Recalcula posições na fila" },
+    { "table": "pagamentos_historico", "name": "trigger_pagamento_assinatura", "event": "AFTER INSERT", "function": "update_assinatura_vencimento()", "description": "Atualiza vencimento da assinatura ao registrar pagamento" }
+  ],
+  "storageBuckets": [
+    { "name": "avatares", "description": "Avatares de usuários e estabelecimentos", "public": true, "max_size_mb": 2, "allowed_types": ["image/jpeg", "image/png", "image/webp"], "path_pattern": "avatares/{user_id|estabelecimento_id}/{timestamp}_{random}.{ext}" },
+    { "name": "servicos-midias", "description": "Fotos/vídeos de exemplo dos serviços (portfolio)", "public": true, "max_size_mb": 3, "allowed_types": ["image/jpeg", "image/png", "image/webp", "video/mp4", "video/webm"], "path_pattern": "servicos/{estabelecimento_id}/{servico_id}/{timestamp}_{random}.{ext}" },
+    { "name": "galeria", "description": "Portfólio/galeria de imagens do estabelecimento", "public": true, "max_size_mb": 3, "allowed_types": ["image/jpeg", "image/png", "image/webp", "video/mp4", "video/webm"], "path_pattern": "galeria/{estabelecimento_id}/{timestamp}_{random}.{ext}" },
+    { "name": "feed-midias", "description": "Mídias das publicações do feed (estilo Instagram)", "public": true, "max_size_mb": 5, "allowed_types": ["image/jpeg", "image/png", "image/webp", "video/mp4", "video/webm"], "path_pattern": "feed/{estabelecimento_id}/{publicacao_id}/{timestamp}_{random}.{ext}" },
+    { "name": "comprovantes", "description": "Comprovantes de pagamento Pix/upload", "public": false, "max_size_mb": 2, "allowed_types": ["image/jpeg", "image/png", "image/webp", "application/pdf"], "path_pattern": "comprovantes/{estabelecimento_id}/{agendamento_id|pagamento_id}/{timestamp}_{random}.{ext}" },
+    { "name": "documentos", "description": "Documentos de onboarding/contratos (RG, CNPJ, etc.)", "public": false, "max_size_mb": 5, "allowed_types": ["image/jpeg", "image/png", "image/webp", "application/pdf"], "path_pattern": "documentos/{estabelecimento_id}/{tipo_documento}/{timestamp}_{random}.{ext}" }
+  ],
+  "functions": [
+    { "name": "update_updated_at_column", "returns": "trigger", "language": "plpgsql", "description": "Função genérica para atualizar updated_at" },
+    { "name": "recalc_estabelecimento_avaliacao_media", "returns": "trigger", "language": "plpgsql", "description": "Recalcula avaliacao média na tabela estabelecimentos" },
+    { "name": "notify_novo_agendamento", "returns": "trigger", "language": "plpgsql", "description": "Cria notificações para barbeiros do estabelecimento e cliente" },
+    { "name": "notify_cancelamento_agendamento", "returns": "trigger", "language": "plpgsql", "description": "Notifica barbeiro e cliente sobre cancelamento" },
+    { "name": "notify_pagamento_confirmado", "returns": "trigger", "language": "plpgsql", "description": "Notifica confirmação de pagamento Pix" },
+    { "name": "notify_nova_publicacao_seguidores", "returns": "trigger", "language": "plpgsql", "description": "Notifica todos os seguidores do estabelecimento" },
+    { "name": "update_publicacao_curtidas_count", "returns": "trigger", "language": "plpgsql", "description": "Incrementa/decrementa curtidas_count em publicacoes" },
+    { "name": "update_publicacao_salvos_count", "returns": "trigger", "language": "plpgsql", "description": "Incrementa/decrementa salvos_count em publicacoes" },
+    { "name": "check_assinatura_vencimento", "returns": "trigger", "language": "plpgsql", "description": "Verifica vencimento próximo e agenda notificação" },
+    { "name": "recalc_fila_posicoes", "returns": "trigger", "language": "plpgsql", "description": "Recalcula posições sequenciais na fila_espera" },
+    { "name": "update_assinatura_vencimento", "returns": "trigger", "language": "plpgsql", "description": "Estende vencimento da assinatura baseado no pagamento" },
+    { "name": "get_horarios_disponiveis", "returns": "SETOF time", "language": "plpgsql", "params": ["p_estabelecimento_id uuid", "p_dia date", "p_duracao_minutos integer"], "description": "Função SQL para buscar horários livres (substitui lógica no cliente)" },
+    { "name": "calcular_faturamento_periodo", "returns": "TABLE(periodo text, total numeric, agendamentos integer)", "language": "plpgsql", "params": ["p_estabelecimento_id uuid", "p_data_inicio date", "p_data_fim date"], "description": "Agregação de faturamento para dashboard" }
+  ]
+}

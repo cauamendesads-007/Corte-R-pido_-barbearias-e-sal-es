@@ -1,0 +1,1046 @@
+/**
+ * Onboarding Guiado - Estilos
+ * Wizard multi-etapas para configuração inicial do estabelecimento
+ */
+
+/* ========================================
+   LAYOUT PRINCIPAL
+   ======================================== */
+
+.onboarding {
+  min-height: 100vh;
+  background: var(--cor-fundo);
+  display: flex;
+  flex-direction: column;
+}
+
+.onboarding__progresso {
+  padding: var(--espaco-4) var(--espaco-6);
+  background: var(--cor-superficie);
+  border-bottom: 1px solid var(--cor-borda);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.onboarding__conteudo-principal {
+  flex: 1;
+  padding: var(--espaco-6) var(--espaco-4);
+  max-width: 720px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.onboarding__navegacao-rapida {
+  display: none;
+  padding: var(--espaco-4);
+  background: var(--cor-superficie);
+  border-top: 1px solid var(--cor-borda);
+}
+
+@media (min-width: 768px) {
+  .onboarding__navegacao-rapida {
+    display: block;
+  }
+}
+
+/* ========================================
+   INDICADOR DE PROGRESSO
+   ======================================== */
+
+.onboarding__progresso-lista {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.onboarding__progresso-item {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.onboarding__progresso-botao {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espaco-1);
+  padding: var(--espaco-2) var(--espaco-3);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--cor-texto-secundario);
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-align: center;
+  min-width: 80px;
+  transition: color var(--transicao-rapida);
+}
+
+.onboarding__progresso-botao:focus-visible {
+  outline: 2px solid var(--cor-primaria);
+  outline-offset: 4px;
+  border-radius: var(--radius-md);
+}
+
+.onboarding__progresso-botao:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.onboarding__progresso-numero {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--cor-borda);
+  color: var(--cor-texto-secundario);
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: all var(--transicao-rapida);
+}
+
+.onboarding__progresso-botao.atual .onboarding__progresso-numero {
+  background: var(--cor-primaria);
+  color: white;
+  box-shadow: 0 0 0 3px var(--cor-primaria-clara);
+}
+
+.onboarding__progresso-botao.concluida .onboarding__progresso-numero {
+  background: var(--cor-sucesso);
+  color: white;
+}
+
+.onboarding__progresso-titulo {
+  white-space: nowrap;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.onboarding__progresso-botao.atual .onboarding__progresso-titulo {
+  color: var(--cor-primaria);
+  font-weight: 600;
+}
+
+.onboarding__progresso-botao.concluida .onboarding__progresso-titulo {
+  color: var(--cor-sucesso);
+}
+
+.onboarding__progresso-linha {
+  flex: 1;
+  height: 2px;
+  background: var(--cor-borda);
+  max-width: 60px;
+  transition: background var(--transicao-rapida);
+}
+
+.onboarding__progresso-linha--concluida {
+  background: var(--cor-sucesso);
+}
+
+/* ========================================
+   ETAPAS - ESTRUTURA COMUM
+   ======================================== */
+
+.onboarding__etapa {
+  animation: onboardingFadeIn 0.3s ease-out;
+}
+
+@keyframes onboardingFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.onboarding__cabecalho {
+  margin-bottom: var(--espaco-6);
+  text-align: center;
+}
+
+.onboarding__cabecalho h2 {
+  margin: 0 0 var(--espaco-1);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--cor-texto);
+}
+
+.onboarding__descricao {
+  margin: 0;
+  color: var(--cor-texto-secundario);
+  font-size: 0.95rem;
+}
+
+.onboarding__formulario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-5);
+}
+
+.onboarding__campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+}
+
+.onboarding__label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--cor-texto);
+}
+
+.onboarding__ajuda {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--cor-texto-terciario);
+}
+
+.onboarding__erro {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--cor-erro);
+}
+
+.onboarding__erro-global {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espaco-2);
+  padding: var(--espaco-3) var(--espaco-4);
+  background: var(--cor-erro-clara);
+  border: 1px solid var(--cor-erro);
+  border-radius: var(--radius-md);
+  color: var(--cor-erro);
+  font-size: 0.875rem;
+}
+
+.onboarding__contador {
+  margin: var(--espaco-1) 0 0;
+  text-align: right;
+  font-size: 0.75rem;
+  color: var(--cor-texto-terciario);
+}
+
+.onboarding__campo-duplo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--espaco-4);
+}
+
+@media (max-width: 480px) {
+  .onboarding__campo-duplo {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ========================================
+   BOTÕES DE NAVEGAÇÃO
+   ======================================== */
+
+.onboarding__rodape {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--espaco-3);
+  padding-top: var(--espaco-6);
+  margin-top: var(--espaco-4);
+  border-top: 1px solid var(--cor-borda);
+  flex-wrap: wrap;
+}
+
+.onboarding__botao-voltar,
+.onboarding__botao-avancar,
+.onboarding__botao-finalizar {
+  min-width: 160px;
+}
+
+.onboarding__botao-principal {
+  width: 100%;
+  margin-top: var(--espaco-4);
+}
+
+.onboarding__info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espaco-2);
+  margin-top: var(--espaco-4);
+  font-size: 0.85rem;
+  color: var(--cor-texto-secundario);
+}
+
+/* ========================================
+   ETAPA: BOAS-VINDAS
+   ======================================== */
+
+.onboarding__boas-vindas {
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.onboarding__icone-principal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: var(--cor-primaria-clara);
+  color: var(--cor-primaria);
+  margin-bottom: var(--espaco-6);
+}
+
+.onboarding__titulo {
+  margin: 0 0 var(--espaco-2);
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--cor-texto);
+  line-height: 1.2;
+}
+
+.onboarding__subtitulo {
+  margin: 0 0 var(--espaco-8);
+  font-size: 1.1rem;
+  color: var(--cor-texto-secundario);
+  line-height: 1.6;
+}
+
+.onboarding__beneficios {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--espaco-4);
+  margin-bottom: var(--espaco-8);
+}
+
+@media (max-width: 480px) {
+  .onboarding__beneficios {
+    grid-template-columns: 1fr;
+  }
+}
+
+.onboarding__beneficio {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espaco-3);
+  padding: var(--espaco-4);
+  background: var(--cor-fundo);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--radius-lg);
+  text-align: left;
+}
+
+.onboarding__beneficio-icone {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.onboarding__beneficio strong {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--cor-texto);
+  margin-bottom: 2px;
+}
+
+.onboarding__beneficio p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--cor-texto-secundario);
+}
+
+.onboarding__acoes {
+  margin-bottom: var(--espaco-6);
+}
+
+/* ========================================
+   ETAPA: DADOS BÁSICOS
+   ======================================== */
+
+.onboarding__chip-grupo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+}
+
+.onboarding__chip-grupo--layout {
+  gap: var(--espaco-3);
+}
+
+.onboarding__textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+/* ========================================
+   ETAPA: LOCALIZAÇÃO E CONTATO
+   ======================================== */
+
+.onboarding__horario-grupo {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--espaco-3);
+}
+
+.onboarding__horario-input {
+  flex: 1;
+}
+
+.onboarding__horario-separador {
+  color: var(--cor-texto-secundario);
+  font-weight: 500;
+  margin-bottom: var(--espaco-1);
+}
+
+/* ========================================
+   ETAPA: SERVIÇOS E PREÇOS
+   ======================================== */
+
+.onboarding__vazio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--espaco-10) var(--espaco-4);
+  text-align: center;
+  background: var(--cor-fundo);
+  border: 2px dashed var(--cor-borda);
+  border-radius: var(--radius-lg);
+  color: var(--cor-texto-secundario);
+}
+
+.onboarding__vazio p {
+  margin: var(--espaco-4) 0 0;
+  font-size: 1rem;
+}
+
+.onboarding__vazio > *:first-child {
+  margin-top: 0;
+}
+
+.onboarding__lista-servicos {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+}
+
+.onboarding__servico-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-4);
+  padding: var(--espaco-4);
+  background: var(--cor-fundo);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--radius-lg);
+  transition: border-color var(--transicao-rapida), box-shadow var(--transicao-rapida);
+}
+
+.onboarding__servico-item:hover {
+  border-color: var(--cor-primaria-clara);
+  box-shadow: var(--sombra-sm);
+}
+
+.onboarding__servico-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.onboarding__servico-info strong {
+  display: block;
+  font-size: 0.95rem;
+  color: var(--cor-texto);
+  margin-bottom: var(--espaco-1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.onboarding__servico-detalhes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espaco-2);
+  font-size: 0.8rem;
+}
+
+.onboarding__servico-preco {
+  font-weight: 600;
+  color: var(--cor-primaria);
+}
+
+.onboarding__servico-duracao {
+  color: var(--cor-texto-secundario);
+}
+
+.onboarding__servico-tag {
+  padding: 2px 8px;
+  background: var(--cor-primaria-clara);
+  color: var(--cor-primaria);
+  border-radius: var(--radius-full);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.onboarding__servico-acoes {
+  display: flex;
+  gap: var(--espaco-2);
+  flex-shrink: 0;
+}
+
+.onboarding__acao-adicionar {
+  margin-top: var(--espaco-2);
+}
+
+.onboarding__erro--global {
+  margin-top: var(--espaco-2);
+  padding: var(--espaco-3);
+  background: var(--cor-erro-clara);
+  border: 1px solid var(--cor-erro);
+  border-radius: var(--radius-md);
+  color: var(--cor-erro);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+/* Modal de Serviço */
+.onboarding__modal-formulario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+}
+
+.onboarding__select {
+  width: 100%;
+  padding: var(--espaco-3) var(--espaco-4);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--radius-md);
+  background: var(--cor-superficie);
+  color: var(--cor-texto);
+  font-size: 0.95rem;
+  font-family: inherit;
+}
+
+.onboarding__select:focus {
+  outline: none;
+  border-color: var(--cor-primaria);
+  box-shadow: 0 0 0 3px var(--cor-primaria-clara);
+}
+
+.onboarding__modal-acoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--espaco-3);
+  margin-top: var(--espaco-2);
+}
+
+/* ========================================
+   ETAPA: TEMA E APARÊNCIA
+   ======================================== */
+
+.onboarding__cores-grupo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+}
+
+.onboarding__cor-opcao {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border: 3px solid transparent;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform var(--transicao-rapida), box-shadow var(--transicao-rapida);
+}
+
+.onboarding__cor-opcao:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--cor-primaria-clara);
+}
+
+.onboarding__cor-opcao:hover {
+  transform: scale(1.1);
+}
+
+.onboarding__cor-opcao--ativa {
+  border-color: var(--cor-texto);
+  box-shadow: 0 0 0 3px var(--cor-superficie), 0 0 0 6px var(--cor-texto);
+}
+
+.onboarding__cor-opcao--ativa::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+}
+
+.onboarding__cor-personalizada {
+  margin-top: var(--espaco-3);
+}
+
+.onboarding__preview {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  min-height: 160px;
+  position: relative;
+}
+
+.onboarding__preview-conteudo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: var(--espaco-8);
+  text-align: center;
+}
+
+.onboarding__preview-conteudo h3 {
+  margin: 0 0 var(--espaco-2);
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.onboarding__preview-conteudo p {
+  margin: 0 0 var(--espaco-6);
+  opacity: 0.9;
+}
+
+.onboarding__preview-botoes {
+  display: flex;
+  gap: var(--espaco-3);
+}
+
+.onboarding__preview-botao {
+  padding: var(--espaco-2) var(--espaco-5);
+  border-radius: var(--radius-full);
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.onboarding__preview-botao--secundario {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* ========================================
+   ETAPA: PAGAMENTOS PIX
+   ======================================== */
+
+.onboarding__chip-grupo--pix {
+  gap: var(--espaco-2);
+}
+
+.onboarding__info-desativado {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--espaco-10) var(--espaco-4);
+  text-align: center;
+  background: var(--cor-fundo);
+  border: 2px dashed var(--cor-borda);
+  border-radius: var(--radius-lg);
+  color: var(--cor-texto-secundario);
+}
+
+.onboarding__info-desativado svg {
+  color: var(--cor-texto-terciario);
+  margin-bottom: var(--espaco-4);
+}
+
+.onboarding__info-desativado h3 {
+  margin: 0 0 var(--espaco-2);
+  font-size: 1.1rem;
+  color: var(--cor-texto);
+}
+
+.onboarding__info-desativado p {
+  margin: 0 0 var(--espaco-2);
+}
+
+.onboarding__info-destaque {
+  font-weight: 500;
+  color: var(--cor-primaria) !important;
+}
+
+.onboarding__percentual-input {
+  display: flex;
+  align-items: center;
+  max-width: 140px;
+}
+
+.onboarding__percentual-campo {
+  flex: 1;
+  text-align: center;
+}
+
+.onboarding__percentual-simbolo {
+  margin-left: var(--espaco-2);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--cor-texto-secundario);
+}
+
+.onboarding__exemplo-calculo {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  padding: var(--espaco-4);
+  background: var(--cor-primaria-clara);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  color: var(--cor-primaria-escura);
+  margin-top: var(--espaco-2);
+}
+
+.onboarding__exemplo-calculo strong {
+  font-weight: 600;
+}
+
+/* ========================================
+   ETAPA: CONFIRMAÇÃO
+   ======================================== */
+
+.onboarding__resumo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+}
+
+.onboarding__resumo-card {
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.onboarding__resumo-card-cabecalho {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+  padding: var(--espaco-4);
+  background: var(--cor-fundo);
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.onboarding__resumo-card-cabecalho svg {
+  color: var(--cor-primaria);
+  flex-shrink: 0;
+}
+
+.onboarding__resumo-card-cabecalho h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--cor-texto);
+}
+
+.onboarding__resumo-lista {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--espaco-2) var(--espaco-4);
+  padding: var(--espaco-4);
+  margin: 0;
+}
+
+.onboarding__resumo-lista dt {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--cor-texto-secundario);
+}
+
+.onboarding__resumo-lista dd {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--cor-texto);
+  word-break: break-word;
+}
+
+.onboarding__resumo-servicos {
+  list-style: none;
+  margin: 0;
+  padding: var(--espaco-4);
+}
+
+.onboarding__resumo-servico-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--espaco-2) 0;
+  border-bottom: 1px solid var(--cor-borda-clara);
+}
+
+.onboarding__resumo-servico-item:last-child {
+  border-bottom: none;
+}
+
+.onboarding__resumo-servico-nome {
+  font-size: 0.875rem;
+  color: var(--cor-texto);
+}
+
+.onboarding__resumo-servico-preco {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--cor-primaria);
+}
+
+.onboarding__resumo-totais {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--espaco-3) var(--espaco-4);
+  background: var(--cor-fundo);
+  border-top: 1px solid var(--cor-borda);
+  font-size: 0.85rem;
+  color: var(--cor-texto-secundario);
+}
+
+.onboarding__cor-amostra {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  margin-right: var(--espaco-2);
+  vertical-align: middle;
+  border: 1px solid var(--cor-borda);
+}
+
+/* Sucesso */
+.onboarding__sucesso {
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.onboarding__sucesso-conteudo {
+  text-align: center;
+  padding: var(--espaco-4) 0;
+}
+
+.onboarding__sucesso-icone {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--cor-sucesso-clara);
+  color: var(--cor-sucesso);
+  margin-bottom: var(--espaco-6);
+}
+
+.onboarding__sucesso-conteudo h2 {
+  margin: 0 0 var(--espaco-2);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--cor-texto);
+}
+
+.onboarding__sucesso-mensagem {
+  margin: 0 0 var(--espaco-6);
+  font-size: 1rem;
+  color: var(--cor-texto-secundario);
+  line-height: 1.6;
+}
+
+.onboarding__sucesso-detalhes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+  padding: var(--espaco-4);
+  background: var(--cor-fundo);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--espaco-6);
+  text-align: left;
+  font-size: 0.875rem;
+  color: var(--cor-texto-secundario);
+}
+
+.onboarding__sucesso-detalhes strong {
+  color: var(--cor-texto);
+}
+
+.onboarding__sucesso-acoes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  margin-bottom: var(--espaco-6);
+}
+
+@media (min-width: 480px) {
+  .onboarding__sucesso-acoes {
+    flex-direction: row;
+    justify-content: center;
+  }
+}
+
+.onboarding__sucesso-info {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espaco-2);
+  padding: var(--espaco-3);
+  background: var(--cor-primaria-clara);
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  color: var(--cor-primaria-escura);
+  text-align: left;
+}
+
+.onboarding__sucesso-info svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* ========================================
+   ESTADOS ESPECIAIS
+   ======================================== */
+
+.onboarding--verificando,
+.onboarding--ja-concluido {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  text-align: center;
+  padding: var(--espaco-8) var(--espaco-4);
+}
+
+.onboarding__spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--cor-borda);
+  border-top-color: var(--cor-primaria);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: var(--espaco-4);
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.onboarding__carregando {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--espaco-10);
+  color: var(--cor-texto-secundario);
+}
+
+/* ========================================
+   RESPONSIVO
+   ======================================== */
+
+@media (max-width: 640px) {
+  .onboarding__progresso {
+    padding: var(--espaco-3) var(--espaco-4);
+  }
+
+  .onboarding__progresso-botao {
+    min-width: 60px;
+    padding: var(--espaco-1) var(--espaco-2);
+    font-size: 0.7rem;
+  }
+
+  .onboarding__progresso-numero {
+    width: 24px;
+    height: 24px;
+    font-size: 0.75rem;
+  }
+
+  .onboarding__progresso-titulo {
+    max-width: 80px;
+    font-size: 0.7rem;
+  }
+
+  .onboarding__progresso-linha {
+    max-width: 40px;
+  }
+
+  .onboarding__conteudo-principal {
+    padding: var(--espaco-4) var(--espaco-3);
+  }
+
+  .onboarding__cabecalho h2 {
+    font-size: 1.25rem;
+  }
+
+  .onboarding__rodape {
+    flex-direction: column-reverse;
+  }
+
+  .onboarding__botao-voltar,
+  .onboarding__botao-avancar,
+  .onboarding__botao-finalizar {
+    width: 100%;
+  }
+
+  .onboarding__beneficios {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 400px) {
+  .onboarding__progresso-titulo {
+    display: none;
+  }
+
+  .onboarding__progresso-botao {
+    min-width: auto;
+    padding: var(--espaco-1);
+  }
+
+  .onboarding__progresso-linha {
+    max-width: 24px;
+  }
+}
+
+/* ========================================
+   ACESSIBILIDADE
+   ======================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .onboarding__etapa {
+    animation: none;
+  }
+
+  .onboarding__spinner {
+    animation: none;
+  }
+
+  .onboarding__cor-opcao:hover {
+    transform: none;
+  }
+}
+
+/* Alto contraste */
+@media (prefers-contrast: high) {
+  .onboarding__progresso-numero {
+    border: 2px solid currentColor;
+  }
+
+  .onboarding__cor-opcao--ativa {
+    border-width: 4px;
+  }
+
+  .onboarding__servico-item,
+  .onboarding__resumo-card {
+    border-width: 2px;
+  }
+}
