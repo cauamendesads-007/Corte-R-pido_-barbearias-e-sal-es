@@ -61,7 +61,10 @@ export const SupabaseNotificacoesService = {
 
       const { data, error } = await query.limit(100);
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseNotificacoesService.listarNotificacoes] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao buscar notificações.' };
+      }
 
       return { sucesso: true, dados: (data || []).map(mapNotificacaoRowToTipo) };
     } catch (error) {
@@ -87,7 +90,10 @@ export const SupabaseNotificacoesService = {
         .update({ lida: true })
         .eq('id', notificacaoId);
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseNotificacoesService.marcarNotificacaoLida] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao marcar como lida.' };
+      }
 
       return { sucesso: true, dados: undefined };
     } catch (error) {
@@ -114,7 +120,10 @@ export const SupabaseNotificacoesService = {
         .eq('destinatario_id', usuarioEmail)
         .eq('lida', false);
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseNotificacoesService.marcarTodasNotificacoesLidas] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao marcar todas como lidas.' };
+      }
 
       return { sucesso: true, dados: undefined };
     } catch (error) {
@@ -140,7 +149,10 @@ export const SupabaseNotificacoesService = {
         .delete()
         .eq('id', notificacaoId);
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseNotificacoesService.excluirNotificacao] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao excluir notificação.' };
+      }
 
       return { sucesso: true, dados: undefined };
     } catch (error) {
@@ -167,7 +179,10 @@ export const SupabaseNotificacoesService = {
         .eq('destinatario_id', usuarioEmail)
         .eq('lida', true);
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseNotificacoesService.excluirTodasLidas] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao excluir lidas.' };
+      }
 
       return { sucesso: true, dados: undefined };
     } catch (error) {
@@ -194,7 +209,10 @@ export const SupabaseNotificacoesService = {
         .eq('id', estabelecimentoId)
         .single();
 
-      if (estError) return { sucesso: false, erro: estError.message };
+      if (estError) {
+        console.error('[SupabaseNotificacoesService.enviarMensagemClientes] Erro:', estError);
+        return { sucesso: false, erro: 'Erro ao buscar estabelecimento.' };
+      }
 
       let emails: string[] = [];
 
@@ -204,7 +222,10 @@ export const SupabaseNotificacoesService = {
           .from('agendamentos')
           .select('usuario_id')
           .eq('estabelecimento_id', estabelecimentoId);
-        if (agsError) return { sucesso: false, erro: agsError.message };
+        if (agsError) {
+          console.error('[SupabaseNotificacoesService.enviarMensagemClientes] Erro:', agsError);
+          return { sucesso: false, erro: 'Erro ao buscar agendamentos.' };
+        }
         emails = [...new Set(ags?.map(a => a.usuario_id).filter(Boolean) || [])];
       } else {
         emails = destinatarios;
@@ -214,7 +235,10 @@ export const SupabaseNotificacoesService = {
         .from('usuarios')
         .select('email')
         .in('email', emails);
-      if (usuariosError) return { sucesso: false, erro: usuariosError.message };
+      if (usuariosError) {
+        console.error('[SupabaseNotificacoesService.enviarMensagemClientes] Erro:', usuariosError);
+        return { sucesso: false, erro: 'Erro ao buscar usuários.' };
+      }
 
       const notificacoes = (usuarios || []).map(u => ({
         destinatario_id: u.email,
@@ -227,7 +251,10 @@ export const SupabaseNotificacoesService = {
 
       const { error: insertError } = await supabase.from('notificacoes').insert(notificacoes);
 
-      if (insertError) return { sucesso: false, erro: insertError.message };
+      if (insertError) {
+        console.error('[SupabaseNotificacoesService.enviarMensagemClientes] Erro:', insertError);
+        return { sucesso: false, erro: 'Erro ao enviar mensagens.' };
+      }
 
       return { sucesso: true, dados: notificacoes.length };
     } catch (error) {
@@ -255,7 +282,10 @@ export const SupabaseNotificacoesService = {
           .from('usuarios')
           .select('email')
           .eq('papel', 'barbeiro');
-        if (barbeirosError) return { sucesso: false, erro: barbeirosError.message };
+        if (barbeirosError) {
+          console.error('[SupabaseNotificacoesService.enviarAvisoBarbeiros] Erro:', barbeirosError);
+          return { sucesso: false, erro: 'Erro ao buscar barbeiros.' };
+        }
         emails = barbeiros?.map(b => b.email) || [];
       } else {
         // destinatarios são IDs de estabelecimentos
@@ -264,7 +294,10 @@ export const SupabaseNotificacoesService = {
           .select('email')
           .eq('papel', 'barbeiro')
           .in('estabelecimento_id', destinatarios);
-        if (barbeirosError) return { sucesso: false, erro: barbeirosError.message };
+        if (barbeirosError) {
+          console.error('[SupabaseNotificacoesService.enviarAvisoBarbeiros] Erro:', barbeirosError);
+          return { sucesso: false, erro: 'Erro ao buscar barbeiros.' };
+        }
         emails = barbeiros?.map(b => b.email) || [];
       }
 
@@ -278,7 +311,10 @@ export const SupabaseNotificacoesService = {
 
       const { error: insertError } = await supabase.from('notificacoes').insert(notificacoes);
 
-      if (insertError) return { sucesso: false, erro: insertError.message };
+      if (insertError) {
+        console.error('[SupabaseNotificacoesService.enviarAvisoBarbeiros] Erro:', insertError);
+        return { sucesso: false, erro: 'Erro ao enviar avisos.' };
+      }
 
       return { sucesso: true, dados: notificacoes.length };
     } catch (error) {

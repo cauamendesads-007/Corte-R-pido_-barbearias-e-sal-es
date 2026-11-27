@@ -206,12 +206,12 @@ describe('SupabaseNotificacoesService', () => {
     });
 
     it('deve retornar erro quando Supabase falha', async () => {
-      setupSelectMock(null, { message: 'Erro de conexão' });
+      setupSelectMock(null, { message: 'Erro ao buscar notificações.' });
 
       const resultado = await service.listarNotificacoes('user@exemplo.com', 'todos');
 
       expect(resultado.sucesso).toBe(false);
-      expect(resultado.erro).toBe('Erro de conexão');
+      expect(resultado.erro).toBe('Erro ao buscar notificações.');
     });
 
     it('deve retornar array vazio quando não há notificações', async () => {
@@ -245,7 +245,7 @@ describe('SupabaseNotificacoesService', () => {
     });
 
     it('deve retornar erro quando Supabase falha', async () => {
-      const errorResult = { error: { message: 'Erro ao atualizar' } };
+      const errorResult = { error: { message: 'Erro ao marcar como lida.' } };
       const updateChain = {
         eq: vi.fn(() => Promise.resolve(errorResult)),
       };
@@ -254,7 +254,7 @@ describe('SupabaseNotificacoesService', () => {
       const resultado = await service.marcarNotificacaoLida('notif-123');
 
       expect(resultado.sucesso).toBe(false);
-      expect(resultado.erro).toBe('Erro ao atualizar');
+      expect(resultado.erro).toBe('Erro ao marcar como lida.');
     });
   });
 
@@ -278,7 +278,7 @@ describe('SupabaseNotificacoesService', () => {
     });
 
     it('deve retornar erro quando Supabase falha', async () => {
-      const errorResult = { error: { message: 'Erro ao atualizar' } };
+      const errorResult = { error: { message: 'Erro ao marcar todas como lidas.' } };
       const secondEq = vi.fn(() => Promise.resolve(errorResult));
       const firstEq = vi.fn(() => ({ eq: secondEq }));
       const updateChain = {
@@ -289,7 +289,7 @@ describe('SupabaseNotificacoesService', () => {
       const resultado = await service.marcarTodasNotificacoesLidas('user@exemplo.com');
 
       expect(resultado.sucesso).toBe(false);
-      expect(resultado.erro).toBe('Erro ao atualizar');
+      expect(resultado.erro).toBe('Erro ao marcar todas como lidas.');
     });
   });
 
@@ -323,7 +323,7 @@ describe('SupabaseNotificacoesService', () => {
       const resultado = await service.excluirNotificacao('notif-123');
 
       expect(resultado.sucesso).toBe(false);
-      expect(resultado.erro).toBe('Erro ao excluir');
+      expect(resultado.erro).toBe('Erro ao excluir notificação.');
     });
   });
 
@@ -358,7 +358,7 @@ describe('SupabaseNotificacoesService', () => {
       const resultado = await service.excluirTodasLidas('user@exemplo.com');
 
       expect(resultado.sucesso).toBe(false);
-      expect(resultado.erro).toBe('Erro ao excluir');
+      expect(resultado.erro).toBe('Erro ao excluir lidas.');
     });
   });
 
@@ -380,7 +380,7 @@ describe('SupabaseNotificacoesService', () => {
               eq: vi.fn(() => ({
                 single: vi.fn().mockResolvedValue({
                   data: estabelecimentoNome ? { nome: estabelecimentoNome } : null,
-                  error: estabelecimentoNome ? null : { message: 'Erro ao buscar' },
+                  error: estabelecimentoNome ? null : { message: 'Erro ao buscar estabelecimento.' },
                 }),
               })),
             })),
@@ -469,7 +469,7 @@ describe('SupabaseNotificacoesService', () => {
       const resultado = await service.enviarMensagemClientes('est-123', ['all'], 'Olá!');
 
       expect(resultado.sucesso).toBe(false);
-      expect(resultado.erro).toBe('Erro ao buscar');
+      expect(resultado.erro).toBe('Erro ao buscar estabelecimento.');
     });
   });
 
@@ -550,7 +550,7 @@ describe('SupabaseNotificacoesService', () => {
         if (table === 'usuarios') {
           return {
             select: vi.fn(() => ({
-              eq: vi.fn().mockResolvedValue({ data: [], error: { message: 'Erro ao buscar' } }),
+              eq: vi.fn().mockResolvedValue({ data: [], error: { message: 'Erro ao buscar barbeiros.' } }),
             })),
           };
         }
@@ -565,7 +565,7 @@ describe('SupabaseNotificacoesService', () => {
       const resultado = await service.enviarAvisoBarbeiros(['all'], 'Aviso!');
 
       expect(resultado.sucesso).toBe(false);
-      expect(resultado.erro).toBe('Erro ao buscar');
+      expect(resultado.erro).toBe('Erro ao buscar barbeiros.');
     });
   });
 
@@ -684,7 +684,7 @@ describe('SupabaseNotificacoesService', () => {
       const resultado = await service.listarNotificacoes('user@exemplo.com', 'todos');
 
       expect(resultado.sucesso).toBe(false);
-      expect(resultado.erro).toContain('permission denied');
+      expect(resultado.erro).toBe('Erro ao buscar notificações.');
     });
 
     it('deve retornar erro quando RLS bloqueia marcação como lida', async () => {
@@ -697,7 +697,7 @@ describe('SupabaseNotificacoesService', () => {
       const resultado = await service.marcarNotificacaoLida('notif-123');
 
       expect(resultado.sucesso).toBe(false);
-      expect(resultado.erro).toContain('permission denied');
+      expect(resultado.erro).toBe('Erro ao marcar como lida.');
     });
 
     it('deve retornar erro quando RLS bloqueia exclusão de notificação', async () => {
@@ -710,7 +710,7 @@ describe('SupabaseNotificacoesService', () => {
       const resultado = await service.excluirNotificacao('notif-123');
 
       expect(resultado.sucesso).toBe(false);
-      expect(resultado.erro).toContain('permission denied');
+      expect(resultado.erro).toBe('Erro ao excluir notificação.');
     });
 
     it('deve retornar erro quando RLS bloqueia envio de mensagem para clientes', async () => {
@@ -753,7 +753,7 @@ describe('SupabaseNotificacoesService', () => {
       const resultado = await service.enviarMensagemClientes('est-123', ['all'], 'teste');
 
       expect(resultado.sucesso).toBe(false);
-      expect(resultado.erro).toContain('permission denied');
+      expect(resultado.erro).toBe('Erro ao enviar mensagens.');
     });
 
     it('deve retornar erro quando RLS bloqueia envio de aviso para barbeiros', async () => {
@@ -778,7 +778,7 @@ describe('SupabaseNotificacoesService', () => {
       const resultado = await service.enviarAvisoBarbeiros(['all'], 'teste');
 
       expect(resultado.sucesso).toBe(false);
-      expect(resultado.erro).toContain('permission denied');
+      expect(resultado.erro).toBe('Erro ao enviar avisos.');
     });
   });
 });
