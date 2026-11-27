@@ -127,7 +127,8 @@ export const SupabaseAuthService = {
       });
 
       if (authError || !authData.user) {
-        return { sucesso: false, erro: authError?.message || 'Erro ao criar conta.' };
+        console.error('[SupabaseAuthService.cadastrarCliente] Erro:', authError);
+        return { sucesso: false, erro: 'Erro ao criar conta.' };
       }
 
       // Cria perfil na tabela usuarios
@@ -191,7 +192,8 @@ export const SupabaseAuthService = {
       });
 
       if (authError || !authData.user) {
-        return { sucesso: false, erro: authError?.message || 'Erro ao criar conta.' };
+        console.error('[SupabaseAuthService.cadastrarProfissional] Erro:', authError);
+        return { sucesso: false, erro: 'Erro ao criar conta.' };
       }
 
       // Gera slug único
@@ -303,7 +305,10 @@ export const SupabaseAuthService = {
     try {
       const supabase = getSupabase();
       const { error } = await supabase.auth.signOut();
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseAuthService.sair] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao sair.' };
+      }
       return { sucesso: true, dados: undefined };
     } catch (error) {
       console.error('[SupabaseAuthService.sair] Erro:', error);
@@ -335,6 +340,7 @@ export const SupabaseAuthService = {
         .single();
 
       if (perfilError || !perfil) {
+        console.error('[SupabaseAuthService.obterSessao] Erro:', perfilError);
         return { sucesso: true, dados: null };
       }
 
@@ -414,7 +420,10 @@ export const SupabaseAuthService = {
 
       // Atualiza senha
       const { error } = await supabase.auth.updateUser({ password: novaSenha });
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseAuthService.alterarSenha] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao alterar senha.' };
+      }
 
       return { sucesso: true, dados: undefined };
     } catch (error) {
@@ -446,7 +455,8 @@ export const SupabaseAuthService = {
       });
 
       if (error) {
-        return { sucesso: false, erro: error.message || 'Erro ao excluir conta.' };
+        console.error('[SupabaseAuthService.excluirConta] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao excluir conta.' };
       }
 
       return { sucesso: true, dados: undefined };
@@ -477,7 +487,10 @@ export const SupabaseAuthService = {
         .eq('id', user.id)
         .single();
 
-      if (perfilError || !perfil) return { sucesso: true, dados: null };
+      if (perfilError || !perfil) {
+        console.error('[SupabaseAuthService.validarToken] Erro:', perfilError);
+        return { sucesso: true, dados: null };
+      }
 
       const sessao = mapSessaoFromUser(perfil);
       return { sucesso: true, dados: sessao };
@@ -509,7 +522,10 @@ export const SupabaseAuthService = {
         redirectTo: `${window.location.origin}/resetar-senha`,
       });
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseAuthService.recuperarSenha] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao enviar e-mail de recuperação.' };
+      }
 
       return { sucesso: true, dados: undefined };
     } catch (error) {
@@ -666,7 +682,10 @@ export const SupabaseAuthService = {
     try {
       const supabase = getSupabase();
       const { error } = await supabase.auth.admin.deleteUser(id);
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseAuthService.excluirUsuarioAdmin] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao excluir usuário.' };
+      }
 
       // O trigger on_delete_anonimizar_usuario fará a anonimização dos dados
       return { sucesso: true, dados: undefined };
@@ -692,7 +711,10 @@ export const SupabaseAuthService = {
         .select('*')
         .order('data_cadastro', { ascending: false });
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseAuthService.listarUsuariosAdmin] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao listar usuários.' };
+      }
       return { sucesso: true, dados: data.map(mapUsuarioRowToTipo) };
     } catch (error) {
       console.error('[SupabaseAuthService.listarUsuariosAdmin] Erro:', error);
