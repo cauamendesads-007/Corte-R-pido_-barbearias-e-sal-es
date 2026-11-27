@@ -75,7 +75,10 @@ export const SupabaseAgendamentosService = {
         .order('dia', { ascending: true })
         .order('horario', { ascending: true });
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseAgendamentosService.listarAgendamentosEstabelecimento] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao buscar agendamentos.' };
+      }
 
       return { sucesso: true, dados: (data || []).map(mapAgendamentoRowToTipo) };
     } catch (error) {
@@ -103,7 +106,10 @@ export const SupabaseAgendamentosService = {
         .order('dia', { ascending: true })
         .order('horario', { ascending: true });
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseAgendamentosService.listarAgendamentosCliente] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao buscar agendamentos.' };
+      }
 
       return { sucesso: true, dados: (data || []).map(mapAgendamentoRowToTipo) };
     } catch (error) {
@@ -138,7 +144,10 @@ export const SupabaseAgendamentosService = {
         .order('dia', { ascending: true })
         .order('horario', { ascending: true });
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseAgendamentosService.listarAgendamentos] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao buscar agendamentos.' };
+      }
 
       return { sucesso: true, dados: (data || []).map(mapAgendamentoRowToTipo) };
     } catch (error) {
@@ -165,7 +174,10 @@ export const SupabaseAgendamentosService = {
         .eq('id', agendamentoId)
         .maybeSingle();
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseAgendamentosService.obterAgendamento] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao buscar agendamento.' };
+      }
       if (!data) return { sucesso: true, dados: null };
 
       return { sucesso: true, dados: mapAgendamentoRowToTipo(data) };
@@ -286,7 +298,8 @@ export const SupabaseAgendamentosService = {
         if (error.code === '23P01' || error.message.includes('conflito') || error.message.includes('ocupado')) {
           return { sucesso: false, erro: 'Esse horário acabou de ser ocupado. Escolha outro.' };
         }
-        return { sucesso: false, erro: error.message };
+        console.error('[SupabaseAgendamentosService.criarAgendamento] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao criar agendamento.' };
       }
 
       const resultado = data?.[0] as RpcCriarAgendamentoResult;
@@ -388,7 +401,8 @@ export const SupabaseAgendamentosService = {
         if (error.code === '23P01') {
           return { sucesso: false, erro: 'Esse horário acabou de ser ocupado. Escolha outro.' };
         }
-        return { sucesso: false, erro: error.message };
+        console.error('[SupabaseAgendamentosService.reagendarAgendamento] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao reagendar.' };
       }
 
       const resultado = data?.[0] as RpcCriarAgendamentoResult;
