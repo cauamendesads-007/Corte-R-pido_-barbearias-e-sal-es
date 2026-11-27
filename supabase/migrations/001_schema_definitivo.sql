@@ -284,7 +284,7 @@ ALTER TABLE public.agendamentos DROP CONSTRAINT IF EXISTS agendamentos_sem_confl
 
 ALTER TABLE public.agendamentos
 ADD CONSTRAINT agendamentos_sem_conflito_profissional
-EXCLUDE USING extensions.gist (
+EXCLUDE USING gist (
   profissional_id WITH =,
   tsrange(
     (dia + horario),
