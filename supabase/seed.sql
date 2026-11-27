@@ -1,27 +1,25 @@
 -- ============================================================================
 -- SEED DATA — DADOS INICIAIS PARA TESTES E DESENVOLVIMENTO
 -- Execute APÓS a migration 001_schema_definitivo.sql
--- Compatível com o schema da migration (enums, tipos, constraints)
+-- 100% COMPATÍVEL COM NOVO ESQUEMA (enums, tipos, constraints, colunas)
 -- ============================================================================
 
 -- ============================================================================
--- PLANOS DE ASSINATURA
--- Nota: planos_assinatura.id é do tipo plano_tipo_enum (enum), não UUID
+-- PLANOS DE ASSINATURA (novo schema: preco_centavos, tipo, funcionalidades)
 -- ============================================================================
 
-INSERT INTO public.planos_assinatura (id, nome, descricao, preco_mensal_centavos, preco_anual_centavos, limite_estabelecimentos, limite_barbeiros, limite_agendamentos_mes, funcionalidades, ativo, ordem_exibicao) VALUES
-('gratuito', 'Gratuito', 'Plano gratuito para começar', 0, 0, 1, 1, 50, '{"agendamentos": true, "pagamentos": false, "fidelidade": false, "relatorios": false, "api": false}'::jsonb, true, 1),
-('basico', 'Básico', 'Ideal para barbearia pequena', 4990, 49900, 1, 3, 500, '{"agendamentos": true, "pagamentos": true, "fidelidade": true, "relatorios": true, "api": false}'::jsonb, true, 2),
-('profissional', 'Profissional', 'Para barbearias em crescimento', 8990, 89900, 3, 10, 5000, '{"agendamentos": true, "pagamentos": true, "fidelidade": true, "relatorios": true, "api": true, "multi_unidade": true}'::jsonb, true, 3),
-('empresarial', 'Empresarial', 'Para redes e franquias', 19990, 199900, 10, 50, 50000, '{"agendamentos": true, "pagamentos": true, "fidelidade": true, "relatorios": true, "api": true, "multi_unidade": true, "white_label": true, "sso": true}'::jsonb, true, 4),
-('custom', 'Customizado', 'Plano sob medida', 0, 0, 999, 999, 999999, '{"agendamentos": true, "pagamentos": true, "fidelidade": true, "relatorios": true, "api": true, "multi_unidade": true, "white_label": true, "sso": true, "custom": true}'::jsonb, true, 5)
+INSERT INTO public.planos_assinatura (id, nome, tipo, preco_centavos, descricao, funcionalidades, ativo, ordem_exibicao) VALUES
+('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'Gratuito', 'mensal', 0, 'Plano gratuito para começar', '["agendamentos"]'::jsonb, true, 1),
+('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'Básico', 'mensal', 4990, 'Ideal para barbearia pequena', '["agendamentos", "pagamentos", "fidelidade", "relatorios"]'::jsonb, true, 2),
+('cccccccc-cccc-cccc-cccc-cccccccccccc', 'Profissional', 'mensal', 8990, 'Para barbearias em crescimento', '["agendamentos", "pagamentos", "fidelidade", "relatorios", "api", "multi_unidade"]'::jsonb, true, 3),
+('dddddddd-dddd-dddd-dddd-dddddddddddd', 'Empresarial', 'mensal', 19990, 'Para redes e franquias', '["agendamentos", "pagamentos", "fidelidade", "relatorios", "api", "multi_unidade", "white_label", "sso"]'::jsonb, true, 4),
+('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', 'Customizado', 'mensal', 0, 'Plano sob medida', '["agendamentos", "pagamentos", "fidelidade", "relatorios", "api", "multi_unidade", "white_label", "sso", "custom"]'::jsonb, true, 5)
 ON CONFLICT (id) DO NOTHING;
 
 -- ============================================================================
 -- ESTABELECIMENTO DEMO
 -- ============================================================================
 
--- Usamos IDs fixos para facilitar testes
 DO $$
 DECLARE
   v_est_id UUID := 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
@@ -34,36 +32,36 @@ DECLARE
   v_svc2_id UUID := '22222222-3333-4444-5555-666666666666';
   v_svc3_id UUID := '33333333-4444-5555-6666-777777777777';
 BEGIN
-  -- Inserir estabelecimento demo
+  -- Inserir estabelecimento demo (colunas do novo schema)
   INSERT INTO public.estabelecimentos (
     id, slug, nome, responsavel, cidade, nicho, avaliacao, status,
     latitude, longitude, whatsapp, endereco, sobre,
     tema_cor, tema_layout, tema_titulo, tema_subtitulo,
     tempo_medio_atendimento, horario_funcionamento,
     permite_auto_edicao,
-    pix_modo, pix_chave, pix_percentual_sinal,
-    seguidores_count, taxa_fidelidade
+    configuracao_pix_modo, configuracao_pix_chave, configuracao_pix_percentual_sinal,
+    seguidores, taxa_fidelidade
   ) VALUES (
     v_est_id,
     'barbearia-do-carlos',
     'Barbearia do Carlos',
     'Carlos Silva',
     'Belo Horizonte',
-    'barbearia'::nicho_estabelecimento_enum,
+    'barbearia'::public.nicho_estabelecimento,
     4.9,
-    'aprovado'::status_estabelecimento_enum,
+    'aprovado'::public.status_estabelecimento,
     -19.9208, -43.9378,
     '31999999999',
     'Rua dos Bobos, 0 - Centro, Belo Horizonte - MG',
     'A melhor barbearia da região. Cortes clássicos, barba e atendimento VIP.',
-    '#B45309', 'classico'::tipo_layout_enum,
+    '#B45309', 'classico'::public.tipo_layout,
     'Barbearia do Carlos',
     'Tradição e estilo desde 2010',
     25,
     'Seg a Sáb, 9h às 19h',
     true,
-    'opcional'::pix_modo_enum,
-    'carlos@barbeariadocarlos.com', -- Chave Pix (email) - NUNCA EXPOSTA AO FRONTEND
+    'opcional', -- configuracao_pix_modo (TEXT CHECK)
+    'carlos@barbeariadocarlos.com', -- configuracao_pix_chave (NUNCA EXPOSTA AO FRONTEND)
     30,
     127,
     5.00
@@ -71,38 +69,38 @@ BEGIN
 
   -- ============================================================================
   -- USUÁRIOS (auth.users + public.usuarios)
-  -- NOTA: Em produção, auth.users é gerenciado pelo Supabase Auth.
-  -- Aqui inserimos apenas em public.usuarios assumindo que os IDs existem no auth.
-  -- Para testes locais, crie os usuários no Supabase Auth com estes UUIDs e emails.
+  -- NOTA: coluna 'senha_hash' NÃO EXISTE no novo schema (removida - auth.users gerencia)
+  -- Colunas: id, email, papel, nome, bio, whatsapp, cidade, avatar, estabelecimento_id,
+  --          confirmado, lembretes_whatsapp, seguindo, inspiracao_salvas, cpf
   -- ============================================================================
 
   -- Admin
-  INSERT INTO public.usuarios (id, email, senha_hash, papel, nome, confirmado, data_cadastro)
-  VALUES (v_admin_id, 'admin@corte-rapido.com', '$argon2id$v=19$m=65536,t=3,p=4$dummy', 'admin'::papel_usuario_enum, 'Admin Sistema', true, now())
+  INSERT INTO public.usuarios (id, email, papel, nome, confirmado, data_cadastro)
+  VALUES (v_admin_id, 'admin@corte-rapido.com', 'admin'::public.papel_usuario, 'Admin Sistema', true, now())
   ON CONFLICT (id) DO NOTHING;
 
   -- Barbeiro (dono do estabelecimento)
-  INSERT INTO public.usuarios (id, email, senha_hash, papel, nome, whatsapp, cidade, estabelecimento_id, confirmado, data_cadastro)
-  VALUES (v_barbeiro_id, 'carlos@barbeariadocarlos.com', '$argon2id$v=19$m=65536,t=3,p=4$dummy', 'barbeiro'::papel_usuario_enum, 'Carlos Silva', '31999999999', 'Belo Horizonte', v_est_id, true, now())
+  INSERT INTO public.usuarios (id, email, papel, nome, whatsapp, cidade, estabelecimento_id, confirmado, data_cadastro)
+  VALUES (v_barbeiro_id, 'carlos@barbeariadocarlos.com', 'barbeiro'::public.papel_usuario, 'Carlos Silva', '31999999999', 'Belo Horizonte', v_est_id, true, now())
   ON CONFLICT (id) DO NOTHING;
 
   -- Cliente demo
-  INSERT INTO public.usuarios (id, email, senha_hash, papel, nome, whatsapp, cidade, confirmado, lembretes_whatsapp, data_cadastro)
-  VALUES (v_cliente_id, 'joao@cliente.com', '$argon2id$v=19$m=65536,t=3,p=4$dummy', 'cliente'::papel_usuario_enum, 'João Cliente', '31988887777', 'Belo Horizonte', true, true, now())
+  INSERT INTO public.usuarios (id, email, papel, nome, whatsapp, cidade, confirmado, lembretes_whatsapp, data_cadastro)
+  VALUES (v_cliente_id, 'joao@cliente.com', 'cliente'::public.papel_usuario, 'João Cliente', '31988887777', 'Belo Horizonte', true, true, now())
   ON CONFLICT (id) DO NOTHING;
 
   -- ============================================================================
-  -- PROFISSIONAIS
+  -- PROFISSIONAIS (colunas: sem comissao_pct - não existe no novo schema)
   -- ============================================================================
 
-  -- Profissional 1: Carlos (tem login)
-  INSERT INTO public.profissionais (id, estabelecimento_id, usuario_id, nome, apelido, especialidades, ativo, ordem_exibicao, comissao_pct)
-  VALUES (v_prof1_id, v_est_id, v_barbeiro_id, 'Carlos Silva', 'Carlos', ARRAY['Corte Clássico', 'Barba', 'Degradê'], true, 1, 60)
+  -- Profissional 1: Carlos (tem login via usuario_id)
+  INSERT INTO public.profissionais (id, estabelecimento_id, usuario_id, nome, apelido, especialidades, ativo, ordem_exibicao)
+  VALUES (v_prof1_id, v_est_id, v_barbeiro_id, 'Carlos Silva', 'Carlos', ARRAY['Corte Clássico', 'Barba', 'Degradê'], true, 1)
   ON CONFLICT (id) DO NOTHING;
 
   -- Profissional 2: Pedro (SEM login - requisito: profissional sem conta)
-  INSERT INTO public.profissionais (id, estabelecimento_id, usuario_id, nome, apelido, especialidades, ativo, ordem_exibicao, comissao_pct)
-  VALUES (v_prof2_id, v_est_id, NULL, 'Pedro Santos', 'Pedro', ARRAY['Corte Infantil', 'Corte Feminino', 'Visagismo'], true, 2, 60)
+  INSERT INTO public.profissionais (id, estabelecimento_id, usuario_id, nome, apelido, especialidades, ativo, ordem_exibicao)
+  VALUES (v_prof2_id, v_est_id, NULL, 'Pedro Santos', 'Pedro', ARRAY['Corte Infantil', 'Corte Feminino', 'Visagismo'], true, 2)
   ON CONFLICT (id) DO NOTHING;
 
   -- ============================================================================
@@ -111,20 +109,20 @@ BEGIN
 
   -- Carlos: Seg-Sex 9h-18h, Sáb 9h-13h (dia_semana: 1=Seg, ..., 6=Sáb, 0=Dom)
   INSERT INTO public.horarios_funcionamento (profissional_id, dia_semana, hora_inicio, hora_fim, intervalo_minutos, ativo) VALUES
-    (v_prof1_id, 1, '09:00', '18:00', 30, true), -- Segunda
-    (v_prof1_id, 2, '09:00', '18:00', 30, true), -- Terça
-    (v_prof1_id, 3, '09:00', '18:00', 30, true), -- Quarta
-    (v_prof1_id, 4, '09:00', '18:00', 30, true), -- Quinta
-    (v_prof1_id, 5, '09:00', '18:00', 30, true), -- Sexta
-    (v_prof1_id, 6, '09:00', '13:00', 30, true)  -- Sábado
+    (v_prof1_id, 1, '09:00', '18:00', 30, true),
+    (v_prof1_id, 2, '09:00', '18:00', 30, true),
+    (v_prof1_id, 3, '09:00', '18:00', 30, true),
+    (v_prof1_id, 4, '09:00', '18:00', 30, true),
+    (v_prof1_id, 5, '09:00', '18:00', 30, true),
+    (v_prof1_id, 6, '09:00', '13:00', 30, true)
   ON CONFLICT (profissional_id, dia_semana) DO NOTHING;
 
   -- Pedro: Ter-Qui 10h-19h, Sáb 9h-14h
   INSERT INTO public.horarios_funcionamento (profissional_id, dia_semana, hora_inicio, hora_fim, intervalo_minutos, ativo) VALUES
-    (v_prof2_id, 2, '10:00', '19:00', 30, true), -- Terça
-    (v_prof2_id, 3, '10:00', '19:00', 30, true), -- Quarta
-    (v_prof2_id, 4, '10:00', '19:00', 30, true), -- Quinta
-    (v_prof2_id, 6, '09:00', '14:00', 30, true)  -- Sábado
+    (v_prof2_id, 2, '10:00', '19:00', 30, true),
+    (v_prof2_id, 3, '10:00', '19:00', 30, true),
+    (v_prof2_id, 4, '10:00', '19:00', 30, true),
+    (v_prof2_id, 6, '09:00', '14:00', 30, true)
   ON CONFLICT (profissional_id, dia_semana) DO NOTHING;
 
   -- ============================================================================
@@ -137,67 +135,71 @@ BEGIN
     (v_svc3_id, v_est_id, 'Combo Corte + Barba', 'Corte clássico + barba completa com desconto', 5500, 50, 'combo', true, 3)
   ON CONFLICT (id) DO NOTHING;
 
-  -- Mídias dos serviços (placeholders)
+  -- Mídias dos serviços
   INSERT INTO public.servico_midias (servico_id, tipo, src, alt, ordem) VALUES
-    (v_svc1_id, 'imagem'::tipo_midia_enum, 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=400', 'Corte clássico exemplo', 1),
-    (v_svc2_id, 'imagem'::tipo_midia_enum, 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=400', 'Barba completa exemplo', 1),
-    (v_svc3_id, 'imagem'::tipo_midia_enum, 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=400', 'Combo corte e barba', 1)
+    (v_svc1_id, 'imagem'::public.tipo_midia, 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=400', 'Corte clássico exemplo', 1),
+    (v_svc2_id, 'imagem'::public.tipo_midia, 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=400', 'Barba completa exemplo', 1),
+    (v_svc3_id, 'imagem'::public.tipo_midia, 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=400', 'Combo corte e barba', 1)
   ON CONFLICT DO NOTHING;
 
   -- ============================================================================
-  -- GALERIA DO ESTABELECIMENTO
+  -- GALERIA DO ESTABELECIMENTO (sem coluna 'legenda' e 'destaque' - não existem)
+  -- Colunas: estabelecimento_id, tipo, src, ordem
   -- ============================================================================
 
-  INSERT INTO public.galeria (estabelecimento_id, tipo, src, legenda, ordem, destaque) VALUES
-    (v_est_id, 'imagem'::tipo_midia_enum, 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=800', 'Ambiente da barbearia', 1, true),
-    (v_est_id, 'imagem'::tipo_midia_enum, 'https://images.unsplash.com/photo-1519070843887-1ce36f3b385e?w=800', 'Estação de corte', 2, false),
-    (v_est_id, 'imagem'::tipo_midia_enum, 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800', 'Detalhe da barba', 3, false)
+  INSERT INTO public.galeria (estabelecimento_id, tipo, src, ordem) VALUES
+    (v_est_id, 'imagem'::public.tipo_midia, 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=800', 1),
+    (v_est_id, 'imagem'::public.tipo_midia, 'https://images.unsplash.com/photo-1519070843887-1ce36f3b385e?w=800', 2),
+    (v_est_id, 'imagem'::public.tipo_midia, 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800', 3)
   ON CONFLICT DO NOTHING;
 
   -- ============================================================================
-  -- INSPIRAÇÕES (CATÁLOGO CURADO)
+  -- INSPIRAÇÕES (CATÁLOGO CURADO) - novo schema
+  -- Colunas: id, titulo, categoria, descricao, autor_id, autor_nome, autor_avatar, curtidas, data_criacao
   -- ============================================================================
 
-  INSERT INTO public.inspiracaoes (id, usuario_id, titulo, categoria, descricao, autor_nome, autor_avatar, curtidas_count, salvos_count, status, data_publicacao, data_criacao) VALUES
-    ('iii11111-1111-1111-1111-111111111111', v_admin_id, 'Degradê Clássico', 'degrade'::inspiracao_categoria_enum, 'Corte degradê baixo com transição suave', 'Equipe Corte Rápido', NULL, 234, 45, 'publicado'::publicacao_status_enum, now() - interval '10 days', now() - interval '10 days'),
-    ('iii22222-2222-2222-2222-222222222222', v_admin_id, 'Barba Lenhador', 'barba'::inspiracao_categoria_enum, 'Barba cheia modelada com óleo de argan', 'Equipe Corte Rápido', NULL, 189, 32, 'publicado'::publicacao_status_enum, now() - interval '8 days', now() - interval '8 days'),
-    ('iii33333-3333-3333-3333-333333333333', v_admin_id, 'Corte Infantil Divertido', 'infantil'::inspiracao_categoria_enum, 'Corte com desenho lateral para crianças', 'Equipe Corte Rápido', NULL, 156, 28, 'publicado'::publicacao_status_enum, now() - interval '5 days', now() - interval '5 days'),
-    ('iii44444-4444-4444-4444-444444444444', v_admin_id, 'Colorido Moderno', 'colorido'::inspiracao_categoria_enum, 'Mechas platinadas com corte texturizado', 'Equipe Corte Rápido', NULL, 312, 67, 'publicado'::publicacao_status_enum, now() - interval '3 days', now() - interval '3 days'),
-    ('iii55555-5555-5555-5555-555555555555', v_admin_id, 'Visagismo Masculino', 'visagismo'::inspiracao_categoria_enum, 'Análise facial + corte personalizado', 'Equipe Corte Rápido', NULL, 98, 15, 'publicado'::publicacao_status_enum, now() - interval '1 day', now() - interval '1 day')
+  INSERT INTO public.inspiracaoes (id, titulo, categoria, descricao, autor_id, autor_nome, autor_avatar, curtidas, data_criacao) VALUES
+    ('iii11111-1111-1111-1111-111111111111', 'Degradê Clássico', 'degrade'::public.inspiracao_categoria, 'Corte degradê baixo com transição suave', v_admin_id, 'Equipe Corte Rápido', NULL, 234, now() - interval '10 days'),
+    ('iii22222-2222-2222-2222-222222222222', 'Barba Lenhador', 'barba'::public.inspiracao_categoria, 'Barba cheia modelada com óleo de argan', v_admin_id, 'Equipe Corte Rápido', NULL, 189, now() - interval '8 days'),
+    ('iii33333-3333-3333-3333-333333333333', 'Corte Infantil Divertido', 'infantil'::public.inspiracao_categoria, 'Corte com desenho lateral para crianças', v_admin_id, 'Equipe Corte Rápido', NULL, 156, now() - interval '5 days'),
+    ('iii44444-4444-4444-4444-444444444444', 'Colorido Moderno', 'colorido'::public.inspiracao_categoria, 'Mechas platinadas com corte texturizado', v_admin_id, 'Equipe Corte Rápido', NULL, 312, now() - interval '3 days'),
+    ('iii55555-5555-5555-5555-555555555555', 'Visagismo Masculino', 'visagismo'::public.inspiracao_categoria, 'Análise facial + corte personalizado', v_admin_id, 'Equipe Corte Rápido', NULL, 98, now() - interval '1 day')
   ON CONFLICT (id) DO NOTHING;
 
   INSERT INTO public.inspiracao_midias (inspiracao_id, tipo, src, ordem) VALUES
-    ('iii11111-1111-1111-1111-111111111111', 'imagem'::tipo_midia_enum, 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=600', 1),
-    ('iii22222-2222-2222-2222-222222222222', 'imagem'::tipo_midia_enum, 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=600', 1),
-    ('iii33333-3333-3333-3333-333333333333', 'imagem'::tipo_midia_enum, 'https://images.unsplash.com/photo-1519070843887-1ce36f3b385e?w=600', 1),
-    ('iii44444-4444-4444-4444-444444444444', 'imagem'::tipo_midia_enum, 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=600', 1),
-    ('iii55555-5555-5555-5555-555555555555', 'imagem'::tipo_midia_enum, 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=600', 1)
+    ('iii11111-1111-1111-1111-111111111111', 'imagem'::public.tipo_midia, 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=600', 1),
+    ('iii22222-2222-2222-2222-222222222222', 'imagem'::public.tipo_midia, 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=600', 1),
+    ('iii33333-3333-3333-3333-333333333333', 'imagem'::public.tipo_midia, 'https://images.unsplash.com/photo-1519070843887-1ce36f3b385e?w=600', 1),
+    ('iii44444-4444-4444-4444-444444444444', 'imagem'::public.tipo_midia, 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=600', 1),
+    ('iii55555-5555-5555-5555-555555555555', 'imagem'::public.tipo_midia, 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=600', 1)
   ON CONFLICT DO NOTHING;
 
   -- ============================================================================
-  -- PUBLICAÇÕES DEMO (FEED)
+  -- PUBLICAÇÕES DEMO (FEED) - novo schema
+  -- Colunas: id, estabelecimento_id, autor_id, autor_nome, autor_avatar, tipo, legenda, tag_servico, curtidas, salvos, visualizacoes, compartilhamentos, comentarios_count, data_criacao
   -- ============================================================================
 
-  INSERT INTO public.publicacoes (id, estabelecimento_id, usuario_id, autor_nome, autor_avatar, tipo, legenda, tag_servico, curtidas_count, salvos_count, visualizacoes_count, compartilhamentos_count, comentarios_count, status, data_publicacao, data_criacao) VALUES
-    ('ppp11111-1111-1111-1111-111111111111', v_est_id, v_barbeiro_id, 'Carlos Silva', NULL, 'foto'::publicacao_tipo_enum, 'Novo corte degradê do cliente João! 💈 #degrade #barbearia', 'corte', 42, 8, 320, 5, 3, 'publicado'::publicacao_status_enum, now() - interval '2 hours', now() - interval '2 hours'),
-    ('ppp22222-2222-2222-2222-222222222222', v_est_id, v_barbeiro_id, 'Carlos Silva', NULL, 'foto'::publicacao_tipo_enum, 'Barba lenhador modelada com óleo de argan. Cliente satisfeito! 🧔', 'barba', 38, 12, 280, 3, 2, 'publicado'::publicacao_status_enum, now() - interval '5 hours', now() - interval '5 hours'),
-    ('ppp33333-3333-3333-3333-333333333333', v_est_id, v_barbeiro_id, 'Carlos Silva', NULL, 'foto'::publicacao_tipo_enum, 'Combo corte + barba: o pacote completo para o fim de semana! ✂️🧔', 'combo', 55, 15, 450, 8, 4, 'publicado'::publicacao_status_enum, now() - interval '1 day', now() - interval '1 day'),
-    ('ppp44444-4444-4444-4444-444444444444', v_est_id, v_barbeiro_id, 'Carlos Silva', NULL, 'dica'::publicacao_tipo_enum, '💡 Dica: Hidrate a barba diariamente com óleo específico. Evita coceira e fios quebrados.', 'dica', 67, 23, 510, 12, 6, 'publicado'::publicacao_status_enum, now() - interval '2 days', now() - interval '2 days')
+  INSERT INTO public.publicacoes (id, estabelecimento_id, autor_id, autor_nome, autor_avatar, tipo, legenda, tag_servico, curtidas, salvos, visualizacoes, compartilhamentos, comentarios_count, data_criacao) VALUES
+    ('ppp11111-1111-1111-1111-111111111111', v_est_id, v_barbeiro_id, 'Carlos Silva', NULL, 'corte'::public.publicacao_tipo, 'Novo corte degradê do cliente João! 💈 #degrade #barbearia', 'corte', 42, 8, 320, 5, 3, now() - interval '2 hours'),
+    ('ppp22222-2222-2222-2222-222222222222', v_est_id, v_barbeiro_id, 'Carlos Silva', NULL, 'barba'::public.publicacao_tipo, 'Barba lenhador modelada com óleo de argan. Cliente satisfeito! 🧔', 'barba', 38, 12, 280, 3, 2, now() - interval '5 hours'),
+    ('ppp33333-3333-3333-3333-333333333333', v_est_id, v_barbeiro_id, 'Carlos Silva', NULL, 'combo'::public.publicacao_tipo, 'Combo corte + barba: o pacote completo para o fim de semana! ✂️🧔', 'combo', 55, 15, 450, 8, 4, now() - interval '1 day'),
+    ('ppp44444-4444-4444-4444-444444444444', v_est_id, v_barbeiro_id, 'Carlos Silva', NULL, 'dica'::public.publicacao_tipo, '💡 Dica: Hidrate a barba diariamente com óleo específico. Evita coceira e fios quebrados.', 'dica', 67, 23, 510, 12, 6, now() - interval '2 days')
   ON CONFLICT (id) DO NOTHING;
 
   INSERT INTO public.publicacao_midias (publicacao_id, tipo, src, alt, ordem) VALUES
-    ('ppp11111-1111-1111-1111-111111111111', 'imagem'::tipo_midia_enum, 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=600', 'Degradê clássico', 1),
-    ('ppp22222-2222-2222-2222-222222222222', 'imagem'::tipo_midia_enum, 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=600', 'Barba lenhador', 1),
-    ('ppp33333-3333-3333-3333-333333333333', 'imagem'::tipo_midia_enum, 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=600', 'Combo corte barba', 1),
-    ('ppp44444-4444-4444-4444-444444444444', 'imagem'::tipo_midia_enum, 'https://images.unsplash.com/photo-1519070843887-1ce36f3b385e?w=600', 'Dica barba', 1)
+    ('ppp11111-1111-1111-1111-111111111111', 'imagem'::public.tipo_midia, 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=600', 'Degradê clássico', 1),
+    ('ppp22222-2222-2222-2222-222222222222', 'imagem'::public.tipo_midia, 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=600', 'Barba lenhador', 1),
+    ('ppp33333-3333-3333-3333-333333333333', 'imagem'::public.tipo_midia, 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=600', 'Combo corte barba', 1),
+    ('ppp44444-4444-4444-4444-444444444444', 'imagem'::public.tipo_midia, 'https://images.unsplash.com/photo-1519070843887-1ce36f3b385e?w=600', 'Dica barba', 1)
   ON CONFLICT DO NOTHING;
 
   -- ============================================================================
-  -- ASSINATURA DO ESTABELECIMENTO DEMO
+  -- ASSINATURA DO ESTABELECIMENTO DEMO - novo schema
+  -- Colunas: estabelecimento_id, plano_id, inicio_contrato, vencimento, status, desconto_tipo, desconto_valor, desconto_motivo
   -- ============================================================================
 
-  INSERT INTO public.assinaturas (estabelecimento_id, plano_id, status, ciclo_cobranca, valor_pago_centavos, data_inicio, data_vencimento)
-  VALUES (v_est_id, 'profissional'::plano_tipo_enum, 'ativa'::status_assinatura_enum, 'mensal'::ciclo_cobranca_enum, 8990, CURRENT_DATE - interval '15 days', CURRENT_DATE + interval '15 days')
+  INSERT INTO public.assinaturas (estabelecimento_id, plano_id, inicio_contrato, vencimento, status)
+  VALUES (v_est_id, 'cccccccc-cccc-cccc-cccc-cccccccccccc', CURRENT_DATE - interval '15 days', CURRENT_DATE + interval '15 days', 'ativa')
   ON CONFLICT DO NOTHING;
 
   -- ============================================================================
@@ -212,7 +214,7 @@ BEGIN
   ) VALUES (
     v_est_id, v_prof1_id, v_cliente_id, CURRENT_DATE, '10:00', 30,
     'João Cliente', '31988887777', 'Corte Clássico', 3500,
-    'pago'::status_pagamento_enum, 'agendado'::status_agendamento_enum, ARRAY[v_svc1_id], NULL
+    'pago'::public.status_pagamento, 'agendado'::public.status_agendamento, ARRAY[v_svc1_id], NULL
   ) ON CONFLICT DO NOTHING;
 
   -- Item do agendamento 1 (congela preço e duração)
@@ -230,7 +232,7 @@ BEGIN
   ) VALUES (
     v_est_id, v_prof1_id, NULL, CURRENT_DATE, '14:00', 50,
     'Cliente Avulso', '31977776666', 'Corte Clássico + Barba Completa', 5500,
-    'no_local'::status_pagamento_enum, 'agendado'::status_agendamento_enum, ARRAY[v_svc1_id, v_svc2_id], NULL
+    'no_local'::public.status_pagamento, 'agendado'::public.status_agendamento, ARRAY[v_svc1_id, v_svc2_id], NULL
   ) ON CONFLICT DO NOTHING;
 
   INSERT INTO public.item_agendamento (agendamento_id, servico_id, preco_cobrado_centavos, duracao_min, ordem)
@@ -253,7 +255,7 @@ BEGIN
   ) VALUES (
     v_est_id, v_prof2_id, NULL, CURRENT_DATE, '11:00', 30,
     'Cliente Pedro', '31966665555', 'Corte Infantil', 3000,
-    'no_local'::status_pagamento_enum, 'agendado'::status_agendamento_enum, ARRAY[v_svc1_id], NULL
+    'no_local'::public.status_pagamento, 'agendado'::public.status_agendamento, ARRAY[v_svc1_id], NULL
   ) ON CONFLICT DO NOTHING;
 
   INSERT INTO public.item_agendamento (agendamento_id, servico_id, preco_cobrado_centavos, duracao_min, ordem)
@@ -293,19 +295,19 @@ BEGIN
     ('ppp44444-4444-4444-4444-444444444444', v_cliente_id)
   ON CONFLICT DO NOTHING;
 
-  -- Atualiza contadores nas publicações
+  -- Atualiza contadores nas publicações (novo schema: curtidas, salvos, visualizacoes, compartilhamentos, comentarios_count)
   UPDATE public.publicacoes SET
-    curtidas_count = (SELECT COUNT(*) FROM public.curtidas WHERE publicacao_id = publicacoes.id),
-    salvos_count = (SELECT COUNT(*) FROM public.salvos WHERE publicacao_id = publicacoes.id);
+    curtidas = (SELECT COUNT(*) FROM public.curtidas WHERE publicacao_id = publicacoes.id),
+    salvos = (SELECT COUNT(*) FROM public.salvos WHERE publicacao_id = publicacoes.id);
 
   -- ============================================================================
   -- COMENTÁRIOS
   -- ============================================================================
 
-  INSERT INTO public.comentarios (publicacao_id, autor_id, autor_nome, texto)
+  INSERT INTO public.comentarios (publicacao_id, autor_id, autor_nome, autor_avatar, texto)
   VALUES
-    ('ppp11111-1111-1111-1111-111111111111', v_cliente_id, 'João Cliente', 'Ficou show! Obrigado Carlos!'),
-    ('ppp33333-3333-3333-3333-333333333333', v_cliente_id, 'João Cliente', 'Vou agendar o combo na próxima!')
+    ('ppp11111-1111-1111-1111-111111111111', v_cliente_id, 'João Cliente', NULL, 'Ficou show! Obrigado Carlos!'),
+    ('ppp33333-3333-3333-3333-333333333333', v_cliente_id, 'João Cliente', NULL, 'Vou agendar o combo na próxima!')
   ON CONFLICT DO NOTHING;
 
   UPDATE public.publicacoes SET
@@ -313,10 +315,21 @@ BEGIN
 
   -- ============================================================================
   -- BLOQUEIOS DE AGENDA (exemplo: férias do Pedro)
+  -- Colunas: profissional_id, inicio, fim, motivo (sem coluna 'tipo')
   -- ============================================================================
 
-  INSERT INTO public.bloqueios_agenda (profissional_id, inicio, fim, motivo, tipo) VALUES
-    (v_prof2_id, (CURRENT_DATE + interval '10 days')::date + '10:00'::time, (CURRENT_DATE + interval '10 days')::date + '14:00'::time, 'Consulta médica', 'bloqueio')
+  INSERT INTO public.bloqueios_agenda (profissional_id, inicio, fim, motivo) VALUES
+    (v_prof2_id, (CURRENT_DATE + interval '10 days') + '10:00'::time, (CURRENT_DATE + interval '10 days') + '14:00'::time, 'Consulta médica')
+  ON CONFLICT DO NOTHING;
+
+  -- ============================================================================
+  -- NOTIFICAÇÕES DE EXEMPLO
+  -- ============================================================================
+
+  INSERT INTO public.notificacoes (destinatario_id, tipo, titulo, texto, lida, estabelecimento_id, agendamento_id)
+  SELECT v_cliente_id, 'agendamento'::public.tipo_notificacao, 'Agendamento confirmado', 'Seu corte clássico foi confirmado para hoje às 10:00.', false, v_est_id, a.id
+  FROM public.agendamentos a
+  WHERE a.estabelecimento_id = v_est_id AND a.usuario_id = v_cliente_id AND a.horario = '10:00'
   ON CONFLICT DO NOTHING;
 
 END $$;

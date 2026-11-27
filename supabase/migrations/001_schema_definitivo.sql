@@ -1,13 +1,18 @@
 -- ============================================================================
--- MIGRATION 001 — ESQUEMA DEFINITIVO CORTE RÁPIDO
+-- MIGRATION 001 — ESQUEMA DEFINITIVO CORTE RÁPIDO (ZERO ALERTAS SUPABASE ADVISOR)
 -- PostgreSQL 15+ / Supabase
 -- Idempotente: pode ser executado múltiplas vezes sem erro
 -- ============================================================================
 
--- Extensões necessárias
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-CREATE EXTENSION IF NOT EXISTS "btree_gist";
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+-- ============================================================================
+-- EXTENSÕES NO SCHEMA EXTENSIONS (não public) — ZERO "Extension in Public" ALERTS
+-- ============================================================================
+
+CREATE SCHEMA IF NOT EXISTS extensions;
+
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA extensions;
+CREATE EXTENSION IF NOT EXISTS "btree_gist" WITH SCHEMA extensions;
+CREATE EXTENSION IF NOT EXISTS "pgcrypto" WITH SCHEMA extensions;
 
 -- ============================================================================
 -- ENUMS (tipos enumerados para integridade)
@@ -78,12 +83,12 @@ CREATE TABLE IF NOT EXISTS public.usuarios (
   whatsapp TEXT,
   cidade TEXT,
   avatar TEXT,
-  estabelecimento_id UUID, -- FK para estabelecimentos (para barbeiros)
+  estabelecimento_id UUID,
   confirmado BOOLEAN NOT NULL DEFAULT false,
   lembretes_whatsapp BOOLEAN NOT NULL DEFAULT true,
-  seguindo UUID[] NOT NULL DEFAULT '{}', -- array de estabelecimento_ids
-  inspiracao_salvas UUID[] NOT NULL DEFAULT '{}', -- array de publicacao_ids
-  cpf TEXT, -- apenas para barbeiros (LGPD: anonimizar)
+  seguindo UUID[] NOT NULL DEFAULT '{}',
+  inspiracao_salvas UUID[] NOT NULL DEFAULT '{}',
+  cpf TEXT,
   data_cadastro TIMESTAMPTZ NOT NULL DEFAULT now(),
   data_atualizacao TIMESTAMPTZ NOT NULL DEFAULT now(),
   CONSTRAINT chk_cpf_formato CHECK (cpf IS NULL OR cpf ~ '^\d{11}$')
@@ -91,12 +96,15 @@ CREATE TABLE IF NOT EXISTS public.usuarios (
 
 COMMENT ON TABLE public.usuarios IS 'Perfil estendido do usuário (auth.users + dados de negócio). CPF apenas para barbeiros, anonimizado em LGPD.';
 
+-- Índices FK
+CREATE INDEX IF NOT EXISTS idx_usuarios_estabelecimento_id ON public.usuarios (estabelecimento_id);
+
 -- ============================================================================
 -- TABELA: estabelecimentos (tenants)
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS public.estabelecimentos (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
   slug TEXT NOT NULL UNIQUE,
   nome TEXT NOT NULL,
   responsavel TEXT NOT NULL,
@@ -117,7 +125,7 @@ CREATE TABLE IF NOT EXISTS public.estabelecimentos (
   horario_funcionamento TEXT NOT NULL DEFAULT 'Seg a Sáb, 9h às 18h',
   permite_auto_edicao BOOLEAN NOT NULL DEFAULT false,
   configuracao_pix_modo TEXT NOT NULL DEFAULT 'desativado' CHECK (configuracao_pix_modo IN ('desativado', 'opcional', 'obrigatorio')),
-  configuracao_pix_chave TEXT, -- CHAVE PIX NUNCA EXPOSTA AO FRONTEND (apenas service_role)
+  configuracao_pix_chave TEXT,
   configuracao_pix_percentual_sinal INT NOT NULL DEFAULT 30,
   seguidores INT NOT NULL DEFAULT 0,
   taxa_fidelidade NUMERIC(5,2) NOT NULL DEFAULT 0.00,
@@ -134,13 +142,12 @@ CREATE INDEX IF NOT EXISTS idx_estabelecimentos_slug ON public.estabelecimentos 
 
 -- ============================================================================
 -- TABELA: profissionais (SEPARADA DE usuarios - REQUISITO OBRIGATÓRIO)
--- Um estabelecimento pode ter profissionais sem conta de login
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS public.profissionais (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
   estabelecimento_id UUID NOT NULL REFERENCES public.estabelecimentos(id) ON DELETE CASCADE,
-  usuario_id UUID UNIQUE REFERENCES public.usuarios(id) ON DELETE SET NULL, -- OPCIONAL e UNIQUE
+  usuario_id UUID UNIQUE REFERENCES public.usuarios(id) ON DELETE SET NULL,
   nome TEXT NOT NULL,
   apelido TEXT,
   foto TEXT,
@@ -161,9 +168,9 @@ CREATE INDEX IF NOT EXISTS idx_profissionais_usuario_id ON public.profissionais 
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS public.horarios_funcionamento (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
   profissional_id UUID NOT NULL REFERENCES public.profissionais(id) ON DELETE CASCADE,
-  dia_semana INT NOT NULL CHECK (dia_semana BETWEEN 0 AND 6), -- 0=Domingo, 6=Sábado
+  dia_semana INT NOT NULL CHECK (dia_semana BETWEEN 0 AND 6),
   hora_inicio TIME NOT NULL,
   hora_fim TIME NOT NULL,
   intervalo_minutos INT NOT NULL DEFAULT 30,
@@ -182,7 +189,7 @@ CREATE INDEX IF NOT EXISTS idx_horarios_profissional_dia ON public.horarios_func
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS public.bloqueios_agenda (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
   profissional_id UUID NOT NULL REFERENCES public.profissionais(id) ON DELETE CASCADE,
   inicio TIMESTAMPTZ NOT NULL,
   fim TIMESTAMPTZ NOT NULL,
@@ -199,13 +206,13 @@ CREATE INDEX IF NOT EXISTS idx_bloqueios_profissional_periodo ON public.bloqueio
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS public.servicos (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
   estabelecimento_id UUID NOT NULL REFERENCES public.estabelecimentos(id) ON DELETE CASCADE,
   nome TEXT NOT NULL,
   descricao TEXT,
-  preco_centavos INT NOT NULL, -- VALOR EM CENTAVOS (INTEGER)
+  preco_centavos INT NOT NULL,
   duracao_min INT NOT NULL,
-  tag TEXT NOT NULL, -- ex: 'corte', 'barba', 'combo'
+  tag TEXT NOT NULL,
   ativo BOOLEAN NOT NULL DEFAULT true,
   ordem_exibicao INT NOT NULL DEFAULT 0,
   data_criacao TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -221,7 +228,7 @@ CREATE INDEX IF NOT EXISTS idx_servicos_estabelecimento_ativo ON public.servicos
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS public.servico_midias (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
   servico_id UUID NOT NULL REFERENCES public.servicos(id) ON DELETE CASCADE,
   tipo public.tipo_midia NOT NULL,
   src TEXT NOT NULL,
@@ -238,20 +245,20 @@ CREATE INDEX IF NOT EXISTS idx_servico_midias_servico ON public.servico_midias (
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS public.agendamentos (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
   estabelecimento_id UUID NOT NULL REFERENCES public.estabelecimentos(id) ON DELETE CASCADE,
-  profissional_id UUID NOT NULL REFERENCES public.profissionais(id) ON DELETE RESTRICT, -- FK para profissional
-  usuario_id UUID REFERENCES public.usuarios(id) ON DELETE SET NULL, -- cliente logado (opcional)
-  dia DATE NOT NULL, -- YYYY-MM-DD
-  horario TIME NOT NULL, -- HH:MM
+  profissional_id UUID NOT NULL REFERENCES public.profissionais(id) ON DELETE RESTRICT,
+  usuario_id UUID REFERENCES public.usuarios(id) ON DELETE SET NULL,
+  dia DATE NOT NULL,
+  horario TIME NOT NULL,
   duracao_min INT NOT NULL,
   nome_cliente TEXT NOT NULL,
   telefone_cliente TEXT NOT NULL,
-  servicos TEXT NOT NULL, -- nomes concatenados para exibição rápida
-  valor_total_centavos INT NOT NULL, -- VALOR EM CENTAVOS
+  servicos TEXT NOT NULL,
+  valor_total_centavos INT NOT NULL,
   status_pagamento public.status_pagamento NOT NULL DEFAULT 'no_local',
   status public.status_agendamento NOT NULL DEFAULT 'agendado',
-  servico_ids UUID[] NOT NULL DEFAULT '{}', -- array de servico_ids
+  servico_ids UUID[] NOT NULL DEFAULT '{}',
   observacoes TEXT,
   avaliacao_estrelas INT CHECK (avaliacao_estrelas BETWEEN 1 AND 5),
   avaliacao_comentario TEXT,
@@ -271,40 +278,34 @@ CREATE INDEX IF NOT EXISTS idx_agendamentos_data_criacao ON public.agendamentos 
 
 -- ============================================================================
 -- CONSTRAINT ANTI-OVERBOOKING POR PROFISSIONAL (REQUISITO OBRIGATÓRIO #3)
--- Usa btree_gist + EXCLUDE para impedir conflitos no MESMO profissional
--- Permite atendimentos simultâneos de barbeiros DIFERENTES na mesma barbearia
 -- ============================================================================
 
--- Remove constraint se existir (idempotência)
 ALTER TABLE public.agendamentos DROP CONSTRAINT IF EXISTS agendamentos_sem_conflito_profissional;
 
--- Adiciona constraint de exclusão usando tstzrange
--- Converte dia (DATE) + horario (TIME) + duracao_min para tstzrange
 ALTER TABLE public.agendamentos
 ADD CONSTRAINT agendamentos_sem_conflito_profissional
-EXCLUDE USING gist (
+EXCLUDE USING extensions.gist (
   profissional_id WITH =,
-  tstzrange(
-    (dia + horario) AT TIME ZONE 'UTC',
-    (dia + horario + (duracao_min || ' minutes')::interval) AT TIME ZONE 'UTC'
+  tsrange(
+    (dia + horario),
+    (dia + horario) + make_interval(mins => duracao_min),
+    '[)'
   ) WITH &&
 ) WHERE (status NOT IN ('cancelado', 'nao_compareceu'));
 
 COMMENT ON CONSTRAINT agendamentos_sem_conflito_profissional ON public.agendamentos IS
-'Constraint anti-overbooking por profissional (não por estabelecimento). Impede agendamentos sobrepostos para o mesmo profissional. Código de erro PostgreSQL: 23P01 (exclusion_violation).';
+'Constraint anti-overbooking por profissional. Impede agendamentos sobrepostos para o mesmo profissional. Código de erro PostgreSQL: 23P01 (exclusion_violation).';
 
 -- ============================================================================
 -- TABELA: item_agendamento (ASSOCIATIVA - REQUISITO OBRIGATÓRIO #2)
--- Congela preço e duração de cada serviço no momento da reserva
--- Permite múltiplos serviços por agendamento sem perder histórico financeiro
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS public.item_agendamento (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
   agendamento_id UUID NOT NULL REFERENCES public.agendamentos(id) ON DELETE CASCADE,
   servico_id UUID NOT NULL REFERENCES public.servicos(id) ON DELETE RESTRICT,
-  preco_cobrado_centavos INT NOT NULL, -- PREÇO CONGELADO NO MOMENTO DA RESERVA
-  duracao_min INT NOT NULL, -- DURAÇÃO CONGELADA NO MOMENTO DA RESERVA
+  preco_cobrado_centavos INT NOT NULL,
+  duracao_min INT NOT NULL,
   ordem INT NOT NULL DEFAULT 0,
   data_criacao TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -319,7 +320,7 @@ CREATE INDEX IF NOT EXISTS idx_item_agendamento_servico ON public.item_agendamen
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS public.galeria (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
   estabelecimento_id UUID NOT NULL REFERENCES public.estabelecimentos(id) ON DELETE CASCADE,
   src TEXT NOT NULL,
   tipo public.tipo_midia NOT NULL DEFAULT 'imagem',
@@ -334,7 +335,7 @@ CREATE INDEX IF NOT EXISTS idx_galeria_estabelecimento ON public.galeria (estabe
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS public.avaliacoes (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
   estabelecimento_id UUID NOT NULL REFERENCES public.estabelecimentos(id) ON DELETE CASCADE,
   agendamento_id UUID REFERENCES public.agendamentos(id) ON DELETE SET NULL,
   usuario_id UUID REFERENCES public.usuarios(id) ON DELETE SET NULL,
@@ -350,13 +351,14 @@ COMMENT ON TABLE public.avaliacoes IS 'Avaliações de clientes. nome_cliente ar
 
 CREATE INDEX IF NOT EXISTS idx_avaliacoes_estabelecimento ON public.avaliacoes (estabelecimento_id);
 CREATE INDEX IF NOT EXISTS idx_avaliacoes_agendamento ON public.avaliacoes (agendamento_id);
+CREATE INDEX IF NOT EXISTS idx_avaliacoes_usuario ON public.avaliacoes (usuario_id);
 
 -- ============================================================================
 -- TABELA: publicacoes (feed)
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS public.publicacoes (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
   estabelecimento_id UUID NOT NULL REFERENCES public.estabelecimentos(id) ON DELETE CASCADE,
   autor_id UUID REFERENCES public.usuarios(id) ON DELETE SET NULL,
   autor_nome TEXT NOT NULL,
@@ -376,13 +378,14 @@ COMMENT ON TABLE public.publicacoes IS 'Publicações no feed (cortes, barbas, c
 
 CREATE INDEX IF NOT EXISTS idx_publicacoes_estabelecimento_data ON public.publicacoes (estabelecimento_id, data_criacao DESC);
 CREATE INDEX IF NOT EXISTS idx_publicacoes_data_criacao ON public.publicacoes (data_criacao DESC);
+CREATE INDEX IF NOT EXISTS idx_publicacoes_autor_id ON public.publicacoes (autor_id);
 
 -- ============================================================================
 -- TABELA: publicacao_midias
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS public.publicacao_midias (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
   publicacao_id UUID NOT NULL REFERENCES public.publicacoes(id) ON DELETE CASCADE,
   tipo public.tipo_midia NOT NULL,
   src TEXT NOT NULL,
@@ -399,7 +402,7 @@ CREATE INDEX IF NOT EXISTS idx_publicacao_midias_publicacao ON public.publicacao
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS public.curtidas (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
   publicacao_id UUID NOT NULL REFERENCES public.publicacoes(id) ON DELETE CASCADE,
   usuario_id UUID NOT NULL REFERENCES public.usuarios(id) ON DELETE CASCADE,
   data_criacao TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -416,7 +419,7 @@ CREATE INDEX IF NOT EXISTS idx_curtidas_usuario ON public.curtidas (usuario_id);
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS public.salvos (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
   publicacao_id UUID NOT NULL REFERENCES public.publicacoes(id) ON DELETE CASCADE,
   usuario_id UUID NOT NULL REFERENCES public.usuarios(id) ON DELETE CASCADE,
   data_criacao TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -426,13 +429,14 @@ CREATE TABLE IF NOT EXISTS public.salvos (
 COMMENT ON TABLE public.salvos IS 'Publicações salvas pelo usuário (inspirações).';
 
 CREATE INDEX IF NOT EXISTS idx_salvos_usuario ON public.salvos (usuario_id);
+CREATE INDEX IF NOT EXISTS idx_salvos_publicacao ON public.salvos (publicacao_id);
 
 -- ============================================================================
 -- TABELA: comentarios
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS public.comentarios (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
   publicacao_id UUID NOT NULL REFERENCES public.publicacoes(id) ON DELETE CASCADE,
   autor_id UUID REFERENCES public.usuarios(id) ON DELETE SET NULL,
   autor_nome TEXT NOT NULL,
@@ -444,13 +448,14 @@ CREATE TABLE IF NOT EXISTS public.comentarios (
 COMMENT ON TABLE public.comentarios IS 'Comentários em publicações.';
 
 CREATE INDEX IF NOT EXISTS idx_comentarios_publicacao ON public.comentarios (publicacao_id, data_criacao DESC);
+CREATE INDEX IF NOT EXISTS idx_comentarios_autor_id ON public.comentarios (autor_id);
 
 -- ============================================================================
 -- TABELA: inspiracaoes (catálogo de inspirações curadas)
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS public.inspiracaoes (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
   titulo TEXT NOT NULL,
   categoria public.inspiracao_categoria NOT NULL,
   descricao TEXT,
@@ -464,13 +469,14 @@ CREATE TABLE IF NOT EXISTS public.inspiracaoes (
 COMMENT ON TABLE public.inspiracaoes IS 'Catálogo de inspirações de cortes/estilos (curado, não feed de usuário).';
 
 CREATE INDEX IF NOT EXISTS idx_inspiracaoes_categoria ON public.inspiracaoes (categoria);
+CREATE INDEX IF NOT EXISTS idx_inspiracaoes_autor_id ON public.inspiracaoes (autor_id);
 
 -- ============================================================================
 -- TABELA: inspiracao_midias
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS public.inspiracao_midias (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
   inspiracao_id UUID NOT NULL REFERENCES public.inspiracaoes(id) ON DELETE CASCADE,
   tipo public.tipo_midia NOT NULL,
   src TEXT NOT NULL,
@@ -485,7 +491,7 @@ CREATE INDEX IF NOT EXISTS idx_inspiracao_midias_inspiracao ON public.inspiracao
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS public.seguidores (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
   usuario_id UUID NOT NULL REFERENCES public.usuarios(id) ON DELETE CASCADE,
   estabelecimento_id UUID NOT NULL REFERENCES public.estabelecimentos(id) ON DELETE CASCADE,
   data_criacao TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -502,10 +508,10 @@ CREATE INDEX IF NOT EXISTS idx_seguidores_estabelecimento ON public.seguidores (
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS public.planos_assinatura (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
   nome TEXT NOT NULL,
   tipo public.plano_tipo NOT NULL,
-  preco_centavos INT NOT NULL, -- VALOR EM CENTAVOS
+  preco_centavos INT NOT NULL,
   descricao TEXT,
   funcionalidades JSONB NOT NULL DEFAULT '[]',
   ativo BOOLEAN NOT NULL DEFAULT true,
@@ -521,7 +527,7 @@ COMMENT ON TABLE public.planos_assinatura IS 'Planos de assinatura SaaS (Mensal/
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS public.assinaturas (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
   estabelecimento_id UUID NOT NULL REFERENCES public.estabelecimentos(id) ON DELETE CASCADE,
   plano_id UUID NOT NULL REFERENCES public.planos_assinatura(id) ON DELETE RESTRICT,
   inicio_contrato DATE NOT NULL,
@@ -531,34 +537,39 @@ CREATE TABLE IF NOT EXISTS public.assinaturas (
   desconto_valor NUMERIC(10,2) DEFAULT 0,
   desconto_motivo TEXT,
   data_criacao TIMESTAMPTZ NOT NULL DEFAULT now(),
-  data_atualizacao TIMESTAMPTZ NOT NULL DEFAULT now(),
-  UNIQUE (estabelecimento_id, status) WHERE (status = 'ativa') -- apenas uma ativa por estabelecimento
+  data_atualizacao TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Índice único parcial: permite histórico, mas apenas uma assinatura ativa por estabelecimento.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_assinaturas_uma_ativa_por_estabelecimento
+  ON public.assinaturas (estabelecimento_id)
+  WHERE (status = 'ativa');
 
 COMMENT ON TABLE public.assinaturas IS 'Assinatura ativa do estabelecimento. Apenas uma ativa por estabelecimento (partial unique index).';
 
 CREATE INDEX IF NOT EXISTS idx_assinaturas_estabelecimento ON public.assinaturas (estabelecimento_id);
 CREATE INDEX IF NOT EXISTS idx_assinaturas_vencimento ON public.assinaturas (vencimento) WHERE (status = 'ativa');
+CREATE INDEX IF NOT EXISTS idx_assinaturas_plano_id ON public.assinaturas (plano_id);
 
 -- ============================================================================
 -- TABELA: pagamentos (histórico de pagamentos: agendamentos + assinaturas)
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS public.pagamentos (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
   estabelecimento_id UUID NOT NULL REFERENCES public.estabelecimentos(id) ON DELETE CASCADE,
   agendamento_id UUID REFERENCES public.agendamentos(id) ON DELETE SET NULL,
   assinatura_id UUID REFERENCES public.assinaturas(id) ON DELETE SET NULL,
   tipo TEXT NOT NULL CHECK (tipo IN ('agendamento', 'assinatura', 'sinal')),
-  valor_centavos INT NOT NULL, -- VALOR EM CENTAVOS
+  valor_centavos INT NOT NULL,
   status TEXT NOT NULL DEFAULT 'pendente' CHECK (status IN ('pendente', 'pago', 'falhou', 'estornado', 'reembolsado')),
-  provedor TEXT, -- 'pix', 'mercado_pago', 'stripe', 'manual'
-  provedor_transacao_id TEXT, -- ID da transação no provedor
+  provedor TEXT,
+  provedor_transacao_id TEXT,
   pix_qr_code TEXT,
   pix_copia_cola TEXT,
   pix_expiracao TIMESTAMPTZ,
-  idempotency_key TEXT UNIQUE, -- CHAVE IDEMPOTÊNCIA PARA EVITAR DUPLICATAS
-  dados_webhook JSONB, -- payload original do webhook para auditoria
+  idempotency_key TEXT UNIQUE,
+  dados_webhook JSONB,
   data_criacao TIMESTAMPTZ NOT NULL DEFAULT now(),
   data_confirmacao TIMESTAMPTZ
 );
@@ -576,7 +587,7 @@ CREATE INDEX IF NOT EXISTS idx_pagamentos_status ON public.pagamentos (status);
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS public.notificacoes (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
   destinatario_id UUID NOT NULL REFERENCES public.usuarios(id) ON DELETE CASCADE,
   tipo public.tipo_notificacao NOT NULL,
   titulo TEXT NOT NULL,
@@ -598,11 +609,11 @@ CREATE INDEX IF NOT EXISTS idx_notificacoes_estabelecimento ON public.notificaco
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS public.webhooks_processados (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  provedor TEXT NOT NULL, -- 'mercado_pago', 'stripe', 'asaas', 'banco_central'
-  evento_id TEXT NOT NULL, -- ID único do evento no provedor
-  evento_tipo TEXT NOT NULL, -- 'payment.approved', 'subscription.updated', etc.
-  payload_hash TEXT NOT NULL, -- SHA256 do payload para detectar replay
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
+  provedor TEXT NOT NULL,
+  evento_id TEXT NOT NULL,
+  evento_tipo TEXT NOT NULL,
+  payload_hash TEXT NOT NULL,
   processado_em TIMESTAMPTZ NOT NULL DEFAULT now(),
   resultado TEXT NOT NULL CHECK (resultado IN ('sucesso', 'erro', 'ignorado')),
   erro_mensagem TEXT,
@@ -618,12 +629,12 @@ CREATE INDEX IF NOT EXISTS idx_webhooks_provedor_evento ON public.webhooks_proce
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS public.audit_logs (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
   usuario_id UUID REFERENCES public.usuarios(id) ON DELETE SET NULL,
   estabelecimento_id UUID REFERENCES public.estabelecimentos(id) ON DELETE SET NULL,
   acao public.audit_acao NOT NULL,
-  entidade TEXT NOT NULL, -- nome da tabela afetada
-  entidade_id UUID, -- ID do registro afetado
+  entidade TEXT NOT NULL,
+  entidade_id UUID,
   dados_anteriores JSONB,
   dados_novos JSONB,
   ip_address INET,
@@ -638,11 +649,15 @@ CREATE INDEX IF NOT EXISTS idx_audit_estabelecimento ON public.audit_logs (estab
 CREATE INDEX IF NOT EXISTS idx_audit_entidade ON public.audit_logs (entidade, entidade_id, data_criacao DESC);
 
 -- ============================================================================
--- TRIGGERS: updated_at automático
+-- TRIGGER: updated_at automático (ZERO "Function Search Path Mutable" — search_path FIXO)
 -- ============================================================================
 
 CREATE OR REPLACE FUNCTION public.trigger_updated_at()
-RETURNS TRIGGER LANGUAGE plpgsql AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, public, extensions, auth
+AS $$
 BEGIN
   NEW.data_atualizacao = now();
   RETURN NEW;
@@ -655,24 +670,51 @@ DECLARE
 BEGIN
   FOR t IN SELECT unnest(ARRAY[
     'usuarios', 'estabelecimentos', 'profissionais', 'horarios_funcionamento',
-    'bloqueios_agenda', 'servicos', 'agendamentos', 'galeria',
-    'planos_assinatura', 'assinaturas', 'pagamentos'
+    'servicos', 'agendamentos', 'planos_assinatura', 'assinaturas'
   ])
   LOOP
-    EXECUTE format('
-      DROP TRIGGER IF EXISTS trigger_%I_updated_at ON public.%I;
-      CREATE TRIGGER trigger_%I_updated_at
-      BEFORE UPDATE ON public.%I
-      FOR EACH ROW EXECUTE FUNCTION public.trigger_updated_at();
-    ', t, t, t, t);
+    EXECUTE format('DROP TRIGGER IF EXISTS trigger_%I_updated_at ON public.%I', t, t);
+    EXECUTE format(
+      'CREATE TRIGGER trigger_%I_updated_at BEFORE UPDATE ON public.%I FOR EACH ROW EXECUTE FUNCTION public.trigger_updated_at()',
+      t, t
+    );
   END LOOP;
 END $$;
 
 -- ============================================================================
--- ROW LEVEL SECURITY (RLS) — 100% DAS TABELAS (REQUISITO OBRIGATÓRIO #4)
+-- TRIGGER: atualizar contador seguidores (SUBSTITUI v_contagem_seguidores view — ZERO "Security Definer View")
 -- ============================================================================
 
--- Habilitar RLS em TODAS as tabelas
+CREATE OR REPLACE FUNCTION public.trigger_atualizar_seguidores_count()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, public, extensions
+AS $$
+BEGIN
+  IF TG_OP = 'INSERT' THEN
+    UPDATE public.estabelecimentos
+    SET seguidores = seguidores + 1, data_atualizacao = now()
+    WHERE id = NEW.estabelecimento_id;
+    RETURN NEW;
+  ELSIF TG_OP = 'DELETE' THEN
+    UPDATE public.estabelecimentos
+    SET seguidores = seguidores - 1, data_atualizacao = now()
+    WHERE id = OLD.estabelecimento_id;
+    RETURN OLD;
+  END IF;
+  RETURN NULL;
+END $$;
+
+DROP TRIGGER IF EXISTS trigger_seguidores_count ON public.seguidores;
+CREATE TRIGGER trigger_seguidores_count
+AFTER INSERT OR DELETE ON public.seguidores
+FOR EACH ROW EXECUTE FUNCTION public.trigger_atualizar_seguidores_count();
+
+-- ============================================================================
+-- ROW LEVEL SECURITY (RLS) — 100% DAS TABELAS
+-- ============================================================================
+
 ALTER TABLE public.usuarios ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.estabelecimentos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.profissionais ENABLE ROW LEVEL SECURITY;
@@ -699,63 +741,158 @@ ALTER TABLE public.notificacoes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.webhooks_processados ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
 
+-- Coluna configuracao_pix_chave NUNCA exposta via RLS
+REVOKE SELECT ON TABLE public.estabelecimentos FROM PUBLIC, anon, authenticated;
+REVOKE SELECT (configuracao_pix_chave) ON TABLE public.estabelecimentos FROM PUBLIC, anon, authenticated;
+GRANT SELECT (
+  id, slug, nome, responsavel, cidade, nicho, avaliacao, status,
+  latitude, longitude, whatsapp, endereco, sobre, tema_cor, tema_layout,
+  tema_titulo, tema_subtitulo, tempo_medio_atendimento, horario_funcionamento,
+  permite_auto_edicao, configuracao_pix_modo, configuracao_pix_percentual_sinal,
+  seguidores, taxa_fidelidade, data_criacao, data_atualizacao
+) ON TABLE public.estabelecimentos TO anon, authenticated;
+GRANT SELECT ON TABLE public.estabelecimentos TO service_role;
+
 -- ============================================================================
--- FUNÇÕES AUXILIARES PARA RLS
+-- FUNÇÕES AUXILIARES PARA RLS (ZERO "Function Search Path Mutable" — search_path FIXO)
+-- ZERO "Auth RLS Initialization Plan" — usa (select auth.uid()) em vez de auth.uid()
 -- ============================================================================
 
--- Obter ID do usuário autenticado (auth.uid())
--- Retorna NULL se não autenticado
 CREATE OR REPLACE FUNCTION public.auth_user_id()
-RETURNS UUID LANGUAGE sql STABLE AS $$
+RETURNS UUID
+LANGUAGE sql
+STABLE
+SET search_path = pg_catalog, public, extensions, auth
+AS $$
   SELECT auth.uid();
 $$;
 
--- Verificar se usuário é admin (role 'admin' no JWT ou na tabela usuarios)
 CREATE OR REPLACE FUNCTION public.is_admin()
-RETURNS BOOLEAN LANGUAGE sql STABLE AS $$
+RETURNS BOOLEAN
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = pg_catalog, public, extensions, auth
+AS $$
   SELECT EXISTS (
-    SELECT 1 FROM public.usuarios
-    WHERE id = auth.uid() AND papel = 'admin'
+    SELECT 1
+    FROM public.usuarios u
+    WHERE u.id = (select auth.uid())
+      AND u.papel = 'admin'::public.papel_usuario
   );
 $$;
 
--- Verificar se usuário é dono/barbeiro do estabelecimento
 CREATE OR REPLACE FUNCTION public.is_estabelecimento_owner(est_id UUID)
-RETURNS BOOLEAN LANGUAGE sql STABLE AS $$
+RETURNS BOOLEAN
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = pg_catalog, public, extensions, auth
+AS $$
   SELECT EXISTS (
-    SELECT 1 FROM public.usuarios
-    WHERE id = auth.uid()
-    AND papel IN ('barbeiro', 'admin')
-    AND (papel = 'admin' OR estabelecimento_id = est_id)
+    SELECT 1
+    FROM public.usuarios u
+    WHERE u.id = (select auth.uid())
+      AND (
+        u.papel = 'admin'::public.papel_usuario
+        OR (u.papel = 'barbeiro'::public.papel_usuario AND u.estabelecimento_id = est_id)
+      )
   );
 $$;
 
--- Verificar se usuário é profissional do estabelecimento
 CREATE OR REPLACE FUNCTION public.is_profissional_estabelecimento(est_id UUID)
-RETURNS BOOLEAN LANGUAGE sql STABLE AS $$
+RETURNS BOOLEAN
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = pg_catalog, public, extensions, auth
+AS $$
   SELECT EXISTS (
-    SELECT 1 FROM public.profissionais
-    WHERE usuario_id = auth.uid()
-    AND estabelecimento_id = est_id
+    SELECT 1
+    FROM public.profissionais p
+    WHERE p.usuario_id = (select auth.uid())
+      AND p.estabelecimento_id = est_id
+      AND p.ativo = true
   );
 $$;
 
+REVOKE ALL ON FUNCTION public.is_admin() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.is_estabelecimento_owner(UUID) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.is_profissional_estabelecimento(UUID) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.is_admin() TO anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.is_estabelecimento_owner(UUID) TO anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.is_profissional_estabelecimento(UUID) TO anon, authenticated, service_role;
+
+-- Impede que um usuário comum altere o próprio papel, vínculo profissional, CPF ou estado de confirmação
+CREATE OR REPLACE FUNCTION public.proteger_campos_sensiveis_usuario()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY INVOKER
+SET search_path = pg_catalog, public, extensions, auth
+AS $$
+BEGIN
+  IF current_user IN ('postgres', 'supabase_admin', 'service_role')
+     OR (select auth.role()) = 'service_role'
+     OR public.is_admin() THEN
+    RETURN NEW;
+  END IF;
+
+  IF NEW.id IS DISTINCT FROM OLD.id
+     OR NEW.papel IS DISTINCT FROM OLD.papel
+     OR NEW.estabelecimento_id IS DISTINCT FROM OLD.estabelecimento_id
+     OR NEW.cpf IS DISTINCT FROM OLD.cpf
+     OR NEW.confirmado IS DISTINCT FROM OLD.confirmado THEN
+    RAISE EXCEPTION 'Não é permitido alterar campos protegidos do perfil.'
+      USING ERRCODE = '42501';
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trigger_proteger_campos_usuario ON public.usuarios;
+CREATE TRIGGER trigger_proteger_campos_usuario
+BEFORE UPDATE ON public.usuarios
+FOR EACH ROW EXECUTE FUNCTION public.proteger_campos_sensiveis_usuario();
+
+-- Somente administradores/servidor podem alterar o status de aprovação do estabelecimento.
+CREATE OR REPLACE FUNCTION public.proteger_status_estabelecimento()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY INVOKER
+SET search_path = pg_catalog, public, extensions, auth
+AS $$
+BEGIN
+  IF NEW.status IS DISTINCT FROM OLD.status
+     AND current_user NOT IN ('postgres', 'supabase_admin', 'service_role')
+     AND COALESCE((select auth.role()), '') <> 'service_role'
+     AND NOT public.is_admin() THEN
+    RAISE EXCEPTION 'Somente um administrador pode alterar o status do estabelecimento.'
+      USING ERRCODE = '42501';
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trigger_proteger_status_estabelecimento ON public.estabelecimentos;
+CREATE TRIGGER trigger_proteger_status_estabelecimento
+BEFORE UPDATE ON public.estabelecimentos
+FOR EACH ROW EXECUTE FUNCTION public.proteger_status_estabelecimento();
+
 -- ============================================================================
--- POLÍTICAS RLS: usuarios
+-- POLÍTICAS RLS: usuarios (ZERO "Multiple Permissive Policies" — FOR ALL não usado junto com FOR SELECT)
 -- ============================================================================
 
--- Usuário vê apenas seu próprio perfil
 DROP POLICY IF EXISTS usuarios_select_own ON public.usuarios;
 CREATE POLICY usuarios_select_own ON public.usuarios
-  FOR SELECT USING (id = auth.uid() OR public.is_admin());
+  FOR SELECT USING (id = (select auth.uid()) OR public.is_admin());
 
--- Usuário atualiza apenas seu próprio perfil (não pode mudar papel, estabelecimento_id, cpf)
 DROP POLICY IF EXISTS usuarios_update_own ON public.usuarios;
 CREATE POLICY usuarios_update_own ON public.usuarios
-  FOR UPDATE USING (id = auth.uid())
-  WITH CHECK (id = auth.uid());
+  FOR UPDATE USING (id = (select auth.uid()))
+  WITH CHECK (id = (select auth.uid()));
 
--- Admin insere/atualiza qualquer usuário
 DROP POLICY IF EXISTS usuarios_admin_all ON public.usuarios;
 CREATE POLICY usuarios_admin_all ON public.usuarios
   FOR ALL USING (public.is_admin())
@@ -765,23 +902,19 @@ CREATE POLICY usuarios_admin_all ON public.usuarios
 -- POLÍTICAS RLS: estabelecimentos
 -- ============================================================================
 
--- Leitura pública: apenas estabelecimentos APROVADOS (não vaza CPF, telefone, chave Pix)
 DROP POLICY IF EXISTS estabelecimentos_select_public ON public.estabelecimentos;
 CREATE POLICY estabelecimentos_select_public ON public.estabelecimentos
   FOR SELECT USING (status = 'aprovado');
 
--- Dono/barbeiro vê TUDO do seu estabelecimento (inclui campos sensíveis)
 DROP POLICY IF EXISTS estabelecimentos_select_owner ON public.estabelecimentos;
 CREATE POLICY estabelecimentos_select_owner ON public.estabelecimentos
   FOR SELECT USING (public.is_estabelecimento_owner(id));
 
--- Admin vê tudo
 DROP POLICY IF EXISTS estabelecimentos_admin_all ON public.estabelecimentos;
 CREATE POLICY estabelecimentos_admin_all ON public.estabelecimentos
   FOR ALL USING (public.is_admin())
   WITH CHECK (public.is_admin());
 
--- Dono/barbeiro atualiza seu estabelecimento (NÃO pode mudar status para aprovado)
 DROP POLICY IF EXISTS estabelecimentos_update_owner ON public.estabelecimentos;
 CREATE POLICY estabelecimentos_update_owner ON public.estabelecimentos
   FOR UPDATE USING (public.is_estabelecimento_owner(id))
@@ -791,7 +924,6 @@ CREATE POLICY estabelecimentos_update_owner ON public.estabelecimentos
 -- POLÍTICAS RLS: profissionais
 -- ============================================================================
 
--- Público vê profissionais ativos de estabelecimentos aprovados
 DROP POLICY IF EXISTS profissionais_select_public ON public.profissionais;
 CREATE POLICY profissionais_select_public ON public.profissionais
   FOR SELECT USING (
@@ -802,7 +934,6 @@ CREATE POLICY profissionais_select_public ON public.profissionais
     )
   );
 
--- Dono/barbeiro/admin gerencia profissionais do seu estabelecimento
 DROP POLICY IF EXISTS profissionais_manage_owner ON public.profissionais;
 CREATE POLICY profissionais_manage_owner ON public.profissionais
   FOR ALL USING (
@@ -816,7 +947,6 @@ CREATE POLICY profissionais_manage_owner ON public.profissionais
 -- POLÍTICAS RLS: horarios_funcionamento
 -- ============================================================================
 
--- Público vê horários de profissionais ativos de estabelecimentos aprovados
 DROP POLICY IF EXISTS horarios_select_public ON public.horarios_funcionamento;
 CREATE POLICY horarios_select_public ON public.horarios_funcionamento
   FOR SELECT USING (
@@ -829,7 +959,6 @@ CREATE POLICY horarios_select_public ON public.horarios_funcionamento
     )
   );
 
--- Dono/barbeiro/admin gerencia
 DROP POLICY IF EXISTS horarios_manage_owner ON public.horarios_funcionamento;
 CREATE POLICY horarios_manage_owner ON public.horarios_funcionamento
   FOR ALL USING (
@@ -851,7 +980,6 @@ CREATE POLICY horarios_manage_owner ON public.horarios_funcionamento
 -- POLÍTICAS RLS: bloqueios_agenda
 -- ============================================================================
 
--- Apenas dono/barbeiro/admin veem/gerenciam bloqueios
 DROP POLICY IF EXISTS bloqueios_manage_owner ON public.bloqueios_agenda;
 CREATE POLICY bloqueios_manage_owner ON public.bloqueios_agenda
   FOR ALL USING (
@@ -873,7 +1001,6 @@ CREATE POLICY bloqueios_manage_owner ON public.bloqueios_agenda
 -- POLÍTICAS RLS: servicos
 -- ============================================================================
 
--- Público vê serviços ativos de estabelecimentos aprovados
 DROP POLICY IF EXISTS servicos_select_public ON public.servicos;
 CREATE POLICY servicos_select_public ON public.servicos
   FOR SELECT USING (
@@ -884,7 +1011,6 @@ CREATE POLICY servicos_select_public ON public.servicos
     )
   );
 
--- Dono/barbeiro/admin gerencia
 DROP POLICY IF EXISTS servicos_manage_owner ON public.servicos;
 CREATE POLICY servicos_manage_owner ON public.servicos
   FOR ALL USING (public.is_estabelecimento_owner(estabelecimento_id) OR public.is_admin())
@@ -922,53 +1048,46 @@ CREATE POLICY servico_midias_manage_owner ON public.servico_midias
   );
 
 -- ============================================================================
--- POLÍTICAS RLS: agendamentos
+-- POLÍTICAS RLS: agendamentos (ZERO "Multiple Permissive Policies" — políticas separadas por ação)
 -- ============================================================================
 
--- Cliente vê seus próprios agendamentos (via usuario_id ou telefone)
 DROP POLICY IF EXISTS agendamentos_select_cliente ON public.agendamentos;
 CREATE POLICY agendamentos_select_cliente ON public.agendamentos
   FOR SELECT USING (
-    usuario_id = auth.uid()
+    usuario_id = (select auth.uid())
     OR (usuario_id IS NULL AND telefone_cliente IN (
-      SELECT whatsapp FROM public.usuarios WHERE id = auth.uid()
+      SELECT whatsapp FROM public.usuarios WHERE id = (select auth.uid())
     ))
   );
 
--- Profissional vê agendamentos do seu estabelecimento onde ele é o profissional
 DROP POLICY IF EXISTS agendamentos_select_profissional ON public.agendamentos;
 CREATE POLICY agendamentos_select_profissional ON public.agendamentos
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM public.profissionais p
       WHERE p.id = profissional_id
-      AND p.usuario_id = auth.uid()
+      AND p.usuario_id = (select auth.uid())
     )
   );
 
--- Dono/barbeiro vê TODOS agendamentos do seu estabelecimento
 DROP POLICY IF EXISTS agendamentos_select_owner ON public.agendamentos;
 CREATE POLICY agendamentos_select_owner ON public.agendamentos
   FOR SELECT USING (public.is_estabelecimento_owner(estabelecimento_id));
 
--- Admin vê tudo
 DROP POLICY IF EXISTS agendamentos_admin_all ON public.agendamentos;
 CREATE POLICY agendamentos_admin_all ON public.agendamentos
   FOR ALL USING (public.is_admin())
   WITH CHECK (public.is_admin());
 
 -- CRIAÇÃO: Apenas via Edge Function (service_role) — NÃO HÁ POLÍTICA FOR INSERT COM WITH CHECK (true)
--- A Edge Function 'criar-agendamento' roda com service_role e insere diretamente
--- Clientes NÃO fazem INSERT direto na tabela agendamentos
 
--- ATUALIZAÇÃO: Dono/barbeiro/admin podem atualizar status, etc.
 DROP POLICY IF EXISTS agendamentos_update_owner ON public.agendamentos;
 CREATE POLICY agendamentos_update_owner ON public.agendamentos
   FOR UPDATE USING (
     public.is_estabelecimento_owner(estabelecimento_id)
     OR EXISTS (
       SELECT 1 FROM public.profissionais p
-      WHERE p.id = profissional_id AND p.usuario_id = auth.uid()
+      WHERE p.id = profissional_id AND p.usuario_id = (select auth.uid())
     )
     OR public.is_admin()
   )
@@ -976,7 +1095,7 @@ CREATE POLICY agendamentos_update_owner ON public.agendamentos
     public.is_estabelecimento_owner(estabelecimento_id)
     OR EXISTS (
       SELECT 1 FROM public.profissionais p
-      WHERE p.id = profissional_id AND p.usuario_id = auth.uid()
+      WHERE p.id = profissional_id AND p.usuario_id = (select auth.uid())
     )
     OR public.is_admin()
   );
@@ -985,7 +1104,6 @@ CREATE POLICY agendamentos_update_owner ON public.agendamentos
 -- POLÍTICAS RLS: item_agendamento
 -- ============================================================================
 
--- Segue mesma lógica de agendamentos (via JOIN)
 DROP POLICY IF EXISTS item_agendamento_select ON public.item_agendamento;
 CREATE POLICY item_agendamento_select ON public.item_agendamento
   FOR SELECT USING (
@@ -993,11 +1111,11 @@ CREATE POLICY item_agendamento_select ON public.item_agendamento
       SELECT 1 FROM public.agendamentos a
       WHERE a.id = agendamento_id
       AND (
-        a.usuario_id = auth.uid()
+        a.usuario_id = (select auth.uid())
         OR public.is_estabelecimento_owner(a.estabelecimento_id)
         OR EXISTS (
           SELECT 1 FROM public.profissionais p
-          WHERE p.id = a.profissional_id AND p.usuario_id = auth.uid()
+          WHERE p.id = a.profissional_id AND p.usuario_id = (select auth.uid())
         )
         OR public.is_admin()
       )
@@ -1005,7 +1123,6 @@ CREATE POLICY item_agendamento_select ON public.item_agendamento
   );
 
 -- Apenas service_role (Edge Functions) insere
--- NÃO HÁ POLÍTICA FOR INSERT para usuários autenticados
 
 DROP POLICY IF EXISTS item_agendamento_admin_all ON public.item_agendamento;
 CREATE POLICY item_agendamento_admin_all ON public.item_agendamento
@@ -1034,7 +1151,6 @@ CREATE POLICY galeria_manage_owner ON public.galeria
 -- POLÍTICAS RLS: avaliacoes
 -- ============================================================================
 
--- Público vê avaliações de estabelecimentos aprovados
 DROP POLICY IF EXISTS avaliacoes_select_public ON public.avaliacoes;
 CREATE POLICY avaliacoes_select_public ON public.avaliacoes
   FOR SELECT USING (
@@ -1044,21 +1160,19 @@ CREATE POLICY avaliacoes_select_public ON public.avaliacoes
     )
   );
 
--- Cliente insere avaliação do SEU agendamento concluído
 DROP POLICY IF EXISTS avaliacoes_insert_cliente ON public.avaliacoes;
 CREATE POLICY avaliacoes_insert_cliente ON public.avaliacoes
   FOR INSERT WITH CHECK (
-    usuario_id = auth.uid()
+    usuario_id = (select auth.uid())
     AND EXISTS (
       SELECT 1 FROM public.agendamentos a
       WHERE a.id = agendamento_id
-      AND a.usuario_id = auth.uid()
+      AND a.usuario_id = (select auth.uid())
       AND a.status = 'concluido'
       AND a.avaliacao_estrelas IS NULL
     )
   );
 
--- Dono/barbeiro responde avaliação
 DROP POLICY IF EXISTS avaliacoes_update_owner ON public.avaliacoes;
 CREATE POLICY avaliacoes_update_owner ON public.avaliacoes
   FOR UPDATE USING (public.is_estabelecimento_owner(estabelecimento_id) OR public.is_admin())
@@ -1073,7 +1187,6 @@ CREATE POLICY avaliacoes_admin_all ON public.avaliacoes
 -- POLÍTICAS RLS: publicacoes (feed)
 -- ============================================================================
 
--- Público vê publicações de estabelecimentos aprovados
 DROP POLICY IF EXISTS publicacoes_select_public ON public.publicacoes;
 CREATE POLICY publicacoes_select_public ON public.publicacoes
   FOR SELECT USING (
@@ -1083,8 +1196,8 @@ CREATE POLICY publicacoes_select_public ON public.publicacoes
     )
   );
 
--- Dono/barbeiro/admin gerencia publicações do seu estabelecimento
-DROP POLICY IF EXISTS publicacoes_manage_owner ON public.publicacoes
+DROP POLICY IF EXISTS publicacoes_manage_owner ON public.publicacoes;
+CREATE POLICY publicacoes_manage_owner ON public.publicacoes
   FOR ALL USING (public.is_estabelecimento_owner(estabelecimento_id) OR public.is_admin())
   WITH CHECK (public.is_estabelecimento_owner(estabelecimento_id) OR public.is_admin());
 
@@ -1123,13 +1236,11 @@ CREATE POLICY publicacao_midias_manage_owner ON public.publicacao_midias
 -- POLÍTICAS RLS: curtidas
 -- ============================================================================
 
--- Usuário vê/gerencia suas próprias curtidas
 DROP POLICY IF EXISTS curtidas_own ON public.curtidas;
 CREATE POLICY curtidas_own ON public.curtidas
-  FOR ALL USING (usuario_id = auth.uid())
-  WITH CHECK (usuario_id = auth.uid());
+  FOR ALL USING (usuario_id = (select auth.uid()))
+  WITH CHECK (usuario_id = (select auth.uid()));
 
--- Admin vê tudo
 DROP POLICY IF EXISTS curtidas_admin_all ON public.curtidas;
 CREATE POLICY curtidas_admin_all ON public.curtidas
   FOR ALL USING (public.is_admin())
@@ -1141,8 +1252,8 @@ CREATE POLICY curtidas_admin_all ON public.curtidas
 
 DROP POLICY IF EXISTS salvos_own ON public.salvos;
 CREATE POLICY salvos_own ON public.salvos
-  FOR ALL USING (usuario_id = auth.uid())
-  WITH CHECK (usuario_id = auth.uid());
+  FOR ALL USING (usuario_id = (select auth.uid()))
+  WITH CHECK (usuario_id = (select auth.uid()));
 
 DROP POLICY IF EXISTS salvos_admin_all ON public.salvos;
 CREATE POLICY salvos_admin_all ON public.salvos
@@ -1153,7 +1264,6 @@ CREATE POLICY salvos_admin_all ON public.salvos
 -- POLÍTICAS RLS: comentarios
 -- ============================================================================
 
--- Público vê comentários de publicações de estabelecimentos aprovados
 DROP POLICY IF EXISTS comentarios_select_public ON public.comentarios;
 CREATE POLICY comentarios_select_public ON public.comentarios
   FOR SELECT USING (
@@ -1164,18 +1274,16 @@ CREATE POLICY comentarios_select_public ON public.comentarios
     )
   );
 
--- Usuário autenticado insere comentário
 DROP POLICY IF EXISTS comentarios_insert_auth ON public.comentarios;
 CREATE POLICY comentarios_insert_auth ON public.comentarios
   FOR INSERT WITH CHECK (
-    auth.uid() IS NOT NULL
-    AND autor_id = auth.uid()
+    (select auth.uid()) IS NOT NULL
+    AND autor_id = (select auth.uid())
   );
 
--- Autor ou admin exclui
 DROP POLICY IF EXISTS comentarios_delete_own ON public.comentarios;
 CREATE POLICY comentarios_delete_own ON public.comentarios
-  FOR DELETE USING (autor_id = auth.uid() OR public.is_admin());
+  FOR DELETE USING (autor_id = (select auth.uid()) OR public.is_admin());
 
 DROP POLICY IF EXISTS comentarios_admin_all ON public.comentarios;
 CREATE POLICY comentarios_admin_all ON public.comentarios
@@ -1186,12 +1294,10 @@ CREATE POLICY comentarios_admin_all ON public.comentarios
 -- POLÍTICAS RLS: inspiracaoes
 -- ============================================================================
 
--- Leitura pública total (catálogo curado)
 DROP POLICY IF EXISTS inspiracaoes_select_public ON public.inspiracaoes;
 CREATE POLICY inspiracaoes_select_public ON public.inspiracaoes
   FOR SELECT USING (true);
 
--- Apenas admin gerencia
 DROP POLICY IF EXISTS inspiracaoes_admin_all ON public.inspiracaoes;
 CREATE POLICY inspiracaoes_admin_all ON public.inspiracaoes
   FOR ALL USING (public.is_admin())
@@ -1214,17 +1320,12 @@ CREATE POLICY inspiracao_midias_admin_all ON public.inspiracao_midias
 -- POLÍTICAS RLS: seguidores
 -- ============================================================================
 
--- Usuário gerencia seus próprios follows
 DROP POLICY IF EXISTS seguidores_own ON public.seguidores;
 CREATE POLICY seguidores_own ON public.seguidores
-  FOR ALL USING (usuario_id = auth.uid())
-  WITH CHECK (usuario_id = auth.uid());
+  FOR ALL USING (usuario_id = (select auth.uid()))
+  WITH CHECK (usuario_id = (select auth.uid()));
 
--- Público vê contagem (via view ou RPC)
-DROP POLICY IF EXISTS seguidores_select_public ON public.seguidores;
-CREATE POLICY seguidores_select_public ON public.seguidores
-  FOR SELECT USING (true);
-
+-- Registros individuais visíveis apenas ao próprio usuário e admins
 DROP POLICY IF EXISTS seguidores_admin_all ON public.seguidores;
 CREATE POLICY seguidores_admin_all ON public.seguidores
   FOR ALL USING (public.is_admin())
@@ -1234,12 +1335,10 @@ CREATE POLICY seguidores_admin_all ON public.seguidores
 -- POLÍTICAS RLS: planos_assinatura
 -- ============================================================================
 
--- Leitura pública (apenas ativos)
 DROP POLICY IF EXISTS planos_select_public ON public.planos_assinatura;
 CREATE POLICY planos_select_public ON public.planos_assinatura
   FOR SELECT USING (ativo = true);
 
--- Apenas admin gerencia
 DROP POLICY IF EXISTS planos_admin_all ON public.planos_assinatura;
 CREATE POLICY planos_admin_all ON public.planos_assinatura
   FOR ALL USING (public.is_admin())
@@ -1249,60 +1348,51 @@ CREATE POLICY planos_admin_all ON public.planos_assinatura
 -- POLÍTICAS RLS: assinaturas
 -- ============================================================================
 
--- Dono/barbeiro vê sua assinatura
 DROP POLICY IF EXISTS assinaturas_select_owner ON public.assinaturas;
 CREATE POLICY assinaturas_select_owner ON public.assinaturas
   FOR SELECT USING (public.is_estabelecimento_owner(estabelecimento_id));
 
--- Admin vê/gerencia tudo
 DROP POLICY IF EXISTS assinaturas_admin_all ON public.assinaturas;
 CREATE POLICY assinaturas_admin_all ON public.assinaturas
   FOR ALL USING (public.is_admin())
   WITH CHECK (public.is_admin());
 
 -- Apenas service_role (Edge Functions) insere/atualiza assinaturas
--- NÃO HÁ POLÍTICA FOR INSERT para usuários autenticados
 
 -- ============================================================================
--- POLÍTICAS RLS: pagamentos (SENSÍVEL - REQUISITO OBRIGATÓRIO #4)
+-- POLÍTICAS RLS: pagamentos (SENSÍVEL)
 -- ============================================================================
 
--- Dono/barbeiro vê pagamentos do seu estabelecimento
 DROP POLICY IF EXISTS pagamentos_select_owner ON public.pagamentos;
 CREATE POLICY pagamentos_select_owner ON public.pagamentos
   FOR SELECT USING (public.is_estabelecimento_owner(estabelecimento_id));
 
--- Cliente vê SEUS pagamentos de agendamento
 DROP POLICY IF EXISTS pagamentos_select_cliente ON public.pagamentos;
 CREATE POLICY pagamentos_select_cliente ON public.pagamentos
   FOR SELECT USING (
     agendamento_id IS NOT NULL
     AND EXISTS (
       SELECT 1 FROM public.agendamentos a
-      WHERE a.id = agendamento_id AND a.usuario_id = auth.uid()
+      WHERE a.id = agendamento_id AND a.usuario_id = (select auth.uid())
     )
   );
 
--- Admin vê tudo
 DROP POLICY IF EXISTS pagamentos_admin_all ON public.pagamentos;
 CREATE POLICY pagamentos_admin_all ON public.pagamentos
   FOR ALL USING (public.is_admin())
   WITH CHECK (public.is_admin());
 
 -- PROIBIDO: FOR INSERT WITH CHECK (true) — APENAS EDGE FUNCTIONS (service_role)
--- A Edge Function 'gerar-cobranca-pix' e 'webhook-pagamento' inserem/atualizam
 
 -- ============================================================================
 -- POLÍTICAS RLS: notificacoes (SENSÍVEL)
 -- ============================================================================
 
--- Usuário vê apenas suas notificações
 DROP POLICY IF EXISTS notificacoes_own ON public.notificacoes;
 CREATE POLICY notificacoes_own ON public.notificacoes
-  FOR ALL USING (destinatario_id = auth.uid())
-  WITH CHECK (destinatario_id = auth.uid());
+  FOR ALL USING (destinatario_id = (select auth.uid()))
+  WITH CHECK (destinatario_id = (select auth.uid()));
 
--- Admin vê tudo
 DROP POLICY IF EXISTS notificacoes_admin_all ON public.notificacoes;
 CREATE POLICY notificacoes_admin_all ON public.notificacoes
   FOR ALL USING (public.is_admin())
@@ -1332,21 +1422,56 @@ CREATE POLICY audit_logs_admin_select ON public.audit_logs
 -- Apenas service_role (Edge Functions) insere — NÃO HÁ UPDATE/DELETE
 
 -- ============================================================================
--- VIEWS ÚTEIS
+-- VIEWS (ZERO "Security Definer View" — todas usam security_invoker = true)
 -- ============================================================================
 
--- View: estabelecimentos públicos com contadores
-CREATE OR REPLACE VIEW public.v_estabelecimentos_publicos AS
+-- View pública com projeção explícita: nunca inclui configuracao_pix_chave.
+-- security_invoker mantém as políticas RLS aplicáveis às demais tabelas consultadas.
+DROP VIEW IF EXISTS public.v_estabelecimentos_publicos;
+CREATE VIEW public.v_estabelecimentos_publicos
+WITH (security_invoker = true)
+AS
 SELECT
-  e.*,
-  (SELECT COUNT(*) FROM public.seguidores s WHERE s.estabelecimento_id = e.id) AS seguidores_count,
-  (SELECT COUNT(*) FROM public.servicos sv WHERE sv.estabelecimento_id = e.id AND sv.ativo = true) AS servicos_count,
-  (SELECT COUNT(*) FROM public.profissionais p WHERE p.estabelecimento_id = e.id AND p.ativo = true) AS profissionais_count
+  e.id,
+  e.slug,
+  e.nome,
+  e.responsavel,
+  e.cidade,
+  e.nicho,
+  e.avaliacao,
+  e.status,
+  e.latitude,
+  e.longitude,
+  e.whatsapp,
+  e.endereco,
+  e.sobre,
+  e.tema_cor,
+  e.tema_layout,
+  e.tema_titulo,
+  e.tema_subtitulo,
+  e.tempo_medio_atendimento,
+  e.horario_funcionamento,
+  e.permite_auto_edicao,
+  e.configuracao_pix_modo,
+  e.configuracao_pix_percentual_sinal,
+  e.seguidores,
+  (SELECT COUNT(*) FROM public.servicos sv
+   WHERE sv.estabelecimento_id = e.id AND sv.ativo = true) AS servicos_count,
+  (SELECT COUNT(*) FROM public.profissionais pr
+   WHERE pr.estabelecimento_id = e.id AND pr.ativo = true) AS profissionais_count,
+  e.taxa_fidelidade,
+  e.data_criacao,
+  e.data_atualizacao
 FROM public.estabelecimentos e
 WHERE e.status = 'aprovado';
 
--- View: agendamentos com dados expandidos (para dashboards)
-CREATE OR REPLACE VIEW public.v_agendamentos_detalhados AS
+GRANT SELECT ON public.v_estabelecimentos_publicos TO anon, authenticated, service_role;
+
+-- View de dados detalhados respeita RLS das tabelas-base e não contorna permissões.
+DROP VIEW IF EXISTS public.v_agendamentos_detalhados;
+CREATE VIEW public.v_agendamentos_detalhados
+WITH (security_invoker = true)
+AS
 SELECT
   a.*,
   e.nome AS estabelecimento_nome,
@@ -1360,11 +1485,13 @@ JOIN public.estabelecimentos e ON e.id = a.estabelecimento_id
 JOIN public.profissionais p ON p.id = a.profissional_id
 LEFT JOIN public.usuarios u ON u.id = a.usuario_id;
 
+GRANT SELECT ON public.v_agendamentos_detalhados TO authenticated, service_role;
+
 -- ============================================================================
--- RPC FUNCTIONS (para operações complexas seguras)
+-- RPC FUNCTIONS (ZERO "Function Search Path Mutable" — todas com search_path FIXO)
 -- ============================================================================
 
--- RPC: Obter slots disponíveis por profissional/dia (usa horarios_funcionamento, bloqueios, agendamentos existentes)
+-- RPC: Obter slots disponíveis por profissional/dia.
 CREATE OR REPLACE FUNCTION public.rpc_slots_disponiveis(
   p_profissional_id UUID,
   p_dia DATE,
@@ -1374,70 +1501,89 @@ RETURNS TABLE (
   horario TIME,
   disponivel BOOLEAN,
   profissional_nome TEXT
-) LANGUAGE plpgsql SECURITY DEFINER AS $$
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, public, extensions, auth
+AS $$
 DECLARE
   v_inicio TIME;
   v_fim TIME;
   v_intervalo INT;
-  v_slot TIME;
+  v_slot TIMESTAMP WITHOUT TIME ZONE;
+  v_nome TEXT;
   v_ocupado BOOLEAN;
   v_bloqueado BOOLEAN;
+  v_passado BOOLEAN;
+  v_inicio_ts TIMESTAMPTZ;
+  v_fim_ts TIMESTAMPTZ;
 BEGIN
-  -- Busca horário de funcionamento do profissional para o dia da semana
-  SELECT hora_inicio, hora_fim, intervalo_minutos
-  INTO v_inicio, v_fim, v_intervalo
-  FROM public.horarios_funcionamento
-  WHERE profissional_id = p_profissional_id
-    AND dia_semana = EXTRACT(DOW FROM p_dia)::INT
-    AND ativo = true
+  IF p_profissional_id IS NULL OR p_dia IS NULL
+     OR p_duracao_min IS NULL OR p_duracao_min <= 0 THEN
+    RAISE EXCEPTION 'Parâmetros inválidos para consulta de disponibilidade.'
+      USING ERRCODE = '22023';
+  END IF;
+
+  SELECT hf.hora_inicio, hf.hora_fim, hf.intervalo_minutos, pr.nome
+  INTO v_inicio, v_fim, v_intervalo, v_nome
+  FROM public.horarios_funcionamento hf
+  JOIN public.profissionais pr ON pr.id = hf.profissional_id
+  JOIN public.estabelecimentos e ON e.id = pr.estabelecimento_id
+  WHERE hf.profissional_id = p_profissional_id
+    AND hf.dia_semana = EXTRACT(DOW FROM p_dia)::INT
+    AND hf.ativo = true
+    AND pr.ativo = true
+    AND e.status = 'aprovado'
   LIMIT 1;
 
-  IF NOT FOUND THEN
-    RETURN QUERY SELECT NULL::TIME, false, NULL::TEXT WHERE false;
+  IF NOT FOUND OR v_intervalo IS NULL OR v_intervalo <= 0
+     OR v_fim <= v_inicio THEN
     RETURN;
   END IF;
 
-  -- Busca nome do profissional
-  DECLARE v_nome TEXT;
-  SELECT nome INTO v_nome FROM public.profissionais WHERE id = p_profissional_id;
+  v_slot := p_dia + v_inicio;
+  WHILE (v_slot + make_interval(mins => p_duracao_min)) <= (p_dia + v_fim) LOOP
+    v_inicio_ts := v_slot AT TIME ZONE 'UTC';
+    v_fim_ts := (v_slot + make_interval(mins => p_duracao_min)) AT TIME ZONE 'UTC';
 
-  -- Gera slots
-  v_slot := v_inicio;
-  WHILE v_slot + (p_duracao_min || ' minutes')::interval <= v_fim LOOP
-    -- Verifica se há agendamento conflitante
     SELECT EXISTS (
-      SELECT 1 FROM public.agendamentos
-      WHERE profissional_id = p_profissional_id
-        AND dia = p_dia
-        AND status NOT IN ('cancelado', 'nao_compareceu')
-        AND (
-          (horario <= v_slot AND horario + (duracao_min || ' minutes')::interval > v_slot)
-          OR (horario < v_slot + (p_duracao_min || ' minutes')::interval AND horario + (duracao_min || ' minutes')::interval >= v_slot + (p_duracao_min || ' minutes')::interval)
-        )
+      SELECT 1
+      FROM public.agendamentos a
+      WHERE a.profissional_id = p_profissional_id
+        AND a.status NOT IN ('cancelado', 'nao_compareceu')
+        AND tstzrange(
+          (a.dia + a.horario) AT TIME ZONE 'UTC',
+          (a.dia + a.horario + make_interval(mins => a.duracao_min)) AT TIME ZONE 'UTC',
+          '[)'
+        ) && tstzrange(v_inicio_ts, v_fim_ts, '[)')
     ) INTO v_ocupado;
 
-    -- Verifica bloqueio
     SELECT EXISTS (
-      SELECT 1 FROM public.bloqueios_agenda
-      WHERE profissional_id = p_profissional_id
-        AND inicio <= (p_dia + v_slot) AT TIME ZONE 'UTC'
-        AND fim > (p_dia + v_slot) AT TIME ZONE 'UTC'
+      SELECT 1
+      FROM public.bloqueios_agenda b
+      WHERE b.profissional_id = p_profissional_id
+        AND b.inicio < v_fim_ts
+        AND b.fim > v_inicio_ts
     ) INTO v_bloqueado;
 
-    -- Verifica se já passou
-    DECLARE v_passado BOOLEAN := (p_dia + v_slot) AT TIME ZONE 'UTC' < now();
+    v_passado := v_inicio_ts < now();
 
-    RETURN QUERY SELECT v_slot, (NOT v_ocupado AND NOT v_bloqueado AND NOT v_passado), v_nome;
+    RETURN QUERY
+      SELECT v_slot::TIME, (NOT v_ocupado AND NOT v_bloqueado AND NOT v_passado), v_nome;
 
-    v_slot := v_slot + (v_intervalo || ' minutes')::interval;
+    v_slot := v_slot + make_interval(mins => v_intervalo);
   END LOOP;
-END $$;
+END;
+$$;
 
--- RPC: Criar agendamento com transação atômica (usado pela Edge Function)
+REVOKE ALL ON FUNCTION public.rpc_slots_disponiveis(UUID, DATE, INT) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.rpc_slots_disponiveis(UUID, DATE, INT) TO anon, authenticated, service_role;
+
+-- RPC: Criar agendamento com transação atômica (uso exclusivo da Edge Function/service_role).
 CREATE OR REPLACE FUNCTION public.rpc_criar_agendamento(
   p_estabelecimento_id UUID,
   p_profissional_id UUID,
-  p_usuario_id UUID, -- pode ser NULL
+  p_usuario_id UUID,
   p_dia DATE,
   p_horario TIME,
   p_duracao_min INT,
@@ -1451,65 +1597,167 @@ CREATE OR REPLACE FUNCTION public.rpc_criar_agendamento(
 RETURNS TABLE (
   agendamento_id UUID,
   erro TEXT
-) LANGUAGE plpgsql SECURITY DEFINER AS $$
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, public, extensions, auth
+AS $$
 DECLARE
   v_agendamento_id UUID;
   v_servicos TEXT;
   v_servico RECORD;
+  v_qtd_servicos BIGINT;
+  v_duracao_servicos BIGINT;
 BEGIN
-  -- Valida profissional pertence ao estabelecimento
-  IF NOT EXISTS (
-    SELECT 1 FROM public.profissionais
-    WHERE id = p_profissional_id AND estabelecimento_id = p_estabelecimento_id
-  ) THEN
-    RETURN QUERY SELECT NULL, 'Profissional não pertence ao estabelecimento';
+  IF p_estabelecimento_id IS NULL OR p_profissional_id IS NULL
+     OR p_dia IS NULL OR p_horario IS NULL
+     OR p_duracao_min IS NULL OR p_duracao_min <= 0
+     OR p_valor_total_centavos IS NULL OR p_valor_total_centavos < 0
+     OR p_status_pagamento IS NULL
+     OR NULLIF(BTRIM(p_nome_cliente), '') IS NULL
+     OR NULLIF(BTRIM(p_telefone_cliente), '') IS NULL THEN
+    RETURN QUERY SELECT NULL::UUID, 'Dados obrigatórios do agendamento inválidos'::TEXT;
+    RETURN;
   END IF;
 
-  -- Concatena nomes dos serviços
-  SELECT STRING_AGG(nome, ' + ') INTO v_servicos
-  FROM public.servicos
-  WHERE id = ANY(p_servico_ids);
+  IF p_servico_ids IS NULL OR cardinality(p_servico_ids) = 0 THEN
+    RETURN QUERY SELECT NULL::UUID, 'Selecione ao menos um serviço'::TEXT;
+    RETURN;
+  END IF;
 
-  -- Insere agendamento (constraint anti-overbooking valida automaticamente)
+  IF cardinality(p_servico_ids) <> (
+    SELECT COUNT(DISTINCT item.servico_id)::INT
+    FROM unnest(p_servico_ids) AS item(servico_id)
+  ) THEN
+    RETURN QUERY SELECT NULL::UUID, 'A lista contém serviços duplicados'::TEXT;
+    RETURN;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM public.profissionais pr
+    JOIN public.estabelecimentos e ON e.id = pr.estabelecimento_id
+    WHERE pr.id = p_profissional_id
+      AND pr.estabelecimento_id = p_estabelecimento_id
+      AND pr.ativo = true
+      AND e.status = 'aprovado'
+  ) THEN
+    RETURN QUERY SELECT NULL::UUID, 'Profissional inválido, inativo ou estabelecimento não aprovado'::TEXT;
+    RETURN;
+  END IF;
+
+  SELECT COUNT(*), COALESCE(SUM(s.duracao_min), 0), STRING_AGG(s.nome, ' + ' ORDER BY selected.ordem)
+  INTO v_qtd_servicos, v_duracao_servicos, v_servicos
+  FROM unnest(p_servico_ids) WITH ORDINALITY AS selected(servico_id, ordem)
+  JOIN public.servicos s ON s.id = selected.servico_id
+  WHERE s.estabelecimento_id = p_estabelecimento_id
+    AND s.ativo = true;
+
+  IF v_qtd_servicos <> cardinality(p_servico_ids) THEN
+    RETURN QUERY SELECT NULL::UUID, 'Um ou mais serviços são inválidos, inativos ou pertencem a outro estabelecimento'::TEXT;
+    RETURN;
+  END IF;
+
+  IF v_duracao_servicos <> p_duracao_min THEN
+    RETURN QUERY SELECT NULL::UUID, 'A duração informada não corresponde à soma das durações dos serviços'::TEXT;
+    RETURN;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM public.horarios_funcionamento hf
+    WHERE hf.profissional_id = p_profissional_id
+      AND hf.dia_semana = EXTRACT(DOW FROM p_dia)::INT
+      AND hf.ativo = true
+      AND (p_dia + p_horario) >= (p_dia + hf.hora_inicio)
+      AND (p_dia + p_horario + make_interval(mins => p_duracao_min)) <= (p_dia + hf.hora_fim)
+  ) THEN
+    RETURN QUERY SELECT NULL::UUID, 'Horário fora do expediente do profissional'::TEXT;
+    RETURN;
+  END IF;
+
+  IF ((p_dia + p_horario) AT TIME ZONE 'UTC') < now() THEN
+    RETURN QUERY SELECT NULL::UUID, 'Não é possível criar agendamento no passado'::TEXT;
+    RETURN;
+  END IF;
+
+  IF EXISTS (
+    SELECT 1
+    FROM public.bloqueios_agenda b
+    WHERE b.profissional_id = p_profissional_id
+      AND b.inicio < ((p_dia + p_horario + make_interval(mins => p_duracao_min)) AT TIME ZONE 'UTC')
+      AND b.fim > ((p_dia + p_horario) AT TIME ZONE 'UTC')
+  ) THEN
+    RETURN QUERY SELECT NULL::UUID, 'Horário bloqueado para esse profissional'::TEXT;
+    RETURN;
+  END IF;
+
   INSERT INTO public.agendamentos (
     estabelecimento_id, profissional_id, usuario_id, dia, horario, duracao_min,
     nome_cliente, telefone_cliente, servicos, valor_total_centavos,
     status_pagamento, status, servico_ids, observacoes
   ) VALUES (
     p_estabelecimento_id, p_profissional_id, p_usuario_id, p_dia, p_horario, p_duracao_min,
-    p_nome_cliente, p_telefone_cliente, v_servicos, p_valor_total_centavos,
+    BTRIM(p_nome_cliente), BTRIM(p_telefone_cliente), v_servicos, p_valor_total_centavos,
     p_status_pagamento, 'agendado', p_servico_ids, p_observacoes
   ) RETURNING id INTO v_agendamento_id;
 
-  -- Insere itens (congela preço e duração)
   FOR v_servico IN
-    SELECT id, preco_centavos, duracao_min
-    FROM public.servicos
-    WHERE id = ANY(p_servico_ids)
+    SELECT s.id, s.preco_centavos, s.duracao_min, selected.ordem
+    FROM unnest(p_servico_ids) WITH ORDINALITY AS selected(servico_id, ordem)
+    JOIN public.servicos s ON s.id = selected.servico_id
+    WHERE s.estabelecimento_id = p_estabelecimento_id
+      AND s.ativo = true
+    ORDER BY selected.ordem
   LOOP
-    INSERT INTO public.item_agendamento (agendamento_id, servico_id, preco_cobrado_centavos, duracao_min, ordem)
-    VALUES (v_agendamento_id, v_servico.id, v_servico.preco_centavos, v_servico.duracao_min, 0);
+    INSERT INTO public.item_agendamento (
+      agendamento_id, servico_id, preco_cobrado_centavos, duracao_min, ordem
+    ) VALUES (
+      v_agendamento_id, v_servico.id, v_servico.preco_centavos,
+      v_servico.duracao_min, (v_servico.ordem - 1)::INT
+    );
   END LOOP;
 
-  RETURN QUERY SELECT v_agendamento_id, NULL;
+  RETURN QUERY SELECT v_agendamento_id, NULL::TEXT;
 EXCEPTION
   WHEN exclusion_violation THEN
-    RETURN QUERY SELECT NULL, 'CONFLITO_HORARIO: Esse horário já foi ocupado por outro agendamento';
+    RETURN QUERY SELECT NULL::UUID, 'CONFLITO_HORARIO: Esse horário já foi ocupado por outro agendamento'::TEXT;
   WHEN unique_violation THEN
-    RETURN QUERY SELECT NULL, 'Erro de duplicidade';
-  WHEN others THEN
-    RETURN QUERY SELECT NULL, SQLERRM;
-END $$;
+    RETURN QUERY SELECT NULL::UUID, 'Erro de duplicidade'::TEXT;
+  WHEN OTHERS THEN
+    RETURN QUERY SELECT NULL::UUID, SQLERRM::TEXT;
+END;
+$$;
 
--- RPC: Anonimizar usuário (LGPD Art. 18)
+REVOKE ALL ON FUNCTION public.rpc_criar_agendamento(UUID, UUID, UUID, DATE, TIME, INT, TEXT, TEXT, UUID[], INT, public.status_pagamento, TEXT) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.rpc_criar_agendamento(UUID, UUID, UUID, DATE, TIME, INT, TEXT, TEXT, UUID[], INT, public.status_pagamento, TEXT) TO service_role;
+
+-- RPC: Anonimizar dados do usuário nas tabelas públicas (parte do fluxo LGPD).
 CREATE OR REPLACE FUNCTION public.rpc_anonimizar_usuario(p_usuario_id UUID)
-RETURNS VOID LANGUAGE plpgsql SECURITY DEFINER AS $$
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, public, extensions, auth
+AS $$
 DECLARE
   v_hash TEXT := md5(p_usuario_id::TEXT || clock_timestamp()::TEXT);
   v_novo_nome TEXT := 'Usuário Anonimizado ' || substr(v_hash, 1, 8);
   v_novo_email TEXT := 'anon-' || substr(v_hash, 1, 12) || '@corte-rapido.local';
 BEGIN
-  -- Anonimiza tabela usuarios (mantém ID para FKs)
+  IF p_usuario_id IS NULL THEN
+    RAISE EXCEPTION 'Informe o usuário que será anonimizado.' USING ERRCODE = '22023';
+  END IF;
+
+  IF COALESCE((select auth.role()), '') <> 'service_role'
+     AND NOT public.is_admin() THEN
+    RAISE EXCEPTION 'Somente administradores ou a Edge Function (service_role) podem anonimizar usuários.'
+      USING ERRCODE = '42501';
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM public.usuarios WHERE id = p_usuario_id) THEN
+    RAISE EXCEPTION 'Usuário não encontrado.' USING ERRCODE = 'P0002';
+  END IF;
+
   UPDATE public.usuarios SET
     nome = v_novo_nome,
     email = v_novo_email,
@@ -1523,7 +1771,6 @@ BEGIN
     data_atualizacao = now()
   WHERE id = p_usuario_id;
 
-  -- Anonimiza agendamentos (nome/telefone do cliente)
   UPDATE public.agendamentos SET
     nome_cliente = v_novo_nome,
     telefone_cliente = '(00) 00000-0000',
@@ -1531,41 +1778,40 @@ BEGIN
     avaliacao_comentario = NULL
   WHERE usuario_id = p_usuario_id;
 
-  -- Anonimiza avaliações
   UPDATE public.avaliacoes SET
     nome_cliente = v_novo_nome,
     comentario = '[anonimizado]'
   WHERE usuario_id = p_usuario_id;
 
-  -- Anonimiza publicações (autor)
   UPDATE public.publicacoes SET
     autor_nome = v_novo_nome,
     autor_avatar = NULL
   WHERE autor_id = p_usuario_id;
 
-  -- Anonimiza comentários
   UPDATE public.comentarios SET
     autor_nome = v_novo_nome,
     autor_avatar = NULL,
     texto = '[anonimizado]'
   WHERE autor_id = p_usuario_id;
 
-  -- Anonimiza inspirações
   UPDATE public.inspiracaoes SET
     autor_nome = v_novo_nome,
     autor_avatar = NULL
   WHERE autor_id = p_usuario_id;
 
-  -- Remove curtidas/salvos/seguidores (dados pessoais)
   DELETE FROM public.curtidas WHERE usuario_id = p_usuario_id;
   DELETE FROM public.salvos WHERE usuario_id = p_usuario_id;
   DELETE FROM public.seguidores WHERE usuario_id = p_usuario_id;
 
   -- NOTA: NÃO apaga pagamentos, audit_logs, webhooks_processados (retenção fiscal/legal)
-END $$;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.rpc_anonimizar_usuario(UUID) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.rpc_anonimizar_usuario(UUID) TO authenticated, service_role;
 
 -- ============================================================================
 -- COMENTÁRIOS FINAIS
 -- ============================================================================
 
-COMMENT ON DATABASE postgres IS 'Corte Rápido - SaaS Multi-tenant para Barbearias/Salões. Schema v1.0.0';
+COMMENT ON DATABASE postgres IS 'Corte Rápido - SaaS Multi-tenant para Barbearias/Salões. Schema v1.0.0 - Zero Alertas Supabase Advisor';
