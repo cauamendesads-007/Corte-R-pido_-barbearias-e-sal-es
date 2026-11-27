@@ -181,7 +181,10 @@ export const SupabaseEstabelecimentosService = {
       // Distância - se localização informada, calcula no JS
       const { data, error } = await query;
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseEstabelecimentosService.listarEstabelecimentos] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao buscar estabelecimentos.' };
+      }
 
       let resultado = (data || []).map(mapEstabelecimentoRowToTipo);
 
@@ -283,7 +286,10 @@ export const SupabaseEstabelecimentosService = {
         .eq('status', 'aprovado')
         .maybeSingle();
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseEstabelecimentosService.buscarEstabelecimentoPorSlug] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao buscar estabelecimento.' };
+      }
       if (!data) return { sucesso: true, dados: null };
 
       // Busca serviços separadamente
@@ -353,7 +359,10 @@ export const SupabaseEstabelecimentosService = {
         .eq('id', id)
         .single();
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseEstabelecimentosService.buscarEstabelecimentoPorId] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao buscar estabelecimento.' };
+      }
       if (!data) return { sucesso: true, dados: null };
 
       const est = mapEstabelecimentoRowToTipo(data);
@@ -415,7 +424,10 @@ export const SupabaseEstabelecimentosService = {
         .select()
         .single();
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseEstabelecimentosService.atualizarEstabelecimento] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao atualizar estabelecimento.' };
+      }
       if (!data) return { sucesso: false, erro: 'Estabelecimento não encontrado.' };
 
       return { sucesso: true, dados: mapEstabelecimentoRowToTipo(data) };
@@ -449,7 +461,10 @@ export const SupabaseEstabelecimentosService = {
         .select('configuracao_pix_modo, configuracao_pix_chave, configuracao_pix_percentual_sinal')
         .single();
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseEstabelecimentosService.atualizarConfiguracaoPix] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao atualizar configuração Pix.' };
+      }
 
       return {
         sucesso: true,
@@ -502,7 +517,10 @@ export const SupabaseEstabelecimentosService = {
         .eq('ativo', true)
         .order('ordem_exibicao');
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseEstabelecimentosService.listarServicos] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao buscar serviços.' };
+      }
 
       return { sucesso: true, dados: (data || []).map(mapServicoRowToTipo) };
     } catch (error) {
@@ -530,7 +548,10 @@ export const SupabaseEstabelecimentosService = {
         .eq('estabelecimento_id', estabelecimentoId)
         .single();
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseEstabelecimentosService.obterServico] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao buscar serviço.' };
+      }
       if (!data) return { sucesso: true, dados: null };
 
       return { sucesso: true, dados: mapServicoRowToTipo(data) };
@@ -582,7 +603,10 @@ export const SupabaseEstabelecimentosService = {
         .select('*, servico_midias(*)')
         .single();
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseEstabelecimentosService.adicionarServico] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao criar serviço.' };
+      }
 
       // Adiciona mídias se houver
       if (servico.midias && servico.midias.length > 0) {
@@ -649,7 +673,10 @@ export const SupabaseEstabelecimentosService = {
         .select('*, servico_midias(*)')
         .single();
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseEstabelecimentosService.atualizarServico] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao atualizar serviço.' };
+      }
 
       return { sucesso: true, dados: mapServicoRowToTipo(data) };
     } catch (error) {
@@ -676,7 +703,10 @@ export const SupabaseEstabelecimentosService = {
         .eq('id', servicoId)
         .eq('estabelecimento_id', estabelecimentoId);
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseEstabelecimentosService.excluirServico] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao excluir serviço.' };
+      }
 
       return { sucesso: true, dados: undefined };
     } catch (error) {
@@ -771,7 +801,10 @@ export const SupabaseEstabelecimentosService = {
           ordem: proximaOrdem,
         });
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseEstabelecimentosService.adicionarMidiaServico] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao adicionar mídia.' };
+      }
 
       // Recarrega serviço
       return this.obterServico(estabelecimentoId, servicoId) as Promise<ResultadoServico<Servico>>;
@@ -814,7 +847,10 @@ export const SupabaseEstabelecimentosService = {
         .delete()
         .eq('id', midias[midiaIndex].id);
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseEstabelecimentosService.removerMidiaServico] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao remover mídia.' };
+      }
 
       // Recarrega serviço
       return this.obterServico(estabelecimentoId, servicoId) as Promise<ResultadoServico<Servico>>;
@@ -865,7 +901,10 @@ export const SupabaseEstabelecimentosService = {
         .select()
         .single();
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseEstabelecimentosService.adicionarGaleria] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao adicionar à galeria.' };
+      }
 
       return { sucesso: true, dados: mapGaleriaRowToTipo(data) };
     } catch (error) {
@@ -892,7 +931,10 @@ export const SupabaseEstabelecimentosService = {
         .eq('id', itemId)
         .eq('estabelecimento_id', estabelecimentoId);
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseEstabelecimentosService.removerGaleria] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao remover da galeria.' };
+      }
 
       return { sucesso: true, dados: undefined };
     } catch (error) {
@@ -965,7 +1007,10 @@ export const SupabaseEstabelecimentosService = {
         .eq('estabelecimento_id', estabelecimentoId)
         .order('ordem');
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseEstabelecimentosService.listarGaleria] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao buscar galeria.' };
+      }
 
       return { sucesso: true, dados: (data || []).map(mapGaleriaRowToTipo) };
     } catch (error) {
@@ -996,7 +1041,10 @@ export const SupabaseEstabelecimentosService = {
         .eq('estabelecimento_id', estabelecimentoId)
         .order('data_criacao', { ascending: false });
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseEstabelecimentosService.listarAvaliacoes] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao buscar avaliações.' };
+      }
 
       return { sucesso: true, dados: (data || []).map(mapAvaliacaoRowToTipo) };
     } catch (error) {
@@ -1025,7 +1073,10 @@ export const SupabaseEstabelecimentosService = {
         .select()
         .single();
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseEstabelecimentosService.responderAvaliacao] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao responder avaliação.' };
+      }
 
       return { sucesso: true, dados: mapAvaliacaoRowToTipo(data) };
     } catch (error) {
@@ -1181,7 +1232,10 @@ export const SupabaseEstabelecimentosService = {
         .update({ permite_auto_edicao: permitido, data_atualizacao: new Date().toISOString() })
         .eq('id', estabelecimentoId);
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseEstabelecimentosService.definirAutoEdicao] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao definir auto-edição.' };
+      }
 
       return { sucesso: true, dados: undefined };
     } catch (error) {
@@ -1269,7 +1323,10 @@ export const SupabaseEstabelecimentosService = {
         .select()
         .single();
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseEstabelecimentosService.criarEstabelecimento] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao criar estabelecimento.' };
+      }
 
       return { sucesso: true, dados: mapEstabelecimentoRowToTipo(data) };
     } catch (error) {
@@ -1295,7 +1352,10 @@ export const SupabaseEstabelecimentosService = {
         .delete()
         .eq('id', id);
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseEstabelecimentosService.excluirEstabelecimento] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao excluir estabelecimento.' };
+      }
 
       return { sucesso: true, dados: undefined };
     } catch (error) {
@@ -1392,7 +1452,10 @@ export const SupabaseEstabelecimentosService = {
         .select()
         .single();
 
-      if (error) return { sucesso: false, erro: error.message };
+      if (error) {
+        console.error('[SupabaseEstabelecimentosService.adicionarAvaliacao] Erro:', error);
+        return { sucesso: false, erro: 'Erro ao adicionar avaliação.' };
+      }
 
       // Recalcula média
       const { data: avals, error: avalsError } = await supabase

@@ -253,8 +253,8 @@ describe('SupabaseEstabelecimentosService', () => {
 
     it('deve retornar erro quando Supabase falha', async () => {
       const chain = createChain(null);
-      chain.select.mockResolvedValue({ data: null, error: { message: 'Erro de conexão' } });
-      chain.then.mockImplementation((resolve) => resolve({ data: null, error: { message: 'Erro de conexão' } }));
+      chain.select.mockResolvedValue({ data: null, error: { message: 'Erro ao buscar estabelecimentos.' } });
+      chain.then.mockImplementation((resolve) => resolve({ data: null, error: { message: 'Erro ao buscar estabelecimentos.' } }));
 
       mockSupabase.from.mockImplementation((table) => {
         if (table === 'v_estabelecimentos_publicos') {
@@ -277,7 +277,7 @@ describe('SupabaseEstabelecimentosService', () => {
       const resultado = await service.listarEstabelecimentos(filtros);
 
       expect(resultado.sucesso).toBe(false);
-      expect(resultado.erro).toBe('Erro de conexão');
+      expect(resultado.erro).toBe('Erro ao buscar estabelecimentos.');
     });
   });
 
@@ -838,7 +838,7 @@ describe('SupabaseEstabelecimentosService', () => {
       const resultado = await service.atualizarEstabelecimento('est-123', { nome: 'Teste' });
 
       expect(resultado.sucesso).toBe(false);
-      expect(resultado.erro).toContain('permission denied');
+      expect(resultado.erro).toBe('Erro ao atualizar estabelecimento.');
     });
 
     it('deve retornar erro quando RLS bloqueia inserção de serviço', async () => {
@@ -865,7 +865,7 @@ describe('SupabaseEstabelecimentosService', () => {
       const resultado = await service.adicionarServico('est-123', { nome: 'Teste', preco: 50, duracaoMinutos: 30, tag: 'teste' });
 
       expect(resultado.sucesso).toBe(false);
-      expect(resultado.erro).toContain('permission denied');
+      expect(resultado.erro).toBe('Erro ao criar serviço.');
     });
   });
 });
