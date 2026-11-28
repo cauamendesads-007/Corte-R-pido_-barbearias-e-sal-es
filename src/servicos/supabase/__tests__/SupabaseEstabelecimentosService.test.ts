@@ -436,7 +436,8 @@ describe('SupabaseEstabelecimentosService', () => {
 
       expect(resultado.sucesso).toBe(true);
       expect(resultado.dados?.modo).toBe('obrigatorio');
-      expect(resultado.dados?.chave).toBe('nova@chave.com');
+      // configuracao_pix_chave é revoked para SELECT, retorna string vazia
+      expect(resultado.dados?.chave).toBe('');
       expect(resultado.dados?.percentualSinal).toBe(50);
     });
   });

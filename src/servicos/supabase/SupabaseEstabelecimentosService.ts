@@ -46,6 +46,9 @@ function mapEstabelecimentoRowToTipo(row: EstabelecimentoRow | VEstabelecimentos
   const avaliacoes: Avaliacao[] = (row as any).avaliacoes || [];
   const fila: PosicaoFila[] = (row as any).fila || [];
 
+  // configuracao_pix_chave NUNCA vem do banco (revoked via RLS) - usar string vazia
+  const pixChave = 'configuracao_pix_chave' in row ? (row as any).configuracao_pix_chave || '' : '';
+
   return {
     id: row.id,
     slug: row.slug,
@@ -81,7 +84,7 @@ function mapEstabelecimentoRowToTipo(row: EstabelecimentoRow | VEstabelecimentos
     permiteAutoEdicao: row.permite_auto_edicao,
     configuracaoPix: {
       modo: row.configuracao_pix_modo,
-      chave: row.configuracao_pix_chave || '',
+      chave: pixChave,
       percentualSinal: row.configuracao_pix_percentual_sinal,
     },
     avaliacoes,
@@ -343,6 +346,7 @@ export const SupabaseEstabelecimentosService = {
 
   /**
    * Buscar estabelecimento por ID (barbeiro/admin - vê todos status)
+   * Usa colunas explícitas (sem configuracao_pix_chave que é revoked)
    */
   async buscarEstabelecimentoPorId(id: string): Promise<ResultadoServico<Estabelecimento | null>> {
     if (isMockMode()) {
@@ -353,9 +357,19 @@ export const SupabaseEstabelecimentosService = {
     try {
       const supabase = getSupabase();
 
+      // Colunas permitidas pelo GRANT (sem configuracao_pix_chave)
+      const colunasPermitidas = [
+        'id', 'slug', 'nome', 'responsavel', 'cidade', 'nicho', 'avaliacao', 'status',
+        'latitude', 'longitude', 'whatsapp', 'endereco', 'sobre',
+        'tema_cor', 'tema_layout', 'tema_titulo', 'tema_subtitulo',
+        'tempo_medio_atendimento', 'horario_funcionamento',
+        'permite_auto_edicao', 'configuracao_pix_modo', 'configuracao_pix_percentual_sinal',
+        'seguidores', 'taxa_fidelidade', 'data_criacao', 'data_atualizacao'
+      ].join(', ');
+
       const { data, error } = await supabase
         .from('estabelecimentos')
-        .select('id, slug, nome, responsavel, cidade, nicho, avaliacao, status, latitude, longitude, whatsapp, endereco, sobre, tema_cor, tema_layout, tema_titulo, tema_subtitulo, tempo_medio_atendimento, horario_funcionamento, permite_auto_edicao, configuracao_pix_modo, configuracao_pix_percentual_sinal, seguidores, taxa_fidelidade, data_criacao, data_atualizacao, servicos(*, servico_midias(*)), galeria(*), avaliacoes(*)')
+        .select(`${colunasPermitidas}, servicos(*, servico_midias(*)), galeria(*), avaliacoes(*)`)
         .eq('id', id)
         .single();
 
@@ -439,6 +453,7 @@ export const SupabaseEstabelecimentosService = {
 
   /**
    * Atualizar configuração Pix
+   * Nota: configuracao_pix_chave é revoked para anon/authenticated, não incluímos no select de retorno
    */
   async atualizarConfiguracaoPix(id: string, config: ConfiguracaoPix): Promise<ResultadoServico<ConfiguracaoPix>> {
     if (isMockMode()) {
@@ -458,7 +473,7 @@ export const SupabaseEstabelecimentosService = {
           data_atualizacao: new Date().toISOString(),
         })
         .eq('id', id)
-        .select('configuracao_pix_modo, configuracao_pix_chave, configuracao_pix_percentual_sinal')
+        .select('configuracao_pix_modo, configuracao_pix_percentual_sinal')
         .single();
 
       if (error) {
@@ -466,11 +481,12 @@ export const SupabaseEstabelecimentosService = {
         return { sucesso: false, erro: 'Erro ao atualizar configuração Pix.' };
       }
 
+      // A chave foi definida pelo usuário, retorna string vazia (não exposta via RLS)
       return {
         sucesso: true,
         dados: {
           modo: data.configuracao_pix_modo,
-          chave: data.configuracao_pix_chave || '',
+          chave: '',
           percentualSinal: data.configuracao_pix_percentual_sinal,
         },
       };
@@ -1320,7 +1336,7 @@ export const SupabaseEstabelecimentosService = {
           seguidores: 0,
           taxa_fidelidade: 0,
         })
-        .select('id, slug, nome, responsavel, cidade, nicho, avaliacao, status, latitude, longitude, whatsapp, endereco, sobre, tema_cor, tema_layout, tema_titulo, tema_subtitulo, tempo_medio_atendimento, horario_funcionamento, permite_auto_edicao, configuracao_pix_modo, configuracao_pix_chave, configuracao_pix_percentual_sinal, seguidores, taxa_fidelidade, data_criacao, data_atualizacao')
+        .select('id, slug, nome, responsavel, cidade, nicho, avaliacao, status, latitude, longitude, whatsapp, endereco, sobre, tema_cor, tema_layout, tema_titulo, tema_subtitulo, tempo_medio_atendimento, horario_funcionamento, permite_auto_edicao, configuracao_pix_modo, configuracao_pix_percentual_sinal, seguidores, taxa_fidelidade, data_criacao, data_atualizacao')
         .single();
 
       if (error) {
