@@ -1,0 +1,55 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Secrets & Certificates
+*.pem
+*.key
+*.cert
+secrets.*
+credentials.*
+
+# Supabase temp
+supabase/.temp
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing
+coverage/
+
+# TypeScript
+*.tsbuildinfo
+
+# Misc
+*.local
+
+# Project docs (not tracked)
+CLAUDE.md
+PROMPT_TEMP.md
+ARQUITETURA_BACKEND.md
+ARQUITETURA_BACKEND_BLOCO2.md
+AUDITORIA.md
+DOCUMENTACAO.md

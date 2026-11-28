@@ -1,7 +1,6 @@
 // ============================================================================
 // SERVICE PROVIDER - Dependency Injection Container
-// Auto-seleciona entre Supabase (produção) e Mocks (desenvolvimento/testes)
-// baseado na variável de ambiente VITE_SUPABASE_URL
+// Seleciona entre: MySQL Backend (VITE_API_URL) > Supabase (VITE_SUPABASE_URL) > Mocks
 // ============================================================================
 
 import { isMockMode, initSupabase } from './supabase/client';
@@ -27,6 +26,13 @@ import type {
   StatusEstabelecimento,
   StatusAgendamento,
 } from '@/tipos';
+
+// Verifica qual backend usar
+function getBackendMode(): 'mysql' | 'supabase' | 'mock' {
+  if (import.meta.env.VITE_API_URL) return 'mysql';
+  if (import.meta.env.VITE_SUPABASE_URL) return 'supabase';
+  return 'mock';
+}
 
 // Tipos para as interfaces dos serviços
 interface IAuthService {
@@ -225,14 +231,18 @@ function ensureSupabaseInit() {
 async function getAuthService(): Promise<IAuthService> {
   if (_authService) return _authService;
 
-  ensureSupabaseInit();
+  const mode = getBackendMode();
 
-  if (isMockMode()) {
-    const { api } = await import('./api');
-    _authService = api.autenticacao as unknown as IAuthService;
-  } else {
+  if (mode === 'mysql') {
+    const { mysqlApi } = await import('./mysqlApi');
+    _authService = mysqlApi.autenticacao as unknown as IAuthService;
+  } else if (mode === 'supabase') {
+    ensureSupabaseInit();
     const { SupabaseAuthService } = await import('./supabase/SupabaseAuthService');
     _authService = SupabaseAuthService as unknown as IAuthService;
+  } else {
+    const { api } = await import('./api');
+    _authService = api.autenticacao as unknown as IAuthService;
   }
 
   return _authService;
@@ -241,14 +251,18 @@ async function getAuthService(): Promise<IAuthService> {
 async function getEstabelecimentosService(): Promise<IEstabelecimentosService> {
   if (_estabelecimentosService) return _estabelecimentosService;
 
-  ensureSupabaseInit();
+  const mode = getBackendMode();
 
-  if (isMockMode()) {
-    const { api } = await import('./api');
-    _estabelecimentosService = api.estabelecimentos as unknown as IEstabelecimentosService;
-  } else {
+  if (mode === 'mysql') {
+    const { mysqlApi } = await import('./mysqlApi');
+    _estabelecimentosService = mysqlApi.estabelecimentos as unknown as IEstabelecimentosService;
+  } else if (mode === 'supabase') {
+    ensureSupabaseInit();
     const { SupabaseEstabelecimentosService } = await import('./supabase/SupabaseEstabelecimentosService');
     _estabelecimentosService = SupabaseEstabelecimentosService as unknown as IEstabelecimentosService;
+  } else {
+    const { api } = await import('./api');
+    _estabelecimentosService = api.estabelecimentos as unknown as IEstabelecimentosService;
   }
 
   return _estabelecimentosService;
@@ -257,14 +271,18 @@ async function getEstabelecimentosService(): Promise<IEstabelecimentosService> {
 async function getAgendamentosService(): Promise<IAgendamentosService> {
   if (_agendamentosService) return _agendamentosService;
 
-  ensureSupabaseInit();
+  const mode = getBackendMode();
 
-  if (isMockMode()) {
-    const { api } = await import('./api');
-    _agendamentosService = api.agendamentos as unknown as IAgendamentosService;
-  } else {
+  if (mode === 'mysql') {
+    const { mysqlApi } = await import('./mysqlApi');
+    _agendamentosService = mysqlApi.agendamentos as unknown as IAgendamentosService;
+  } else if (mode === 'supabase') {
+    ensureSupabaseInit();
     const { SupabaseAgendamentosService } = await import('./supabase/SupabaseAgendamentosService');
     _agendamentosService = SupabaseAgendamentosService as unknown as IAgendamentosService;
+  } else {
+    const { api } = await import('./api');
+    _agendamentosService = api.agendamentos as unknown as IAgendamentosService;
   }
 
   return _agendamentosService;
@@ -273,14 +291,18 @@ async function getAgendamentosService(): Promise<IAgendamentosService> {
 async function getFeedService(): Promise<IFeedService> {
   if (_feedService) return _feedService;
 
-  ensureSupabaseInit();
+  const mode = getBackendMode();
 
-  if (isMockMode()) {
-    const { api } = await import('./api');
-    _feedService = api.feed as unknown as IFeedService;
-  } else {
+  if (mode === 'mysql') {
+    const { mysqlApi } = await import('./mysqlApi');
+    _feedService = mysqlApi.feed as unknown as IFeedService;
+  } else if (mode === 'supabase') {
+    ensureSupabaseInit();
     const { SupabaseFeedService } = await import('./supabase/SupabaseFeedService');
     _feedService = SupabaseFeedService as unknown as IFeedService;
+  } else {
+    const { api } = await import('./api');
+    _feedService = api.feed as unknown as IFeedService;
   }
 
   return _feedService;
@@ -289,14 +311,18 @@ async function getFeedService(): Promise<IFeedService> {
 async function getNotificacoesService(): Promise<INotificacoesService> {
   if (_notificacoesService) return _notificacoesService;
 
-  ensureSupabaseInit();
+  const mode = getBackendMode();
 
-  if (isMockMode()) {
-    const { api } = await import('./api');
-    _notificacoesService = api.notificacoes as unknown as INotificacoesService;
-  } else {
+  if (mode === 'mysql') {
+    const { mysqlApi } = await import('./mysqlApi');
+    _notificacoesService = mysqlApi.notificacoes as unknown as INotificacoesService;
+  } else if (mode === 'supabase') {
+    ensureSupabaseInit();
     const { SupabaseNotificacoesService } = await import('./supabase/SupabaseNotificacoesService');
     _notificacoesService = SupabaseNotificacoesService as unknown as INotificacoesService;
+  } else {
+    const { api } = await import('./api');
+    _notificacoesService = api.notificacoes as unknown as INotificacoesService;
   }
 
   return _notificacoesService;
@@ -305,14 +331,18 @@ async function getNotificacoesService(): Promise<INotificacoesService> {
 async function getBarbeiroService(): Promise<IBarbeiroService> {
   if (_barbeiroService) return _barbeiroService;
 
-  ensureSupabaseInit();
+  const mode = getBackendMode();
 
-  if (isMockMode()) {
-    const { api } = await import('./api');
-    _barbeiroService = api.barbeiro as unknown as IBarbeiroService;
-  } else {
+  if (mode === 'mysql') {
+    const { mysqlApi } = await import('./mysqlApi');
+    _barbeiroService = mysqlApi.barbeiro as unknown as IBarbeiroService;
+  } else if (mode === 'supabase') {
+    ensureSupabaseInit();
     const { SupabaseBarbeiroService } = await import('./supabase/SupabaseBarbeiroService');
     _barbeiroService = SupabaseBarbeiroService as unknown as IBarbeiroService;
+  } else {
+    const { api } = await import('./api');
+    _barbeiroService = api.barbeiro as unknown as IBarbeiroService;
   }
 
   return _barbeiroService;
@@ -321,14 +351,18 @@ async function getBarbeiroService(): Promise<IBarbeiroService> {
 async function getAdminService(): Promise<IAdminService> {
   if (_adminService) return _adminService;
 
-  ensureSupabaseInit();
+  const mode = getBackendMode();
 
-  if (isMockMode()) {
-    const { api } = await import('./api');
-    _adminService = api.admin as unknown as IAdminService;
-  } else {
+  if (mode === 'mysql') {
+    const { mysqlApi } = await import('./mysqlApi');
+    _adminService = mysqlApi.admin as unknown as IAdminService;
+  } else if (mode === 'supabase') {
+    ensureSupabaseInit();
     const { SupabaseAdminService } = await import('./supabase/SupabaseAdminService');
     _adminService = SupabaseAdminService as unknown as IAdminService;
+  } else {
+    const { api } = await import('./api');
+    _adminService = api.admin as unknown as IAdminService;
   }
 
   return _adminService;
@@ -493,5 +527,19 @@ export function forceSupabaseMode(): void {
   _barbeiroService = null;
   _adminService = null;
 }
+
+// Helper para forçar modo MySQL (útil para testes de integração)
+export function forceMysqlMode(): void {
+  _authService = null;
+  _estabelecimentosService = null;
+  _agendamentosService = null;
+  _feedService = null;
+  _notificacoesService = null;
+  _barbeiroService = null;
+  _adminService = null;
+}
+
+// Exporta função para saber qual backend está ativo
+export { getBackendMode };
 
 export default serviceProxy;
